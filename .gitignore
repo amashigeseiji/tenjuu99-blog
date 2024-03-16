@@ -4,3 +4,5 @@ dist/*
 !favicon.ico
 data/index.json
 .DS_Store
+
+.env

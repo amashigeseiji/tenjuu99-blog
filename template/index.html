@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{SITE_NAME}}</title>
+  {if gtag_id}
+  {include('./template/gtag.html')}
+  {/if}
+  <style>
+  {include('./css/layout.css')}
+  {include('./css/reset.css')}
+  </style>
+  <link rel="preload" href="${/css/generate.css:/css/page.css,/css/markdown.css}" as="style">
+  <link rel="stylesheet" href="${/css/generate.css:/css/page.css,/css/markdown.css}" media="print" onload="this.media='all'">
+</head>
+<body>
+  <header class="container">
+    <h1><a href="/">{{SITE_NAME}}</a></h1>
+  </header>
+  <main class="container">
+    {{MARKDOWN}}
+  </main>
+
+  {include('./template/footer.html')}
+</body>
+</html>

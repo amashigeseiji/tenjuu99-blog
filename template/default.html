@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="{{LANG}}">
+<head prefix="og: http://ogp.me/ns#">
+  {if gtag_id}
+  {include('./template/gtag.html')}
+  {/if}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{TITLE}} | {{SITE_NAME}}</title>
+  {if noindex}
+  <meta name="robots" content="noindex" />
+  {/if}
+  <meta property="og:url" content="{{URL_BASE}}{{URL}}">
+  <meta property="og:title" content="{{TITLE}}">
+  {if og_image}
+  <meta property="og:image" content="{{OG_IMAGE}}">
+  {/if}
+  {if og_description}
+  <meta property="og:description" content="{{OG_DESCRIPTION}}">
+  {/if}
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="{{SITE_NAME}}">
+  {script}
+  console.log(variables)
+    const url = variables.url_base + encodeURI(variables.url)
+    return `<link rel="canonical" href="${url}" />`
+  {/script}
+
+  <style>
+  {include('./css/layout.css')}
+  {include('./css/reset.css')}
+  </style>
+  <link rel="preload" href="${/css/generate.css:/css/page.css,/css/markdown.css}" as="style">
+  <link rel="stylesheet" href="${/css/generate.css:/css/page.css,/css/markdown.css}" media="print" onload="this.media='all'">
+</head>
+<body>
+  <header class="container">
+    <p><a href="/">{{SITE_NAME}}</a></p>
+  </header>
+  <main class="container">
+    <article>
+      <h1>{{TITLE}}</h1>
+      {if published}
+      <aside class="published">
+        <p>投稿: {script}return helper.dateFormat(variables.published){/script}
+      {/if}
+        {if modified} / 更新: {script}return helper.dateFormat(variables.modified){/script}{/if}
+        {if published}
+        </p>
+      </aside>
+      {/if}
+      {{MARKDOWN}}
+    </article>
+  </main>
+  {script}
+  if (!variables.index) {
+    return ''
+  }
+  return helper.readIndex()
+    .then(index => index.sort((a, b) => new Date(b.published) - new Date(a.published)))
+    .then(index => {
+      let prev = '', next = '', current = false
+      for (const page of index) {
+        if (!page.index) {
+          continue
+        }
+        if (current) {
+          prev = `<li class="prevNext__prev"><a href="${page.url}"><< ${page.title}</a></li>`
+          break
+        }
+        if (variables.name === page.name) {
+          current = true
+          continue
+        }
+        next = `<li class="prevNext__next"><a href="${page.url}">${page.title} >></a></li>`
+      }
+      if (next || prev) {
+      return `<div class="container"><ul class="prevNext">${prev ? prev : '<li></li>'}${next ? next : '<li></li>'}</ul></div>`
+      }
+      return ''
+    })
+  {/script}
+
+  {include('./template/footer.html')}
+</body>
+</html>

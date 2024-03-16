@@ -1,0 +1,36 @@
+{
+  "name": "blog",
+  "version": "0.1.0",
+  "description": "blog template",
+  "main": "index.js",
+  "scripts": {
+    "build": "source .env && SITE_NAME=$SITE_NAME URL_BASE=$URL_BASE node generate.js && node server.js",
+    "serve": "node server.js",
+    "generate": "source .env && SITE_NAME=$SITE_NAME URL_BASE=$URL_BASE node generate.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "npm-watch build"
+  },
+  "watch": {
+    "build": {
+      "patterns": [
+        "template/",
+        "helper/",
+        "lib/",
+        "data/",
+        "css/",
+        "generate.js"
+      ],
+      "extensions": "html,md,css,js",
+      "quite": true
+    }
+  },
+  "author": "AmashigeSeiji",
+  "license": "MIT",
+  "dependencies": {
+    "marked": "^4.2.12"
+  },
+  "devDependencies": {
+    "npm-watch": "^0.11.0"
+  },
+  "type": "module"
+}

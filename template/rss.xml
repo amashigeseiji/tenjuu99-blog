@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+  xmlns:admin="http://webns.net/mvcb/"
+  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+
+  <channel>
+    <title>{{SITE_NAME}}</title>
+    <link>{{URL_BASE}}/rss</link>
+    <description>!!!FIXME!!!</description>
+    <dc:language>ja</dc:language>
+    <dc:creator>!!!FIXME!!!</dc:creator>
+    {script}
+    return helper.readIndex()
+    .then(index => {
+      return index.sort((a, b) => new Date(b.published) - new Date(a.published))
+    }).then(index => {
+      let lastUpdatedAt = ''
+      let items = []
+      for (const page of index) {
+        if (page.index) {
+          const published = new Date(`${page.published} GMT+0900`)
+          if (!lastUpdatedAt) {
+            lastUpdatedAt = published
+          }
+          if (lastUpdatedAt.getTime() > published.getTime()) {
+            lastUpdatedAt = published
+          }
+          items.push(`
+      <item>
+        <title>${page.title}</title>
+        <link>{{URL_BASE}}${encodeURI(page.url)}</link>
+        <pubDate>${published.toUTCString()}</pubDate>
+      </item>
+          `)
+        }
+      }
+      items.unshift(`<dc:date>${lastUpdatedAt}</dc:date>\n`)
+      return items.join("\n")
+    })
+    {/script}
+  </channel>
+</rss>
