@@ -25,6 +25,8 @@ PORT=8001 npm run watch
 `url` は出力先になります。  
 `published` は index ファイルがソートするのに利用します。
 
+次のような記事マークダウンは `http://localhost:8000/sample_article` になります。
+
 ```markdown
 <!--
 title: sample article
@@ -67,6 +69,7 @@ return (new Date()).toString()
 {/script}
 ```
 
+[data/sample.md](data/sample.md) にサンプルを置いています。  
 
 ## テンプレートエンジン
 
