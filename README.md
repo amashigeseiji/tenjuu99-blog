@@ -126,3 +126,16 @@ This is else content.
 // write javascript and return value
 {/script}
 ```
+
+## デプロイ
+
+AWS S3 にデプロイするには、 `.github/workflow/deploy.yml.sample` を `.github/workflow/deploy.yml` にコピーします。
+
+GitHub のリポジトリで、`settings > Secrets and variables > Actions` から、以下の変数を登録します。
+
+* `AWS_ACCESS_KEY_ID`
+* `AWS_SECRET_ACCESS_KEY_ID`
+* `S3_URL`
+* `SITE_NAME`
+* `URL_BASE`
+* `GTAG_ID` (タグマネージャー利用の場合)

@@ -4,9 +4,9 @@
   "description": "blog template",
   "main": "index.js",
   "scripts": {
-    "build": "npm run generate && npm run serve",
+    "build": "source .env && SITE_NAME=$SITE_NAME URL_BASE=$URL_BASE npm run generate && npm run serve",
     "serve": "node server.js",
-    "generate": "source .env && SITE_NAME=$SITE_NAME URL_BASE=$URL_BASE node generate.js",
+    "generate": "node generate.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "watch": "npm-watch build"
   },
