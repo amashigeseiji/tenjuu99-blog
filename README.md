@@ -25,7 +25,7 @@ PORT=8001 npm run watch
 `url` は出力先になります。  
 `published` は index ファイルがソートするのに利用します。
 
-次のような記事マークダウンは `http://localhost:8000/sample_article` になります。
+次のような内容で、 `data/sample_article.md` などに保存すると `http://localhost:8000/sample_article` でアクセスできるようになります。
 
 ```markdown
 <!--
