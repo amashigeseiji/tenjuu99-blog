@@ -4,7 +4,7 @@
   "description": "blog template",
   "main": "index.js",
   "scripts": {
-    "build": "source .env && SITE_NAME=$SITE_NAME URL_BASE=$URL_BASE node generate.js && node server.js",
+    "build": "npm run generate && npm run serve",
     "serve": "node server.js",
     "generate": "source .env && SITE_NAME=$SITE_NAME URL_BASE=$URL_BASE node generate.js",
     "test": "echo \"Error: no test specified\" && exit 1",
