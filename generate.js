@@ -77,7 +77,7 @@ function cssGeneratorFunction() {
 }
 
 const parseMetaData = (markdown) => {
-  const regexp = new RegExp(/<!--([\s\S]*?)-->/)
+  const regexp = new RegExp(/^(<!|-)--(?<variables>[\s\S]*?)--(-|>)/)
   const matched = markdown.match(regexp)
   const metaDataDefault = {
     title: '',
@@ -87,8 +87,11 @@ const parseMetaData = (markdown) => {
     noindex: false,
     lang: 'ja'
   }
+  if (!matched) {
+    return { metaData: metaDataDefault, markdown }
+  }
   const metaData = Object.fromEntries(
-    matched[1].split('\n').filter(line => line.includes(':'))
+    matched.groups.variables.split('\n').filter(line => line.includes(':'))
     .map(line => {
       const index = line.indexOf(':')
       const key = line.slice(0, index)
@@ -99,7 +102,10 @@ const parseMetaData = (markdown) => {
       return [key, value]
     })
   )
-  return Object.assign(metaDataDefault, metaData)
+  return {
+    metaData: Object.assign(metaDataDefault, metaData),
+    markdown: markdown.replace(regexp, '')
+  }
 }
 
 const parseMarkdown = async (markdownText, data) => {
@@ -116,8 +122,8 @@ const url_base = process.env.URL_BASE
 const gtag_id = process.env.GTAG_ID
 for (const target of targets) {
   const markdownText = await file.markdown(target)
-  const metaData = parseMetaData(markdownText)
-  data[target] = { ...metaData, markdown: markdownText, name: target, gtag_id, site_name, url_base }
+  const { metaData, markdown } = parseMetaData(markdownText)
+  data[target] = { ...metaData, markdown, name: target, gtag_id, site_name, url_base }
   let { title, index, url, published, modified } = metaData
   if (typeof index === 'undefined') {
     index = true
