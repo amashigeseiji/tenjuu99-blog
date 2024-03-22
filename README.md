@@ -20,19 +20,19 @@ PORT=8001 npm run watch
 
 `./data/` 以下にマークダウンファイルを入稿します。
 
-ファイル冒頭にコメントで変数を指定できます。  
-`title` と `url` と `published`はが必須です。  
+ファイル冒頭を `---` でくくると変数を指定できます。  
+`title` と `url` と `published`が必須です。  
 `url` は出力先になります。  
 `published` は index ファイルがソートするのに利用します。
 
 次のような内容で、 `data/sample_article.md` などに保存すると `http://localhost:8000/sample_article` でアクセスできるようになります。
 
 ```markdown
-<!--
+---
 title: sample article
 url: /sample_article
 published: 2024/03/18 00:00
--->
+---
 
 トップレベル見出しは `title` 変数が利用されます。  
 変えたい場合は template/default.html を修正してください。
@@ -78,10 +78,10 @@ return (new Date()).toString()
 コメントに変数を記述できます。
 
 ```markdown
-<!--
+---
 foo: fooVariableContent
 bar: varVariableContent
--->
+---
 ```
 
 and in template
@@ -105,9 +105,9 @@ and in template
 ### IF
 
 ```markdown
-<!--
+---
 someVariable: true
--->
+---
 {if someVariable}
 This content will be present.
 {/if}

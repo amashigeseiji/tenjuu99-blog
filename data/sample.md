@@ -1,10 +1,10 @@
-<!--
+---
 title: sample article
 url: /sample_article
 published: 2024/03/18 00:00
 ifTrueVariable: true
 someVariable: これは変数として定義された値です。変数定義を確認してください。
--->
+---
 
 トップレベル見出しは `title` 変数が利用されます。  
 変えたい場合は template/default.html を修正してください。
