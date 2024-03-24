@@ -26,6 +26,7 @@ jobs:
           --exact-timestamps \
           --exclude .gitignore \
           --exclude '*.css' \
+          --exclude 'image/' \
           --delete \
           --metadata-directive REPLACE \
           --cache-control "max-age=86400, no-cache, public" \
@@ -37,5 +38,14 @@ jobs:
           --exclude .gitignore \
           --delete \
           --metadata-directive REPLACE \
-          --cache-control "max-age=86400, public" \
+          --cache-control "max-age=864000, public" \
           dist/css/ s3://${{ secrets.S3_URL }}/css/
+
+          aws s3 sync \
+          --region ap-northeast-1 \
+          --exact-timestamps \
+          --exclude .gitignore \
+          --delete \
+          --metadata-directive REPLACE \
+          --cache-control "max-age=86400, public" \
+          dist/image/ s3://${{ secrets.S3_URL }}/image/
