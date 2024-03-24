@@ -51,34 +51,7 @@
       {{MARKDOWN}}
     </article>
   </main>
-  {script}
-  if (!variables.index) {
-    return ''
-  }
-  return helper.readIndex()
-    .then(index => index.sort((a, b) => new Date(b.published) - new Date(a.published)))
-    .then(index => {
-      let prev = '', next = '', current = false
-      for (const page of index) {
-        if (!page.index) {
-          continue
-        }
-        if (current) {
-          prev = `<li class="prevNext__prev"><a href="${page.url}"><< ${page.title}</a></li>`
-          break
-        }
-        if (variables.name === page.name) {
-          current = true
-          continue
-        }
-        next = `<li class="prevNext__next"><a href="${page.url}">${page.title} >></a></li>`
-      }
-      if (next || prev) {
-      return `<div class="container"><ul class="prevNext">${prev ? prev : '<li></li>'}${next ? next : '<li></li>'}</ul></div>`
-      }
-      return ''
-    })
-  {/script}
+  {include('./template/prevNext.html')}
 
   {include('./template/footer.html')}
 </body>
