@@ -1,8 +1,8 @@
 name: Build html and deploy to S3
 on:
   pull_request:
-    types:
-      - opened
+    branches:
+      - 'releases/**'
 
 jobs:
   build:
