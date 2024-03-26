@@ -1,12 +1,12 @@
-<!--
+---
 title: INDEX
 template: index.html
 index: false
 url: /
 published: 2023-03-03 20:21
 modified: 2023-03-03 20:21
--->
-# INDEX
+---
+## INDEX
 
 {script}
 return helper.readIndex()
