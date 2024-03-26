@@ -26,19 +26,14 @@
   {/script}
   <meta name="description" content="{{DESCRIPTION}}">
 
-  <style>
-  {include('./css/reset.css')}
-  </style>
-  <link rel="stylesheet" href="${/css/layout.css:/css/layout.css}">
-  <link rel="preload" href="${/css/lazy.css:/css/page.css,/css/markdown.css}" as="style">
-  <link rel="stylesheet" href="${/css/lazy.css:/css/page.css,/css/markdown.css}" media="print" onload="this.media='all'">
+  {include('./template/css.html')}
 </head>
 <body>
-  <header class="container">
-    <p><a href="/">{{SITE_NAME}}</a></p>
+  <header>
+    <p class="container"><a href="/">{{SITE_NAME}}</a></p>
   </header>
-  <main class="container">
-    <article>
+  <main>
+    <article class="container">
       <h1>{{TITLE}}</h1>
       {if published}
       <aside class="published">
@@ -51,9 +46,9 @@
       {/if}
       {{MARKDOWN}}
     </article>
-  </main>
 
-  {include('./template/prevNext.html')}
+    {include('./template/prevNext.html')}
+  </main>
 
   {include('./template/footer.html')}
 </body>
