@@ -22,15 +22,16 @@
   <meta property="og:site_name" content="{{SITE_NAME}}">
   {script}
     const url = variables.url_base + encodeURI(variables.url)
-    return `<link rel="canonical" href="${url}" />`
+    return `<link rel="canonical" href="${url}">`
   {/script}
+  <meta name="description" content="{{DESCRIPTION}}">
 
   <style>
-  {include('./css/layout.css')}
   {include('./css/reset.css')}
   </style>
-  <link rel="preload" href="${/css/generate.css:/css/page.css,/css/markdown.css}" as="style">
-  <link rel="stylesheet" href="${/css/generate.css:/css/page.css,/css/markdown.css}" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="${/css/layout.css:/css/layout.css}">
+  <link rel="preload" href="${/css/lazy.css:/css/page.css,/css/markdown.css}" as="style">
+  <link rel="stylesheet" href="${/css/lazy.css:/css/page.css,/css/markdown.css}" media="print" onload="this.media='all'">
 </head>
 <body>
   <header class="container">
@@ -43,14 +44,15 @@
       <aside class="published">
         <p>投稿: {script}return helper.dateFormat(variables.published){/script}
       {/if}
-        {if modified} / 更新: {script}return helper.dateFormat(variables.modified){/script}{/if}
-        {if published}
+      {if modified} / 更新: {script}return helper.dateFormat(variables.modified){/script}{/if}
+      {if published}
         </p>
       </aside>
       {/if}
       {{MARKDOWN}}
     </article>
   </main>
+
   {include('./template/prevNext.html')}
 
   {include('./template/footer.html')}

@@ -8,9 +8,9 @@
   <channel>
     <title>{{SITE_NAME}}</title>
     <link>{{URL_BASE}}/rss</link>
-    <description>!!!FIXME!!!</description>
+    <description>{{RSS_DESCRIPTION}}</description>
     <dc:language>ja</dc:language>
-    <dc:creator>!!!FIXME!!!</dc:creator>
+    <dc:creator>{{RSS_CREATOR}}</dc:creator>
     {script}
     return helper.readIndex()
     .then(index => {
