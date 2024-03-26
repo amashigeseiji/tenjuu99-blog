@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    if: startsWith(github.head_ref, 'releases/')
+    if: contains(github.head_ref, 'releases/')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
