@@ -11,17 +11,17 @@ return helper.readIndex()
         continue
       }
       if (current) {
-        prev = `<li class="prevNext__prev"><a href="${page.url}"><< ${page.title}</a></li>`
+        prev = `<li class="prevNext__prev"><a href="${page.url}">&lt;&lt; ${page.title}</a></li>`
         break
       }
       if (variables.name === page.name) {
         current = true
         continue
       }
-      next = `<li class="prevNext__next"><a href="${page.url}">${page.title} >></a></li>`
+      next = `<li class="prevNext__next"><a href="${page.url}">${page.title} &gt;&gt;</a></li>`
     }
     if (next || prev) {
-    return `<div class="container"><ul class="prevNext">${prev ? prev : '<li></li>'}${next ? next : '<li></li>'}</ul></div>`
+      return `<div class="container"><ul class="prevNext">${prev ? prev : '<li></li>'}${next ? next : '<li></li>'}</ul></div>`
     }
     return ''
   })

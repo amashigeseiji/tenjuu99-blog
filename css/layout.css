@@ -1,3 +1,26 @@
+:root {
+  --headline-1: 24px;
+  --headline-2: 20px;
+  --headline-3: 16px;
+  --text-size: 16px;
+  --text-size-small: 12px;
+  --link-color: #1c3b97;
+  --link-color-visited: #681919;
+  --font-family-mincho: "游明朝", YuMincho, "Hiragino Mincho ProN W3", "ヒラギノ明朝 ProN W3", "Hiragino Mincho ProN", "HG明朝E", "MS P明朝", "MS 明朝", serif;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh !important;
+  background: #e8f0ef;
+  color: #333;
+  text-align: justify;
+  font-feature-settings: "palt";
+  word-wrap: break-word;
+  word-break: break-all;
+}
+
 .container {
   margin: 0 auto;
   padding: 5px 30px;
@@ -7,6 +30,18 @@
   background: rgba(255,255,255,0.7);
 }
 
+@media screen and (max-width: 600px) {
+  .container {
+    max-width: 100%;
+    width: 100%;
+    min-width: 100%;
+    padding: 5px 15px;
+  }
+}
+
+/**
+ * header, main, footer
+ */
 header {
   padding: 5px 30px;
   background: #506763 !important;
@@ -22,23 +57,88 @@ header a, header a:visited {
   text-decoration: none;
 }
 
-body {
-  display: flex;
-  flex-direction: column;
-  min-height: 100dvh !important;
-  background: #e8f0ef;
-  color: #333;
-  text-align: justify;
-  font-feature-settings: "palt";
-}
 main {
   flex-grow: 1;
 }
-@media screen and (max-width: 600px) {
-  .container {
-    max-width: 100%;
-    width: 100%;
-    min-width: 100%;
-    padding: 5px 15px;
-  }
+
+footer ul {
+  border-top: 1px solid #ccc;
+  display: flex;
+  justify-content: flex-start;
+  padding: 15px 0 0;
+  font-size: var(--text-size-small);
+}
+footer ul li {
+  list-style: none;
+  margin-left: 10px;
+}
+footer a:visited {
+  color: var(--link-color);
+}
+
+/**
+ * headline
+ */
+h1 {
+  font-size: var(--headline-1);
+}
+h2 {
+  font-size: var(--headline-2);
+}
+h3 {
+  font-size: var(--headline-3);
+}
+main h1, main h2, main h3, main h4 {
+  margin: 15px 0 5px;
+}
+
+/**
+ * p
+ */
+p {
+  color: #0f1e2e;
+  line-height: 2.0;
+  margin: 25px 0;
+}
+html[lang="en"] p {
+  line-height: 1.5;
+}
+article p {
+  font-family: var(--font-family-mincho);
+}
+
+/**
+ * list
+ */
+ul {
+  padding: 0 0 0 20px;
+}
+
+/**
+ * a
+ */
+a {
+  color: var(--link-color);
+  text-decoration: none;
+}
+a:visited {
+  color: var(--link-color-visited);
+}
+
+aside, aside * {
+  font-size: var(--text-size-small);
+  color: #999;
+  line-height: 1.125rem;
+}
+
+.prevNext {
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+.prevNext__next {
+  text-align: right;
+}
+.prevNext__prev {
+  text-align: left;
 }
