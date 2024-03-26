@@ -1,6 +1,7 @@
 import http from 'http'
 import url from 'url'
 import fs from 'node:fs/promises'
+import { distDir } from './lib/dir.js'
 
 const contentType = (ext) => {
     switch (ext) {
@@ -32,7 +33,7 @@ http.createServer((request, response) => {
   if (!path.includes('.')) {
     path += '.html'
   }
-  fs.readFile(`./dist${path}`, 'binary').catch(error => {
+  fs.readFile(`${distDir}${path}`, 'binary').catch(error => {
     console.log(error)
     response.writeHead(404)
     response.end('404 not found')

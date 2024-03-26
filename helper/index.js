@@ -1,7 +1,7 @@
-import fs from "node:fs/promises";
+import { readIndex as read } from "../lib/indexer.js";
 
 export async function readIndex () {
-  return await fs.readFile('./data/index.json', 'utf8').then(text => JSON.parse(text)).catch(error => [])
+  return await read()
 }
 
 export function dateFormat(dateString) {
