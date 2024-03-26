@@ -15,11 +15,13 @@
   <link rel="stylesheet" href="${/css/lazy.css:/css/page.css,/css/markdown.css}" media="print" onload="this.media='all'">
 </head>
 <body>
-  <header class="container">
-    <h1><a href="/">{{SITE_NAME}}</a></h1>
+  <header>
+    <h1 class="container"><a href="/">{{SITE_NAME}}</a></h1>
   </header>
-  <main class="container">
-    {{MARKDOWN}}
+  <main>
+    <div class="container">
+      {{MARKDOWN}}
+    </div>
   </main>
 
   {include('./template/footer.html')}
