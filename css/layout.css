@@ -1,5 +1,5 @@
 :root {
-  --headline-1: 24px;
+  --headline-1: 28px;
   --headline-2: 20px;
   --headline-3: 16px;
   --text-size: 16px;
@@ -86,6 +86,9 @@ h3 {
 }
 main h1, main h2, main h3, main h4 {
   margin: 15px 0 5px;
+}
+main h1, main h2 {
+  border-bottom: 0.5px solid #ccc;
 }
 
 .prevNext {

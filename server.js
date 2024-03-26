@@ -33,10 +33,11 @@ http.createServer((request, response) => {
   if (!path.includes('.')) {
     path += '.html'
   }
-  fs.readFile(`${distDir}${path}`, 'binary').catch(error => {
+  fs.readFile(`${distDir}${path}`, 'binary').catch(async (error) => {
+    const errorContent = await fs.readFile(`${distDir}/notfound.html`)
     console.log(error)
     response.writeHead(404)
-    response.end('404 not found')
+    response.end(errorContent)
   }).then(file => {
     const ext = path.split('.')[1]
     response.writeHead(200, { 'Content-Type': `${contentType(ext)}; charset=utf-8` })
