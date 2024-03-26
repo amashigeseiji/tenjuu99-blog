@@ -7,12 +7,7 @@
   {if gtag_id}
   {include('./template/gtag.html')}
   {/if}
-  <style>
-  {include('./css/reset.css')}
-  </style>
-  <link rel="stylesheet" href="${/css/layout.css:/css/layout.css}">
-  <link rel="preload" href="${/css/lazy.css:/css/page.css,/css/markdown.css}" as="style">
-  <link rel="stylesheet" href="${/css/lazy.css:/css/page.css,/css/markdown.css}" media="print" onload="this.media='all'">
+  {include('./template/css.html')}
 </head>
 <body>
   <header>

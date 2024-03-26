@@ -20,7 +20,7 @@ body {
 .container {
   margin: 0 auto;
   padding: 5px 30px;
-  max-width: 800px;
+  max-width: 80%;
   min-width: 600px;
   width: 70vw;
 }
@@ -38,8 +38,9 @@ body {
  * header, main, footer
  */
 header {
-  padding: 10px 30px;
+  padding: 10px 0;
   border-bottom: 0.5px solid #ccc;
+  background: var(--header-bg);
 }
 
 header h1, header p {
@@ -49,6 +50,7 @@ header h1, header p {
 
 header a, header a:visited {
   text-decoration: none;
+  color: var(--header-logo-color);
 }
 
 main {
@@ -62,6 +64,7 @@ footer {
   border-top: 1px solid #ccc;
   padding: 15px 0 0;
   font-size: var(--text-size-small);
+  background: var(--footer-bg);
 }
 footer ul {
   display: flex;
