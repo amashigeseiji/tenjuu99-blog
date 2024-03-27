@@ -34,7 +34,7 @@ http.createServer((request, response) => {
     path += '.html'
   }
   fs.readFile(`${distDir}${path}`, 'binary').catch(async (error) => {
-    const errorContent = await fs.readFile(`${distDir}/notfound.html`)
+    const errorContent = await fs.readFile(`${distDir}/404.html`)
     console.log(error)
     response.writeHead(404)
     response.end(errorContent)

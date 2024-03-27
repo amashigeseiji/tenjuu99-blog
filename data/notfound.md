@@ -1,6 +1,6 @@
 ---
 title: 404 not found
-url: /notfound
+url: /404
 index: false
 noindex: true
 ---
