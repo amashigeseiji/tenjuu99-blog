@@ -5,27 +5,33 @@ if (!variables.index) {
 if (variables.published === '1970-01-01') {
   return ''
 }
+const template = `
+<div class="container">
+  <ul class="prevNext">
+    <li class="prevNext__prev">{{prev}}</li>
+    <li class="prevNext__next">{{next}}</li>
+  </ul>
+</div>
+`
 return helper.readIndex()
+  .then(index => index.filter(v => v.published !== '1970-01-01' && v.index))
   .then(index => index.sort((a, b) => new Date(b.published) - new Date(a.published)))
   .then(index => {
     let prev = '', next = '', current = false
     for (const page of index) {
-      if (!page.index || page.published == '1970-01-01') {
-        continue
-      }
       if (current) {
-        prev = `<li class="prevNext__prev"><a href="${page.url}">&lt;&lt; ${page.title}</a></li>`
+        prev = `<a href="${page.url}">${page.title}</a>`
         break
       }
       if (variables.name === page.name) {
         current = true
         continue
       }
-      next = `<li class="prevNext__next"><a href="${page.url}">${page.title} &gt;&gt;</a></li>`
+      next = `<a href="${page.url}">${page.title}</a>`
     }
-    if (next || prev) {
-      return `<div class="container"><ul class="prevNext">${prev ? prev : '<li></li>'}${next ? next : '<li></li>'}</ul></div>`
-    }
-    return ''
+    if (!next && !prev) return ''
+    variables.prev = prev
+    variables.next = next
+    return template
   })
 {/script}

@@ -30,3 +30,20 @@ em {
   font-style: italic;
   font-weight: 600;
 }
+pre {
+  white-space: pre-wrap;
+  background: #333;
+  color: #fff;
+  padding: 10px;
+}
+pre > code {
+  background: #333;
+  color: #fff;
+  padding: 0;
+}
+code {
+  background: #eee;
+  color: #444;
+  padding: 0 5px;
+  border-radius: 5px;
+}

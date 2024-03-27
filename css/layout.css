@@ -93,16 +93,51 @@ main h1, main h2, main h3, main h4 {
 main h1, main h2 {
   border-bottom: 0.5px solid #ccc;
 }
+/**
+ * aside
+ */
+aside, aside * {
+  font-size: var(--text-size-small);
+  color: #503838;
+  line-height: 1.125rem;
+}
+
+/**
+ * p
+ */
+p {
+  margin: 15px 0;
+}
 
 .prevNext {
   list-style: none;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
   padding: 0;
 }
-.prevNext__next {
-  text-align: right;
+.prevNext li {
+  display: flex;
+  align-items: center;
+  flex-basis: 50%;
+}
+.prevNext a {
+  padding: 10px;
+  display: contents;
 }
 .prevNext__prev {
-  text-align: left;
+  padding-right: 5px;
+  justify-content: flex-start;
+}
+.prevNext__next {
+  padding-left: 5px;
+  justify-content: flex-end;
+}
+.prevNext__next a::after {
+  content: '>';
+  color: #ccc;
+  padding-left: 10px;
+}
+.prevNext__prev a::before {
+  content: '<';
+  color: #ccc;
+  padding-right: 10px;
 }
