@@ -38,7 +38,7 @@ jobs:
           --exclude .gitignore \
           --delete \
           --metadata-directive REPLACE \
-          --cache-control "max-age=864000, public" \
+          --cache-control "max-age=31536000, public" \
           dist/css/ s3://${{ secrets.S3_URL }}/css/
 
           aws s3 sync \
