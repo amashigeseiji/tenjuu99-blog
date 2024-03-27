@@ -19,15 +19,16 @@ return helper.readIndex()
   .then(index => {
     let prev = '', next = '', current = false
     for (const page of index) {
+      const url = variables.relative_path ? variables.relative_path + page.url : page.url
       if (current) {
-        prev = `<a href="${page.url}">${page.title}</a>`
+        prev = `<a href="${url}">${page.title}</a>`
         break
       }
       if (variables.name === page.name) {
         current = true
         continue
       }
-      next = `<a href="${page.url}">${page.title}</a>`
+      next = `<a href="${url}">${page.title}</a>`
     }
     if (!next && !prev) return ''
     variables.prev = prev

@@ -16,11 +16,12 @@ return helper.readIndex()
   const pages = {}
   for (const page of index) {
     if (page.index) {
+      const url = variables.relative_path ? variables.relative_path + page.url : page.url
       if (page.published === '1970-01-01') {
         if (!pages['日付なし']) {
             pages['日付なし'] = []
         }
-        pages['日付なし'].push(`<a href="${page.url}">${page.title}</a>`)
+        pages['日付なし'].push(`<a href="${url}">${page.title}</a>`)
         continue
       }
       const published = new Date(page.published)
@@ -29,7 +30,7 @@ return helper.readIndex()
       if (!pages[year]) {
         pages[year] = []
       }
-      pages[year].push(`<a href="${page.url}">${page.title}</a> (${date})`)
+      pages[year].push(`<a href="${url}">${page.title}</a> (${date})`)
     }
   }
   return pages
