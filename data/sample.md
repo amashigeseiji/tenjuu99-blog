@@ -39,15 +39,43 @@ if 文と script が使えます。
 
 ### IF
 
-{if ifTrueVariable}
-someVariable が true のためこれは表示されます。
-{/if}
+if 文は次のような記述になります。
 
-{if undefinedValue}
+<pre>
+---
+ifTrueVariable: true
+---
+&lt;if ifTrueVariable>
+`ifTrueVariable` が true のためこれは表示されます。
+&lt;/if>
+</pre>
+
+上記の出力は以下になります。
+
+```
+<if ifTrueVariable>
+`ifTrueVariable` が true のためこれは表示されます。
+</if>
+```
+
+else 句を含むことができます。
+
+<pre>
+&lt;if undefinedValue>
 このコンテンツは表示されません
-{else}
+&lt;else>
 これは else 文の中身です。
-{/if}
+&lt;/if>
+</pre>
+
+次のようになります。
+```
+<if undefinedValue>
+このコンテンツは表示されません
+<else>
+これは else 文の中身です。
+</if>
+```
 
 ### SCRIPT
 
