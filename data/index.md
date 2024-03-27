@@ -16,6 +16,13 @@ return helper.readIndex()
   const pages = {}
   for (const page of index) {
     if (page.index) {
+      if (page.published === '1970-01-01') {
+        if (!pages['日付なし']) {
+            pages['日付なし'] = []
+        }
+        pages['日付なし'].push(`<a href="${page.url}">${page.title}</a>`)
+        continue
+      }
       const published = new Date(page.published)
       const year = `${published.getFullYear()}年`
       const date = `${published.getMonth() +1}月${published.getDate()}日`
