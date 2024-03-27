@@ -2,6 +2,7 @@
 title: sample article
 url: /sample_article
 published: 2024/03/18 00:00
+modified: 2024/03/19 00:00
 ifTrueVariable: true
 someVariable: これは変数として定義された値です。変数定義を確認してください。
 ---
@@ -52,13 +53,34 @@ someVariable が true のためこれは表示されます。
 
 スクリプトを記述することができます。
 
-{script}
+<pre>
+&lt;script type="ssg"&gt;
 return (new Date()).toString()
-{/script}
+&lt;/script&gt;
+</pre>
+
+この出力は以下のようになります。このスクリプトではビルド時の時刻が刻まれます。ビルドしなおしてみてください。
+
+```
+<script type="ssg">
+return (new Date()).toString()
+</script>
+```
 
 スクリプトタグ内では、当該コメントで定義した変数が `variables.定義した変数名`で利用できます。
 
+<pre>
+---
+someVariable: これは変数として定義された値です。変数定義を確認してください。
+---
+&lt;script type="ssg">
+return variables.someVariable
+&lt;/script>
+</pre>
 
+以下のように出力されます。
+```
 {script}
 return variables.someVariable
 {/script}
+```
