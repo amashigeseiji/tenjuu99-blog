@@ -2,12 +2,15 @@
 if (!variables.index) {
   return ''
 }
+if (variables.published === '1970-01-01') {
+  return ''
+}
 return helper.readIndex()
   .then(index => index.sort((a, b) => new Date(b.published) - new Date(a.published)))
   .then(index => {
     let prev = '', next = '', current = false
     for (const page of index) {
-      if (!page.index) {
+      if (!page.index || page.published == '1970-01-01') {
         continue
       }
       if (current) {

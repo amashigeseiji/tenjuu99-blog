@@ -35,7 +35,7 @@
   <main>
     <article class="container">
       <h1>{{TITLE}}</h1>
-      {if published}
+      {if published != '1970-01-01'}
       <aside class="published">
         <p>投稿: {script}return helper.dateFormat(variables.published){/script}
       {/if}
