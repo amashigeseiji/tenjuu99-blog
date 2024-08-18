@@ -28,7 +28,7 @@
   "author": "AmashigeSeiji",
   "license": "MIT",
   "dependencies": {
-    "marked": "^4.2.12"
+    "marked": "^13.x"
   },
   "devDependencies": {
     "npm-watch": "^0.x"
