@@ -1,4 +1,4 @@
-import { readIndex as read } from "../lib/indexer.js";
+import { readIndex as read, allData } from "../lib/indexer.js";
 import { replaceVariablesFilter } from "../lib/filter.js";
 
 export async function readIndex () {
@@ -12,4 +12,8 @@ export function dateFormat(dateString) {
 
 export function render(text, variables) {
   return replaceVariablesFilter(text, variables)
+}
+
+export function getPageData(name) {
+  return allData[name]
 }
