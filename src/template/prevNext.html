@@ -13,7 +13,7 @@ const template = `
   </ul>
 </div>
 `
-const data = helper.readIndex()
+const data = helper.readIndex().filter(v => v.published !== '1970-01-01' && v.index)
 
 let prev = '', next = '', current = false
 for (const page of data) {
