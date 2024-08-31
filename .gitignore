@@ -6,3 +6,4 @@ data/index.json
 .DS_Store
 
 .env
+.cache/
