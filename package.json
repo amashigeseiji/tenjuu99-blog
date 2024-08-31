@@ -4,9 +4,9 @@
   "description": "blog template",
   "main": "index.js",
   "scripts": {
-    "build": "eval $(cat .env | tr \"\n\" \" \") npm run generate && npm run serve",
-    "serve": "node server.js",
-    "generate": "node generate.js",
+    "build": "npm run generate && npm run serve",
+    "serve": "eval $(cat .env | tr \"\n\" \" \") node server.js",
+    "generate": "eval $(cat .env | tr \"\n\" \" \") node generate.js",
     "generate:prod": "eval $(cat .env.prod | tr \"\n\" \" \") node generate.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "watch": "npm-watch build"
