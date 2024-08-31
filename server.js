@@ -17,6 +17,8 @@ const contentType = (ext) => {
       case 'jpg':
       case 'jpeg':
         return 'image/jpeg'
+      case 'svg':
+        return 'image/svg+xml'
       case 'xml':
         return 'application/xml'
       case 'rdf':
