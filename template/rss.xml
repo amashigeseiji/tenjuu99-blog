@@ -12,33 +12,30 @@
     <dc:language>ja</dc:language>
     <dc:creator>{{RSS_CREATOR}}</dc:creator>
     {script}
-    return helper.readIndex()
-    .then(index => {
-      return index.sort((a, b) => new Date(b.published) - new Date(a.published))
-    }).then(index => {
-      let lastUpdatedAt = ''
-      let items = []
-      for (const page of index) {
-        if (page.index) {
-          const published = new Date(`${page.published} GMT+0900`)
-          if (!lastUpdatedAt) {
-            lastUpdatedAt = published
-          }
-          if (lastUpdatedAt.getTime() > published.getTime()) {
-            lastUpdatedAt = published
-          }
-          items.push(`
-      <item>
-        <title>${page.title}</title>
-        <link>{{URL_BASE}}${encodeURI(page.url)}</link>
-        <pubDate>${published.toUTCString()}</pubDate>
-      </item>
-          `)
+    const data = helper.readIndex()
+
+    let lastUpdatedAt = ''
+    let items = []
+    for (const page of data) {
+      if (page.index) {
+        const published = new Date(`${page.published} GMT+0900`)
+        if (!lastUpdatedAt) {
+          lastUpdatedAt = published
         }
+        if (lastUpdatedAt.getTime() > published.getTime()) {
+          lastUpdatedAt = published
+        }
+        items.push(`
+    <item>
+      <title>${page.title}</title>
+      <link>{{URL_BASE}}${encodeURI(page.url)}</link>
+      <pubDate>${published.toUTCString()}</pubDate>
+    </item>
+        `)
       }
-      items.unshift(`<dc:date>${lastUpdatedAt}</dc:date>\n`)
-      return items.join("\n")
-    })
+    }
+    items.unshift(`<dc:date>${lastUpdatedAt}</dc:date>\n`)
+    return items.join("\n")
     {/script}
   </channel>
 </rss>

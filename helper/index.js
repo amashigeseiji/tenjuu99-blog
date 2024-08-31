@@ -1,8 +1,12 @@
-import { readIndex as read, allData } from "../lib/indexer.js";
+import { allData } from "../lib/indexer.js";
 import { replaceVariablesFilter } from "../lib/filter.js";
 
-export async function readIndex () {
-  return await read()
+export function readIndex (filter = null) {
+  const data = Object.entries(allData)
+    .sort((a, b) => new Date(b[1].published) - new Date(a[1].published))
+  return filter
+    ? data.filter(v => v[0].indexOf(filter) === 0).map(v => v[1])
+    : data.map(v => v[1])
 }
 
 export function dateFormat(dateString) {
