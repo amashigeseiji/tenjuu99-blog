@@ -21,3 +21,33 @@ export function render(text, variables) {
 export function getPageData(name) {
   return allData[name]
 }
+
+let indexedItemsSorted = null
+export function indexedItems() {
+  if (indexedItemsSorted) {
+    return indexedItemsSorted
+  }
+  const sorted = readIndex()
+    .filter(v => v.index && v.published != '1970-01-01')
+    .sort((a, b) => new Date(a.published) - new Date(b.published))
+  let prev, next
+  for (const item of sorted) {
+    if (prev) {
+      prev.next = {
+        name: item.name,
+        published: item.published,
+        url: item.url,
+        title: item.title,
+      }
+      item.prev = {
+        name: prev.name,
+        published: prev.published,
+        url: prev.url,
+        title: prev.title,
+      }
+    }
+    prev = item
+  }
+  indexedItemsSorted = sorted
+  return indexedItemsSorted
+}
