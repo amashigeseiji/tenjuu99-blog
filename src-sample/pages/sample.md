@@ -112,3 +112,34 @@ return variables.someVariable
 return variables.someVariable
 {/script}
 ```
+
+## 追加ヘルパー
+
+ヘルパー関数を作成します。
+```
+// src-sample/helper/index.js
+export function additionalHelper() {
+  return 'これは追加ヘルパーによって出力されているメッセージです。'
+}
+```
+
+.env ファイルにヘルパーの位置を教えます。
+```
+// .env
+HELPER=helper/index.js
+```
+
+追加したヘルパーを利用できます。
+<pre>
+// src-sample/pages/sample.md
+&lt;script type="ssg">
+return helper.additionalHelper()
+&lt;/script>
+</pre>
+
+実際に出力させると次の行のとおりです。
+```
+<script type="ssg">
+return helper.additionalHelper()
+</script>
+```
