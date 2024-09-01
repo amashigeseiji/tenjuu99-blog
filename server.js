@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import http from 'http'
 import url from 'url'
 import fs from 'node:fs/promises'
