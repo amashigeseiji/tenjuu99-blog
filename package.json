@@ -13,11 +13,11 @@
   "watch": {
     "build": {
       "patterns": [
-        "template/",
+        "src/",
+        "src-sample/",
+        "../src/",
         "helper/",
         "lib/",
-        "data/",
-        "css/",
         "generate.js"
       ],
       "extensions": "html,md,css,js",
