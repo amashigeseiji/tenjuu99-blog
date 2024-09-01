@@ -24,6 +24,10 @@
       "quite": true
     }
   },
+  "bin": {
+    "generate": "generate.js",
+    "server": "server.js"
+  },
   "author": "AmashigeSeiji",
   "repository": {
     "type": "git",
