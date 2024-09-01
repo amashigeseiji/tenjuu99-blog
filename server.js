@@ -4,10 +4,12 @@ import fs from 'node:fs/promises'
 import { srcDir, distDir } from './lib/dir.js'
 import chokidar from 'chokidar'
 import generate from './lib/generate.js'
+import { watchTemplate } from './lib/applyTemplate.js'
 
 chokidar.watch(srcDir).on('change', (event, path) => {
   generate()
 })
+watchTemplate()
 generate()
 const contentType = (ext) => {
     switch (ext) {
