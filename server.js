@@ -1,8 +1,14 @@
 import http from 'http'
 import url from 'url'
 import fs from 'node:fs/promises'
-import { distDir } from './lib/dir.js'
+import { srcDir, distDir } from './lib/dir.js'
+import chokidar from 'chokidar'
+import generate from './lib/generate.js'
 
+chokidar.watch(srcDir).on('change', (event, path) => {
+  generate()
+})
+generate()
 const contentType = (ext) => {
     switch (ext) {
       case 'html':

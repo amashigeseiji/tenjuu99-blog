@@ -30,7 +30,7 @@ jobs:
         uses: actions/checkout@master
 
       - name: npm install
-        run: npm install --production
+        run: npm install --omit=dev
 
       - name: Build
         run: cp .env.prod.sample .env && npm run generate
