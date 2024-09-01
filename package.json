@@ -1,5 +1,5 @@
 {
-  "name": "@amashigeseiji/blog_template",
+  "name": "@tenjuu99/blog",
   "version": "0.1.0",
   "description": "blog template",
   "main": "index.js",
@@ -32,8 +32,5 @@
   "devDependencies": {
     "npm-watch": "^0.x"
   },
-  "type": "module",
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com/"
-  }
+  "type": "module"
 }
