@@ -25,6 +25,10 @@
     }
   },
   "author": "AmashigeSeiji",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/amashigeseiji/blog_template.git"
+  },
   "license": "MIT",
   "dependencies": {
     "marked": "^13.x"
