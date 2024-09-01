@@ -7,22 +7,7 @@
     "build": "npm run generate && npm run serve",
     "serve": "eval $(cat .env | tr \"\n\" \" \") node server.js",
     "generate": "eval $(cat .env | tr \"\n\" \" \") node generate.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "watch": "npm-watch build"
-  },
-  "watch": {
-    "build": {
-      "patterns": [
-        "src/",
-        "src-sample/",
-        "../src/",
-        "helper/",
-        "lib/",
-        "generate.js"
-      ],
-      "extensions": "html,md,css,js",
-      "quite": true
-    }
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {
     "generate": "generate.js",
@@ -31,14 +16,12 @@
   "author": "AmashigeSeiji",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/amashigeseiji/blog_template.git"
+    "url": "git+https://github.com/amashigeseiji/tenjuu99-blog.git"
   },
   "license": "MIT",
   "dependencies": {
+    "chokidar": "^3.6.0",
     "marked": "^13.x"
-  },
-  "devDependencies": {
-    "npm-watch": "^0.x"
   },
   "type": "module"
 }
