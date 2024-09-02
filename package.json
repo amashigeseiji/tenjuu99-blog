@@ -22,5 +22,8 @@
     "chokidar": "^3.6.0",
     "marked": "^13.x"
   },
-  "type": "module"
+  "type": "module",
+  "engines": {
+    "node": ">=21.7"
+  }
 }
