@@ -2,14 +2,14 @@
 
 import server from '../lib/server.js'
 import { srcDir } from '../lib/dir.js'
-import chokidar from 'chokidar'
+import { watchers, watch } from '../lib/watcher.js'
 import generate from '../lib/generate.js'
-import { watchTemplate } from '../lib/applyTemplate.js'
 
-chokidar.watch(srcDir).on('change', (event, path) => {
-  generate()
+watchers.push({
+  paths: srcDir,
+  callback: generate
 })
-watchTemplate()
+watch()
 generate()
 
 server().listen(process.env.PORT || 8000)
