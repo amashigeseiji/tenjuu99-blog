@@ -29,6 +29,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@master
 
+      - name: Use nodejs
+        uses: actions/setup-node@v4
+        with:
+          - node-version: 22.x
+
       - name: npm install
         run: npm install --omit=dev
 
