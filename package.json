@@ -4,13 +4,13 @@
   "description": "blog template",
   "main": "index.js",
   "scripts": {
-    "serve": "eval $(cat .env | tr \"\n\" \" \") node server.js",
-    "generate": "eval $(cat .env | tr \"\n\" \" \") node generate.js",
+    "dev": "eval $(cat .env | tr \"\n\" \" \") node bin/server",
+    "generate": "eval $(cat .env | tr \"\n\" \" \") node bin/generate",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {
-    "generate": "generate.js",
-    "server": "server.js"
+    "generate": "bin/generate",
+    "server": "bin/server"
   },
   "author": "AmashigeSeiji",
   "repository": {

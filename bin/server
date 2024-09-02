@@ -1,0 +1,15 @@
+#!/usr/bin/env node
+
+import server from '../lib/server.js'
+import { srcDir } from '../lib/dir.js'
+import chokidar from 'chokidar'
+import generate from '../lib/generate.js'
+import { watchTemplate } from '../lib/applyTemplate.js'
+
+chokidar.watch(srcDir).on('change', (event, path) => {
+  generate()
+})
+watchTemplate()
+generate()
+
+server().listen(process.env.PORT || 8000)
