@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+mkdir -p "$(pwd)/src/pages"
+echo "create src/pages"
+mkdir -p "$(pwd)/src/template"
+echo "create src/template"
+mkdir -p "$(pwd)/src/css"
+echo "create src/css"
+mkdir -p "$(pwd)/src/image"
+echo "create src/image"
+
+mkdir "$(pwd)/.cache"
+echo "{}" > "$(pwd)/.cache/index.json"
+
+echo 'dist/*
+node_modules/
+.env
+.cache
+' >> .gitignore
+
+echo '{
+  "site_name": "rewrite here",
+  "url_base": "http://localhost:8000",
+  "src_dir": "src",
+  "dist_dir": "dist",
+  "distribute_raw": "image"
+}' > "$(pwd)/blog.json"
+echo "create blog.json"

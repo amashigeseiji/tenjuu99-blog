@@ -10,7 +10,8 @@
   },
   "bin": {
     "generate": "bin/generate",
-    "server": "bin/server"
+    "server": "bin/server",
+    "new": "bin/new"
   },
   "author": "AmashigeSeiji",
   "repository": {
