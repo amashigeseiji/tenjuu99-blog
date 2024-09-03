@@ -4,8 +4,8 @@
   "description": "blog template",
   "main": "index.js",
   "scripts": {
-    "dev": "eval $(cat .env | tr \"\n\" \" \") node bin/server",
-    "generate": "eval $(cat .env | tr \"\n\" \" \") node bin/generate",
+    "dev": "node bin/server",
+    "generate": "node bin/generate",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {
