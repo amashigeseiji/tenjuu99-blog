@@ -38,7 +38,7 @@ jobs:
         run: npm install --omit=dev
 
       - name: Build
-        run: eval $(cat .env.prod | tr \"\n\" \" \") npm run generate
+        run: cp blog.json.prod blog.json && npm run generate
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

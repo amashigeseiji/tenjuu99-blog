@@ -1,0 +1,9 @@
+{
+  "site_name": "blog/sample",
+  "url_base": "https://amashigeseiji.github.io/tenjuu99-blog",
+  "relative_path": "/tenjuu99-blog",
+  "src_dir": "src-sample",
+  "dist_dir": "dist",
+  "distribute_raw": "image",
+  "helper": "helper/index.js"
+}
