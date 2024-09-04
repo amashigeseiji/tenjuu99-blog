@@ -1,20 +1,17 @@
 # blog template
 
-## プレビュー
-
-以下のコマンドでプレビューできます。
+## setup
 
 ```
-npm run watch
+npm i @tenjuu99/blog
 ```
 
-`http://localhost:8000/`
-
-デフォルトでは8000ポートを利用しますが、環境変数を使ってポート番号を上書きできます。
-
 ```
-PORT=8001 npm run watch
+npx create-blog
+npx server
 ```
+
+`http://localhost:8000` にアクセスできます
 
 ## 記事を書く
 
@@ -122,24 +119,7 @@ This is else content.
 ### SCRIPT
 
 ```markdown
-{script}
-// write javascript and return value
-{/script}
+<script type="ssg">
+return 'これはスクリプトが実行された結果出力されました。'
+</script>
 ```
-
-## デプロイ
-
-AWS S3 にデプロイするには、 `.github/workflow/deploy.yml.sample` を `.github/workflow/deploy.yml` にコピーします。  
-また、 `.env.prod` を作成して、以下の値を登録します。
-
-```
-SITE_NAME: テストサイト
-URL_BASE: https://example.com
-GTAG_ID: G-xxxx
-```
-
-GitHub のリポジトリで、`settings > Secrets and variables > Actions` から、以下の変数を登録します。
-
-* `AWS_ACCESS_KEY_ID`
-* `AWS_SECRET_ACCESS_KEY_ID`
-* `S3_URL`

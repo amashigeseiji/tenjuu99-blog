@@ -11,7 +11,7 @@
   "bin": {
     "generate": "bin/generate",
     "server": "bin/server",
-    "new": "bin/new"
+    "create-blog": "bin/new"
   },
   "author": "AmashigeSeiji",
   "repository": {
