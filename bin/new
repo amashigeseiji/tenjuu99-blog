@@ -10,7 +10,7 @@ mkdir -p "$(pwd)/src/image"
 echo "create src/image"
 
 mkdir "$(pwd)/.cache"
-echo "{}" > "$(pwd)/.cache/index.json"
+echo "[]" > "$(pwd)/.cache/index.json"
 
 echo 'dist/*
 node_modules/
@@ -26,3 +26,5 @@ echo '{
   "distribute_raw": "image"
 }' > "$(pwd)/blog.json"
 echo "create blog.json"
+
+cp -R "$(pwd)/node_modules/@tenjuu99/blog/src-sample" "$(pwd)/src"
