@@ -1,4 +1,4 @@
-# blog template
+# @tenjuu99/blog
 
 ## setup
 
@@ -15,111 +15,81 @@ npx server
 
 ## 記事を書く
 
-`./data/` 以下にマークダウンファイルを入稿します。
+`./src/pages/` 以下にマークダウンファイルを入稿します。
+
+とりあえずなにも設定せずに、内容は空のままで構わないので `src/pages/test.md` を追加してみます。
+`src/pages/test.md` を保存したら、 `http://localhost:8000/test` にアクセスして表示できていることを確認します。
+
+次に、内容を記述します。  
+`src/pages/test.md` を次のような内容で保存します。
+
+```
+# 第一章 人情の碗
+
+茶は薬用として始まり後飲料となる。シナにおいては八世紀に高雅な遊びの一つとして詩歌の域に達した。十五世紀に至り日本はこれを高めて一種の審美的宗教、すなわち茶道にまで進めた。茶道は日常生活の俗事の中に存する美しきものを崇拝することに基づく一種の儀式であって、純粋と調和、相互愛の神秘、社会秩序のローマン主義を諄々と教えるものでる。茶道の要義は「不完全なもの」を崇拝するにある。いわゆる人生というこの不可解なもののうちに、何か可能なものを成就しようとするやさしい企てであるから。
+```
+
+保存したら、 `http://localhost:8000/test` をリロードして表示を確認しましょう。
+
+## タイトルとURL
 
 ファイル冒頭を `---` でくくると変数を指定できます。  
-`title` と `url` と `published`が必須です。  
-`url` は出力先になります。  
-`published` は index ファイルがソートするのに利用します。
 
-次のような内容で、 `data/sample_article.md` などに保存すると `http://localhost:8000/sample_article` でアクセスできるようになります。
+`src/pages/test.md` の冒頭に次のような変数を設定してみましょう。
 
 ```markdown
 ---
-title: sample article
-url: /sample_article
-published: 2024/03/18 00:00
+title: 第一章 人情の碗
+url: /the_book_of_tea/section_one
 ---
-
-トップレベル見出しは `title` 変数が利用されます。  
-変えたい場合は template/default.html を修正してください。
-
-## サンプル記事
-
-これはサンプル記事です。ブログ開始のときに削除してください。
-
-## マークダウン
-
-記事は、マークダウン記法で記述し、 `.md` ファイルで保存してください。
-
-リンクは次のように記述します。  
-[アンカーテキストはこちら](http://example.com)
-
-リストは次のように記述します。
-* リスト1
-* リスト2
-* リスト3
-
-画像は、 `data/image/` 以下に配置して、パスを指定してください。
-
-`data/image/sample.jpg` などがあれば、次の指定になります。  
-`![代替テキストを入力してください](/image/sample.jpg)`
-
-![placeholdの画像](https://placehold.jp/150x150.png)
-
-### 見出し3
-
-スクリプトを記述することができます。
-
-{script}
-return (new Date()).toString()
-{/script}
 ```
 
-[data/sample.md](data/sample.md) にサンプルを置いています。  
+`http://localhost:8000/test` ではアクセスできず、 `http://localhost:8000/the_book_of_tea/section_one` でアクセスできるようになったとおもいます。
 
-## テンプレートエンジン
+ここで定義した変数は、テンプレート内でも利用できます。  
+次のように書き換えてみます。
 
-### 変数
-
-コメントに変数を記述できます。
 
 ```markdown
 ---
-foo: fooVariableContent
-bar: varVariableContent
+title: 第一章 人情の碗
+url: /the_book_of_tea/section_one
 ---
+
+# {{title}}
+
+茶は薬用として始まり後飲料となる。シナにおいては八世紀に高雅な遊びの一つとして詩歌の域に達した。十五世紀に至り日本はこれを高めて一種の審美的宗教、すなわち茶道にまで進めた。茶道は日常生活の俗事の中に存する美しきものを崇拝することに基づく一種の儀式であって、純粋と調和、相互愛の神秘、社会秩序のローマン主義を諄々と教えるものでる。茶道の要義は「不完全なもの」を崇拝するにある。いわゆる人生というこの不可解なもののうちに、何か可能なものを成就しようとするやさしい企てであるから。
 ```
 
-and in template
+URLの変更は、変数による定義ではなく、ファイルを移動しても問題ありません。  
+`src/pages/test.md` を `src/pages/the_book_of_tea/section_one.md` としてファイルを移動すれば、変数定義がなくてもこのURLになります。
 
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title></title>
-</head>
-<body>
-  {{foo}}
-  {{bar}}
-</body>
-</html>
+## テンプレート
+
+タイトルが重複して表示されて鬱陶しいので、テンプレートを編集します。
+
+`src/template/default.html` を開き、h1 を削除しましょう。
+
+```diff
+    <article class="container">
+-     <h1>{{TITLE}}</h1>
 ```
 
-`{{foo}}` と `{{bar}}` は `'fooVariableContent'` と `'barVariableContent'` に置換されます。
+## 設定ファイル
 
-### IF
+サイト全体の名称がデフォルトのままでは味気ないので変えましょう。
+blog.json を開いて、 `site_name` を変更します。
 
-```markdown
----
-someVariable: true
----
-{if someVariable}
-This content will be present.
-{/if}
-
-{if undefinedValue}
-This content will be removed.
-{else}
-This is else content.
-{/if}
+```json
+{
+  "site_name": "茶の本",
+  "url_base": "http://localhost:8000",
+  "src_dir": "src",
+  "dist_dir": "dist",
+  "distribute_raw": "image",
+  "helper": "helper/index.js"
+}
 ```
 
-### SCRIPT
-
-```markdown
-<script type="ssg">
-return 'これはスクリプトが実行された結果出力されました。'
-</script>
-```
+設定ファイルを変更したら、一旦 `CTRL+c` で `npx server` を停止して、もういちど `npx server` を実行します。
+ヘッダーが「茶の本」になっていたら設定更新が完了です。
