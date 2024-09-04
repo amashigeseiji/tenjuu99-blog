@@ -113,7 +113,7 @@ return variables.someVariable
 {/script}
 ```
 
-## 追加ヘルパー
+## ヘルパー
 
 ヘルパー関数を作成します。
 ```
@@ -132,14 +132,10 @@ HELPER=helper/index.js
 追加したヘルパーを利用できます。
 <pre>
 // src-sample/pages/sample.md
-&lt;script type="ssg">
-return helper.additionalHelper()
-&lt;/script>
+\{{ additionalHelper() }}
 </pre>
 
 実際に出力させると次の行のとおりです。
 ```
-<script type="ssg">
-return helper.additionalHelper()
-</script>
+{{additionalHelper()}}
 ```
