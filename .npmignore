@@ -1,0 +1,7 @@
+node_modules/
+dist/*
+.env
+.cache/
+.github/
+blog.json
+blog.json.prod

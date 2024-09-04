@@ -26,5 +26,14 @@
   "type": "module",
   "engines": {
     "node": ">=21.7"
+  },
+  "files": [
+    "lib",
+    "bin",
+    "helper",
+    "src-sample"
+  ],
+  "publishConfig": {
+    "access": "public"
   }
 }
