@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html lang="{{LANG}}">
 <head prefix="og: http://ogp.me/ns#">
-  {if gtag_id}
-  {include('template/gtag.html')}
-  {/if}
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{TITLE}} | {{SITE_NAME}}</title>
@@ -37,9 +34,9 @@
       <h1>{{TITLE}}</h1>
       {if published != '1970-01-01'}
       <aside class="published">
-        <p>投稿: {script}return helper.dateFormat(variables.published){/script}
+        <p>投稿: {{ dateFormat(published) }}
       {/if}
-      {if modified} / 更新: {script}return helper.dateFormat(variables.modified){/script}{/if}
+      {if modified} / 更新: {{ dateFormat(modified) }}{/if}
       {if published}
         </p>
       </aside>
