@@ -85,7 +85,16 @@ const onloadFunction = async (e) => {
   })
 }
 
+const sidebarToggle = (e) => {
+  const sidebar = document.querySelector('.sidebar')
+  const toggle = sidebar.querySelector('.sidebar-toggle')
+  toggle.addEventListener('click', (e) => {
+    e.preventDefault()
+    sidebar.classList.toggle('close')
+  })
+}
 document.addEventListener('DOMContentLoaded', (event) => {
   console.log(event)
   onloadFunction(event)
+  sidebarToggle(event)
 })

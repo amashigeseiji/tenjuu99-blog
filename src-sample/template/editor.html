@@ -15,6 +15,16 @@
       <a href="/">{{SITE_NAME}}/Editor</a>
     </p>
   </header>
+    <div class="sidebar close">
+      <ul>
+        <script type="ssg">
+        return helper.readIndex().map(p => {
+          return `<li><a href="/editor?md=${p.name}.${p.__filetype}">${p.url}.${p.__filetype}</a></li>`
+        }).join("\n")
+        </script>
+      </ul>
+      <div class="sidebar-toggle">&nbsp;</div>
+    </div>
   <main class="container">
     <form action="/editor" class="editor" method="post" id="editor">
       <input id="inputFileName" name="inputFileName" type="text" value="" placeholder="sample.md">
@@ -39,7 +49,7 @@
       <input type="hidden" name="token" value="{{TOKEN}}">
       <div>
         <input type="submit" value="preview" data-url="/preview">
-        <input type="submit" value="編集" data-url="/editor">
+        <input type="submit" value="save" data-url="/editor">
         <a href="/">戻る</a>
       </div>
     </form>

@@ -58,6 +58,68 @@ form select {
   border: none;
   border-radius: 0 5px 5px 0;
 }
+.sidebar {
+  display: flex;
+  justify-content: space-between;
+  width: 50vw;
+  overflow: hidden;
+  position: absolute;
+  background: rgba(104, 117, 154);
+  height: 100%;
+  padding: 0;
+  box-shadow: 3px 13px 13px rgba(50, 50, 50, 0.5);
+  left: 0;
+  transition: left 0.3s, width 0.3s;
+  overflow-y: hidden;
+}
+.sidebar.close {
+  left: -48vw;
+  transition: left 0.3s, width 0.3s;
+}
+@media screen and (min-width: 1100px) {
+  .sidebar {
+    width: 40vw;
+  }
+  .sidebar.close {
+    left: -39vw;
+  }
+}
+@media screen and (min-width: 1400px) {
+  .sidebar {
+    width: 30vw;
+  }
+  .sidebar.close {
+    left: -29vw;
+  }
+}
+@media screen and (max-width: 600px) {
+  .sidebar {
+    width: 80vw;
+  }
+  .sidebar.close {
+    left: -77vw;
+  }
+}
+.sidebar li {
+  list-style: none;
+}
+.sidebar a {
+  color: #fff;
+}
+.sidebar-toggle {
+  cursor: pointer;
+  width: 20px;
+  height: 100%;
+  position: relative;
+}
+.sidebar-toggle:hover:after {
+  position: absolute;
+  right: 0;
+  content: ' ';
+  height: 100%;
+  width: 20px;
+  background: rgba(255, 255,255, 0.3);
+}
 @media screen and (max-width: 600px) {
   main {
     width: 100%;
