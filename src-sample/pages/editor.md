@@ -1,5 +1,5 @@
 ---
 template: editor.html
 index: false
-distribute: true
+distribute: config.editor_enable
 ---
