@@ -35,7 +35,7 @@ jobs:
           node-version: '22.x'
 
       - name: npm install
-        run: npm install --omit=dev
+        run: npm install
 
       - name: Build
         run: cp blog.json.prod blog.json && npm run generate
