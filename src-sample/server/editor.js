@@ -1,11 +1,8 @@
 import { IncomingMessage, ServerResponse } from 'http'
 import fs from 'node:fs/promises'
 import { styleText } from 'node:util'
-
-const rootDir = process.cwd()
-const config = (await import(rootDir + '/lib/config.js')).default
-const dir = (await import(rootDir + '/lib/dir.js'))
-const helper = (await import(rootDir + '/lib/helper.js'))
+import config from '@tenjuu99/blog/lib/config.js'
+import { pageDir } from '@tenjuu99/blog/lib/dir.js'
 
 export const path = '/editor'
 
@@ -27,7 +24,7 @@ export const post = async (req, res) => {
         }))
         return
       }
-      await fs.writeFile(`${dir.pageDir}/${file}`, json.content)
+      await fs.writeFile(`${pageDir}/${file}`, json.content)
       console.log(styleText('blue', '[editor/post] finished'))
 
       const href = file.split('.')[0]
