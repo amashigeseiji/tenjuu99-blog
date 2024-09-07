@@ -4,6 +4,9 @@
   --headline-3: 16px;
   --text-size: 16px;
   --text-size-small: 12px;
+  --container-max-width: 80%;
+  --container-min-width: 600px;
+  --container-width: 70vw;
 }
 
 body {
@@ -21,16 +24,16 @@ body {
 .container {
   margin: 0 auto;
   padding: 5px 30px;
-  max-width: 80%;
-  min-width: 600px;
-  width: 70vw;
+  max-width: var(--container-max-width, 80%);
+  min-width: var(--container-min-width, 600px);
+  width: var(--container-width, 70vw);
 }
 
 @media screen and (max-width: 600px) {
   .container {
-    max-width: 100%;
-    width: 100%;
-    min-width: 100%;
+    --container-max-width: 100%;
+    --container-min-width: 100%;
+    --container-width: 100%;
     padding: 5px 15px;
   }
 }

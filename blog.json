@@ -3,7 +3,7 @@
   "url_base": "http://localhost:8000",
   "src_dir": "src-sample",
   "dist_dir": "dist",
-  "distribute_raw": "image",
+  "distribute_raw": "image,js",
   "helper": "helper/index.js",
   "editor": true
 }
