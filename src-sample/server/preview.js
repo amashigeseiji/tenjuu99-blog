@@ -1,8 +1,9 @@
 import { IncomingMessage, ServerResponse } from 'http'
 import { styleText } from 'node:util'
 
-const render = (await import('../../lib/render.js')).default
-const makePageData = (await import('../../lib/pageData.js')).default
+const rootDir = process.cwd()
+const render = (await import(rootDir + '/lib/render.js')).default
+const makePageData = (await import(rootDir + '/lib/pageData.js')).default
 
 export const path = '/preview'
 

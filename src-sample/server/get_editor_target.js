@@ -1,8 +1,9 @@
 import { IncomingMessage, ServerResponse } from 'http'
 import fs from 'node:fs'
 
-const config = (await import('../../lib/config.js')).default
-const pageDir = (await import('../../lib/dir.js')).pageDir
+const rootDir = process.cwd()
+const config = (await import(rootDir + '/lib/config.js')).default
+const pageDir = (await import(rootDir + '/lib/dir.js')).pageDir
 
 export const path = '/get_editor_target'
 

@@ -43,14 +43,14 @@
       {/if}
       {{MARKDOWN}}
     </article>
+
+    {include('template/prevNext.html')}
+  </main>
     {if editor}
     <div class="container">
       <a href="/editor?md={{name}}.{{__filetype}}">編集する</a>
     </div>
     {/if}
-
-    {include('template/prevNext.html')}
-  </main>
 
   {include('template/footer.html')}
 </body>

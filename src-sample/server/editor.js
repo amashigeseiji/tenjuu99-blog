@@ -2,8 +2,10 @@ import { IncomingMessage, ServerResponse } from 'http'
 import fs from 'node:fs/promises'
 import { styleText } from 'node:util'
 
-const config = (await import('../../lib/config.js')).default
-const dir = (await import('../../lib/dir.js'))
+const rootDir = process.cwd()
+const config = (await import(rootDir + '/lib/config.js')).default
+const dir = (await import(rootDir + '/lib/dir.js'))
+const helper = (await import(rootDir + '/lib/helper.js'))
 
 export const path = '/editor'
 
