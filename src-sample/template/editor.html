@@ -120,6 +120,7 @@
         inputFileName.value = ""
         inputFileName.removeAttribute('disabled')
         textarea.value = ''
+        url.searchParams.set('md', "")
         const iframe = preview.querySelector('iframe')
         if (iframe) {
           iframe.srcdoc = ''
