@@ -19,7 +19,7 @@ export const post = async (req, res) => {
       const json = JSON.parse(chunks.join())
       const file = json.inputFileName ? json.inputFileName : json.selectDataFile
       if (!file) {
-        res.writeHead(401, { 'content-type': 'application/json' })
+        res.writeHead(400, { 'content-type': 'application/json' })
         res.end(JSON.stringify({
           'message': 'ファイル名がありません'
         }))

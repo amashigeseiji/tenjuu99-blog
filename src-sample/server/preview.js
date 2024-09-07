@@ -18,7 +18,7 @@ export const post = async (req, res) => {
       const json = JSON.parse(chunks.join())
       const filename = json.inputFileName ? json.inputFileName : json.selectDataFile
       const pageData = makePageData(filename, json.content)
-      const rendered = await render('default.html', pageData)
+      const rendered = await render(pageData.template, pageData)
       res.writeHead(200, { 'content-type': 'application/json' })
       res.end(JSON.stringify({
         'preview': rendered

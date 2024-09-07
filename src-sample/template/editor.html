@@ -56,6 +56,7 @@
     height: 100%;
     border: none;
     border-radius: 0 5px 5px 0;
+    pointer-events: none;
   }
 @media screen and (max-width: 600px) {
   main {
@@ -114,9 +115,15 @@
         inputFileName.value = json.filename
         inputFileName.setAttribute('disabled', true)
         url.searchParams.set('md', select.value)
+        submit('/preview', form)
       } else {
         inputFileName.value = ""
         inputFileName.removeAttribute('disabled')
+        textarea.value = ''
+        const iframe = preview.querySelector('iframe')
+        if (iframe) {
+          iframe.srcdoc = ''
+        }
       }
       history.pushState({}, "", url)
     })
@@ -143,6 +150,7 @@
         if (json.preview) {
           const iframe = document.createElement('iframe')
           iframe.setAttribute('srcdoc', json.preview)
+          iframe.setAttribute('sandbox', '')
           const old = preview.querySelector('iframe')
           if (!old) {
             preview.appendChild(iframe)
