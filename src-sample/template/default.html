@@ -46,7 +46,7 @@
 
     {include('template/prevNext.html')}
   </main>
-    {if editor}
+    {if isEditorEnabled() }
     <div class="container">
       <a href="/editor?md={{name}}.{{__filetype}}">編集する</a>
     </div>

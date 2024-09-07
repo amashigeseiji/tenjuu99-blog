@@ -4,6 +4,5 @@
   "src_dir": "src-sample",
   "dist_dir": "dist",
   "distribute_raw": "image,js",
-  "helper": "helper/index.js",
-  "editor": true
+  "helper": "helper/index.js"
 }
