@@ -3,6 +3,7 @@ body {
   --container-max-width: 90%;
   --container-min-width: 90%;
   --container-width: 90%;
+  height: 100vh;
 }
 main {
   height: 100%;
@@ -13,16 +14,17 @@ main {
   margin: 10px 0;
   border: 1px solid #666;
   border-radius: 5px;
+  height: 100%;
 }
 .textareaAndPreview>* {
   flex-basis: 50%;
-  height: 80vh;
 }
 .editor {
   display: flex;
   flex-direction: column;
   padding: 15px 0;
   justify-content:center;
+  height: 100%;
 }
 #editorTextArea {
   resize: none;
