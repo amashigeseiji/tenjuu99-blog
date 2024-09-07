@@ -23,7 +23,7 @@ echo '{
   "url_base": "http://localhost:8000",
   "src_dir": "src",
   "dist_dir": "dist",
-  "distribute_raw": "image",
+  "distribute_raw": "image,js",
   "helper": "helper/index.js"
 }' > "$(pwd)/blog.json"
 echo "create blog.json"
