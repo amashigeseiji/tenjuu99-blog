@@ -1,26 +1,7 @@
 #!/usr/bin/env node
 
 import server from '../lib/server.js'
-import { srcDir, pageDir } from '../lib/dir.js'
-import { watchers, watch } from '../lib/watcher.js'
 import generate from '../lib/generate.js'
 
-watchers.push({
-  paths: srcDir,
-  watchOptions: {
-    ignored: pageDir
-  },
-  callback: generate
-})
-watchers.push({
-  paths: pageDir,
-  callback: generate,
-  watchOptions: {
-    ignoreInitial: true
-  },
-  event: ['change', 'unlink', 'add']
-})
-watch()
 generate()
-
 server().listen(process.env.PORT || 8000)

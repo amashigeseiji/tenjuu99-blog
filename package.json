@@ -4,13 +4,14 @@
   "description": "blog template",
   "main": "index.js",
   "scripts": {
-    "dev": "node bin/server",
+    "dev": "node bin/dev-server",
+    "server": "node bin/server",
     "generate": "node bin/generate",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "bin": {
     "generate": "bin/generate",
-    "server": "bin/server",
+    "server": "bin/dev-server",
     "create-blog": "bin/new"
   },
   "author": "AmashigeSeiji",

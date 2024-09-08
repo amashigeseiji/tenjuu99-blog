@@ -1,0 +1,57 @@
+#!/usr/bin/env node
+
+import { spawn } from 'child_process'
+import { srcDir, pageDir, serverDir, helperDir } from '../lib/dir.js'
+import { watchers, watch } from '../lib/watcher.js'
+import generate from '../lib/generate.js'
+import path from 'path'
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const libDir = path.dirname(__filename) + '/../lib/'
+
+watchers.push({
+  paths: srcDir,
+  watchOptions: {
+    ignored: [pageDir, serverDir, helperDir],
+  },
+  callback: generate
+})
+watchers.push({
+  paths: pageDir,
+  callback: generate,
+  watchOptions: {
+    ignoreInitial: true
+  },
+  event: ['change', 'unlink', 'add']
+})
+watchers.push({
+  paths: [serverDir, helperDir, libDir],
+  callback: () => {
+    childProcess.kill('SIGINT')
+    childProcess = proceed()
+    console.error('restarting')
+  }
+})
+watch()
+
+let childProcess = null
+
+const proceed = () => {
+  const child = spawn('node', ['bin/server'])
+  console.log(`start process. PID(parent): ${process.pid}, PID(child): ${child.pid}`)
+
+  child.stdout.on('data', (data) => {
+    console.log(data.toString().split('\n').filter(v => v).join('\n'))
+  })
+  child.stderr.on('data', (data) => {
+    console.log(data.toString().split('\n').filter(v => v).join('\n'))
+  })
+  child.on('exit', (code, signal) => {
+    console.error(`process exit: ${code}, SIGNAL: ${signal}`);
+  })
+
+  return child
+}
+
+childProcess = proceed()
