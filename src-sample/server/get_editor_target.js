@@ -17,7 +17,11 @@ export const get = async (req, res) => {
   }
   const file = `${pageDir}/${target}`
   if (!fs.existsSync(`${file}`)) {
-    return false
+    return {
+      status: 404,
+      contentType: 'application/json',
+      body: JSON.stringify({ content: '', filename: target })
+    }
   }
   const f = fs.readFileSync(`${file}`, 'utf8')
   return {

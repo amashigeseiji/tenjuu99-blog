@@ -16,6 +16,13 @@ export const post = async (req, res) => {
     .on('end', async () => {
       const json = JSON.parse(chunks.join())
       const filename = json.inputFileName ? json.inputFileName : json.selectDataFile
+      if (!filename) {
+        res.writeHead(400, { 'content-type': 'application/json' })
+        return res.end(JSON.stringify({
+          message: 'filename is requried.'
+        }))
+      }
+      console.log(filename, json)
       const pageData = makePageData(filename, json.content)
       const rendered = await render(pageData.template, pageData)
       res.writeHead(200, { 'content-type': 'application/json' })

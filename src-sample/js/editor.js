@@ -3,8 +3,15 @@ const sleep = waitTime => new Promise( resolve => setTimeout(resolve, waitTime) 
 const fetchData = (target) => {
   return fetch(`/get_editor_target?md=${target}`)
     .then(async res => {
-      const json = await res.json()
-      return json
+      if (!res.ok) {
+        document.querySelector('#inputFileName').value = target
+        document.querySelector('#editorTextArea').value = `${target.split('.')[0]}についての記事を作成しましょう`
+        // submit('/preview', form)
+        throw new Error(`${target} does not exist.`)
+      } else {
+        const json = await res.json()
+        return json
+      }
     })
 }
 const onloadFunction = async (e) => {
@@ -22,6 +29,9 @@ const onloadFunction = async (e) => {
       inputFileName.value = json.filename
       inputFileName.setAttribute('disabled', true)
       submit('/preview', form)
+    }).catch(e => {
+      console.log('error!!!')
+      console.log(e)
     })
   }
   select.addEventListener('change', async (event) => {
@@ -51,7 +61,7 @@ const onloadFunction = async (e) => {
     formData.forEach((v, k) => {
       obj[k] = v
     })
-    fetch(fetchUrl, {
+    return fetch(fetchUrl, {
       method: 'post',
       body: JSON.stringify(obj)
     }).then(async response => {
@@ -94,13 +104,11 @@ const sidebarToggle = (e) => {
     main.classList.toggle('sidebar-close')
   })
   const hamburger = document.querySelector('.hamburger-menu input[type="checkbox"]')
-  console.log(hamburger)
   hamburger.addEventListener('change', (e) => {
     main.classList.toggle('sidebar-close')
   })
 }
 document.addEventListener('DOMContentLoaded', (event) => {
-  console.log(event)
   onloadFunction(event)
   sidebarToggle(event)
 })
