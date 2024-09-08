@@ -67,7 +67,7 @@ const onloadFunction = async (e) => {
       if (json.preview) {
         const iframe = document.createElement('iframe')
         iframe.setAttribute('srcdoc', json.preview)
-        iframe.setAttribute('sandbox', '')
+        iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts')
         const old = preview.querySelector('iframe')
         if (!old) {
           preview.appendChild(iframe)
@@ -87,10 +87,16 @@ const onloadFunction = async (e) => {
 
 const sidebarToggle = (e) => {
   const sidebar = document.querySelector('.sidebar')
+  const main = document.querySelector('main')
   const toggle = sidebar.querySelector('.sidebar-toggle')
   toggle.addEventListener('click', (e) => {
     e.preventDefault()
-    sidebar.classList.toggle('close')
+    main.classList.toggle('sidebar-close')
+  })
+  const hamburger = document.querySelector('.hamburger-menu input[type="checkbox"]')
+  console.log(hamburger)
+  hamburger.addEventListener('change', (e) => {
+    main.classList.toggle('sidebar-close')
   })
 }
 document.addEventListener('DOMContentLoaded', (event) => {

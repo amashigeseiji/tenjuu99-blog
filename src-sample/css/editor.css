@@ -1,13 +1,19 @@
 body {
   background: #fafafa;
-  --container-max-width: 90%;
-  --container-min-width: 90%;
-  --container-width: 90%;
+  --container-max-width: 100%;
+  --container-min-width: 100%;
+  --container-width: 100%;
   height: 100vh;
 }
 main {
   height: 100%;
   margin: 0 auto;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+}
+main.container {
+  padding: 0;
 }
 .textareaAndPreview {
   display: flex;
@@ -22,9 +28,19 @@ main {
 .editor {
   display: flex;
   flex-direction: column;
-  padding: 15px 0;
+  padding: 15px 20px;
   justify-content:center;
   height: 100%;
+  /* width: 100%; */
+  margin: 0 auto;
+  position: relative;
+  left: 0;
+  flex-basis: 100%;
+  transition: flex-basis 0.3s;
+}
+.sidebar-close .editor {
+  flex-basis: 90%;
+  transition: flex-basis 0.3s;
 }
 #editorTextArea {
   resize: none;
@@ -61,43 +77,45 @@ form select {
 .sidebar {
   display: flex;
   justify-content: space-between;
-  width: 50vw;
+  width: 300px;
   overflow: hidden;
-  position: absolute;
+  left: 0;
   background: rgba(104, 117, 154);
   height: 100%;
   padding: 0;
-  box-shadow: 3px 13px 13px rgba(50, 50, 50, 0.5);
-  left: 0;
-  transition: left 0.3s, width 0.3s;
   overflow-y: hidden;
+  transition: left 0.3s, flex-basis 0.3s;
+  flex-basis: 300px;
+  position: relative;
 }
-.sidebar.close {
-  left: -48vw;
-  transition: left 0.3s, width 0.3s;
+.sidebar-close .sidebar {
+  left: -290px;
+  transition: left 0.3s, flex-basis 0.3s;
+  flex-basis: 0;
+}
+.sidebar ul {
+  padding: 0;
+  margin: 0 0 0 20px;
+  left: 0;
+  transition: left 0.3s;
+  min-width: 180px;
+  max-width: 180px;
+}
+.sidebar-close .sidebar ul {
+  position: absolute;
+  left: -290px;
+  transition: left 0.3s;
 }
 @media screen and (min-width: 1100px) {
-  .sidebar {
-    width: 40vw;
-  }
-  .sidebar.close {
-    left: -39vw;
-  }
 }
 @media screen and (min-width: 1400px) {
-  .sidebar {
-    width: 30vw;
-  }
-  .sidebar.close {
-    left: -29vw;
-  }
 }
 @media screen and (max-width: 600px) {
   .sidebar {
-    width: 80vw;
+    flex-basis: 80%;
   }
   .sidebar.close {
-    left: -77vw;
+    flex-basis: 5%;
   }
 }
 .sidebar li {
@@ -110,7 +128,11 @@ form select {
   cursor: pointer;
   width: 20px;
   height: 100%;
-  position: relative;
+  background: rgba(104, 117, 154);
+}
+.sidebar-close .sidebar-toggle {
+  position: fixed;
+  left: 0;
 }
 .sidebar-toggle:hover:after {
   position: absolute;
@@ -125,6 +147,24 @@ form select {
     width: 100%;
     display: block;
   }
+  main.container {
+    padding: 0 5px;
+  }
+  .sidebar {
+    position: fixed;
+    width: 80vw;
+    z-index: 3;
+    right: 0;
+    left: unset;
+    transition: right .3s, width .3s;
+  }
+  .sidebar-close .sidebar {
+    width: 0;
+    position: fixed;
+    right: -300px;
+    left: unset;
+    transition: right .3s, width .3s;
+  }
   .editor {
     padding: 15px 0;
   }
@@ -133,5 +173,65 @@ form select {
   }
   #editorTextArea {
     flex-basis: 100%;
+  }
+  .sidebar-toggle {
+    display: none;
+  }
+}
+/**
+ * hamburger
+ */
+.hamburger-menu {
+  display: none;
+}
+@media screen and (max-width: 600px) {
+  .hamburger-menu {
+    display: block;
+  }
+  .menu-btn {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    height: 40px;
+    width: 40px;
+    justify-content: center;
+    align-items: center;
+    z-index: 90;
+    /* background-color: #3584bb; */
+  }
+  .menu-btn span,
+  .menu-btn span:before,
+  .menu-btn span:after {
+    content: '';
+    display: block;
+    height: 3px;
+    width: 25px;
+    border-radius: 3px;
+    background-color: #ffffff;
+    position: absolute;
+    transition: transform 0.3s, background-color 0.3s;
+  }
+  .menu-btn span:before {
+    bottom: 8px;
+  }
+  .menu-btn span:after {
+    top: 8px;
+  }
+  #menu-btn-check:checked ~ .menu-btn span {
+    background-color: rgba(255, 255, 255, 0);/*メニューオープン時は真ん中の線を透明にする*/
+  }
+  #menu-btn-check:checked ~ .menu-btn span::before {
+    bottom: 0;
+    transform: rotate(45deg);
+    transition: transform 0.3s, background-color 0.3s;
+  }
+  #menu-btn-check:checked ~ .menu-btn span::after {
+    top: 0;
+    transform: rotate(-45deg);
+    transition: transform 0.3s, background-color 0.3s;
+  }
+  #menu-btn-check {
+    display: none;
   }
 }

@@ -14,8 +14,13 @@
     <p class="container">
       <a href="/">{{SITE_NAME}}/Editor</a>
     </p>
+    <div class="hamburger-menu">
+      <input type="checkbox" id="menu-btn-check">
+      <label for="menu-btn-check" class="menu-btn"><span></span></label>
+    </div>
   </header>
-    <div class="sidebar close">
+  <main class="container sidebar-close">
+    <div class="sidebar">
       <ul>
         <script type="ssg">
         return helper.readIndex().map(p => {
@@ -25,7 +30,6 @@
       </ul>
       <div class="sidebar-toggle">&nbsp;</div>
     </div>
-  <main class="container">
     <form action="/editor" class="editor" method="post" id="editor">
       <input id="inputFileName" name="inputFileName" type="text" value="" placeholder="sample.md">
       <select id="selectDataFile" name="selectDataFile">
