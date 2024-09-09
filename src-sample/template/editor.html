@@ -4,21 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{SITE_NAME}}</title>
-  {include('template/css.html')}
-  <link rel="stylesheet" href="${/css/editor.css<<editor.css}">
+  <link rel="stylesheet" href="${/css/editor.css<<reset.css,editor.css}">
   <script src="/js/editor.js" defer></script>
 
 </head>
 <body>
-  <header>
-    <p class="container">
-      <a href="/">{{SITE_NAME}}/Editor</a>
-    </p>
-    <div class="hamburger-menu">
-      <input type="checkbox" id="menu-btn-check">
-      <label for="menu-btn-check" class="menu-btn"><span></span></label>
-    </div>
-  </header>
   <main class="container sidebar-close">
     <div class="sidebar">
       <ul>
@@ -59,6 +49,10 @@
       </div>
       <input type="hidden" name="token" value="{{TOKEN}}">
     </form>
+    <div class="hamburger-menu">
+      <input type="checkbox" id="menu-btn-check">
+      <label for="menu-btn-check" class="menu-btn"><span></span></label>
+    </div>
   </main>
 </body>
 </html>
