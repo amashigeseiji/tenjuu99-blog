@@ -34,13 +34,16 @@ main.container {
   /* width: 100%; */
   margin: 0 auto;
   position: relative;
+  width: 100%;
   left: 0;
   flex-basis: 100%;
-  transition: flex-basis 0.3s;
 }
 .sidebar-close .editor {
   flex-basis: 90%;
-  transition: flex-basis 0.3s;
+}
+.editor-options {
+  display: flex;
+  justify-content: space-between;
 }
 #editorTextArea {
   resize: none;
@@ -84,22 +87,17 @@ form select {
   height: 100%;
   padding: 0;
   overflow-y: hidden;
-  transition: left 0.3s, flex-basis 0.3s;
   flex-basis: 300px;
   position: relative;
+  z-index: 3;
 }
 .sidebar-close .sidebar {
   left: -290px;
-  transition: left 0.3s, flex-basis 0.3s;
   flex-basis: 0;
 }
 .sidebar ul {
   padding: 0;
   margin: 0 0 0 20px;
-  left: 0;
-  transition: left 0.3s;
-  min-width: 180px;
-  max-width: 180px;
 }
 .sidebar-close .sidebar ul {
   position: absolute;

@@ -31,15 +31,24 @@
       <div class="sidebar-toggle">&nbsp;</div>
     </div>
     <form action="/editor" class="editor" method="post" id="editor">
-      <input id="inputFileName" name="inputFileName" type="text" value="" placeholder="sample.md">
-      <select id="selectDataFile" name="selectDataFile">
-        <option value="">新規作成</option>
-        <script type="ssg">
-          return helper.readIndex().map(p => {
+      <div class="editor-options">
+        <div>
+          <input id="inputFileName" name="inputFileName" type="text" value="" placeholder="sample.md">
+          <select id="selectDataFile" name="selectDataFile">
+            <option value="">新規作成</option>
+            <script type="ssg">
+              return helper.readIndex().map(p => {
         return `<option value="${p.name}.${p.__filetype}">${p.url}.${p.__filetype}</option>`
       }).join("\n")
-        </script>
-      </select>
+            </script>
+          </select>
+        </div>
+        <div>
+          <input type="submit" value="preview" data-url="/preview">
+          <input type="submit" value="save" data-url="/editor">
+          <a href="/">戻る</a>
+        </div>
+      </div>
       <div class="textareaAndPreview">
         <textarea id="editorTextArea" name="content" cols="30" rows="10">
 {{ MARKDOWN_NOT_PARSED }}
@@ -49,11 +58,6 @@
         </div>
       </div>
       <input type="hidden" name="token" value="{{TOKEN}}">
-      <div>
-        <input type="submit" value="preview" data-url="/preview">
-        <input type="submit" value="save" data-url="/editor">
-        <a href="/">戻る</a>
-      </div>
     </form>
   </main>
 </body>
