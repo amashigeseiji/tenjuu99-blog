@@ -22,7 +22,6 @@ export const post = async (req, res) => {
           message: 'filename is requried.'
         }))
       }
-      console.log(filename, json)
       const pageData = makePageData(filename, json.content)
       const rendered = await render(pageData.template, pageData)
       res.writeHead(200, { 'content-type': 'application/json' })
