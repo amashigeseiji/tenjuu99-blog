@@ -1,5 +1,5 @@
 import { allData } from '@tenjuu99/blog/lib/indexer.js'
-import { replaceVariablesFilter } from "@tenjuu99/blog/lib/filter.js";
+import replaceVariablesFilter from '@tenjuu99/blog/lib/replaceVariablesFilter.js'
 import config from '@tenjuu99/blog/lib/config.js'
 
 export function readIndex (filter = null) {
