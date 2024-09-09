@@ -9,6 +9,7 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const libDir = path.dirname(__filename) + '/../lib/'
+const binDir = path.dirname(__filename) + '/../bin/'
 
 watchers.push({
   paths: srcDir,
@@ -38,7 +39,7 @@ watch()
 let childProcess = null
 
 const proceed = () => {
-  const child = spawn('node', ['bin/server'])
+  const child = spawn('node', [`${binDir}server`])
   console.log(`start process. PID(parent): ${process.pid}, PID(child): ${child.pid}`)
 
   child.stdout.on('data', (data) => {
