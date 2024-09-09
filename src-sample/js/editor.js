@@ -102,7 +102,13 @@ const sidebarToggle = (e) => {
   toggle.addEventListener('click', (e) => {
     e.preventDefault()
     main.classList.toggle('sidebar-close')
+    localStorage.setItem('sidebar-is-open', !main.classList.contains('sidebar-close'))
   })
+  if (localStorage.getItem('sidebar-is-open') === 'true') {
+    main.classList.remove('sidebar-close')
+  } else {
+    main.classList.add('sidebar-close')
+  }
   const hamburger = document.querySelector('.hamburger-menu input[type="checkbox"]')
   hamburger.addEventListener('change', (e) => {
     main.classList.toggle('sidebar-close')
