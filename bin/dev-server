@@ -50,6 +50,7 @@ const proceed = () => {
   })
   child.on('exit', (code, signal) => {
     console.error(`process exit: ${code}, SIGNAL: ${signal}`);
+    child.kill('SIGINT')
   })
 
   return child
