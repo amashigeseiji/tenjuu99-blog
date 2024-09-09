@@ -40,7 +40,10 @@
         </div>
       </div>
       <div class="textareaAndPreview">
-        <textarea id="editorTextArea" name="content" cols="30" rows="10">
+        <p contenteditable="true" id="editorTextArea">
+{{ MARKDOWN_NOT_PARSED }}
+        </p>
+        <textarea id="editorTextAreaHidden" name="content" cols="30" rows="10">
 {{ MARKDOWN_NOT_PARSED }}
         </textarea>
         <div class="preview">
@@ -53,6 +56,7 @@
       <input type="checkbox" id="menu-btn-check">
       <label for="menu-btn-check" class="menu-btn"><span></span></label>
     </div>
+    <div class="dummy-input"></div>
   </main>
 </body>
 </html>
