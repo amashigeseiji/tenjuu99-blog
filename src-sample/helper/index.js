@@ -115,10 +115,6 @@ export function renderIndex(pages, nodate = 'nodate', headingTag = 'h3') {
   return resultText.join('\n')
 }
 
-export function additionalHelper() {
-  return 'これは追加ヘルパーによって出力されているメッセージです。'
-}
-
 export function isEditorEnabled() {
   return allData.editor && allData.editor.distribute
 }

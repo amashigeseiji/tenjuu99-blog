@@ -89,7 +89,7 @@ blog.json を開いて、 `site_name` を変更します。
   "src_dir": "src",
   "dist_dir": "dist",
   "distribute_raw": "image",
-  "helper": "helper/index.js"
+  "helper": "index.js"
 }
 ```
 
