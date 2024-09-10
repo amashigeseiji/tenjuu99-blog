@@ -34,7 +34,8 @@
   "files": [
     "lib",
     "bin",
-    "src-sample"
+    "src-sample",
+    "packages"
   ],
   "publishConfig": {
     "access": "public"
