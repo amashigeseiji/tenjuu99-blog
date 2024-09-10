@@ -6,5 +6,6 @@
   "dist_dir": "dist",
   "distribute_raw": "image,js",
   "helper": "index.js,add.js",
-  "editor_enable": false
+  "editor_enable": false,
+  "packages": ""
 }
