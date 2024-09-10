@@ -36,6 +36,10 @@ watchers.push({
 })
 watch()
 
+/**
+ * @type { import("child_process").ChildProcess }
+ * @var {ChildProcess} childProcess
+ */
 let childProcess = null
 
 const proceed = () => {
