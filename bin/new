@@ -16,7 +16,8 @@ echo '{
   "dist_dir": "dist",
   "distribute_raw": "image,js",
   "helper": "index.js",
-  "editor_enable": true
+  "editor_enable": true,
+  "packages": "editor"
 }' > "$(pwd)/blog.json"
 echo "create blog.json"
 
