@@ -2,7 +2,7 @@ import { IncomingMessage, ServerResponse } from 'http'
 import fs from 'node:fs/promises'
 import { styleText } from 'node:util'
 import config from '@tenjuu99/blog/lib/config.js'
-import { pageDir } from '@tenjuu99/blog/lib/dir.js'
+import { watch } from '@tenjuu99/blog/lib/dir.js'
 
 export const path = '/editor'
 
@@ -24,7 +24,7 @@ export const post = async (req, res) => {
         }))
         return
       }
-      await fs.writeFile(`${pageDir}/${file}`, json.content)
+      await fs.writeFile(`${watch.pageDir}/${file}`, json.content)
       console.log(styleText('blue', '[editor/post] finished'))
 
       const href = file.split('.')[0]
