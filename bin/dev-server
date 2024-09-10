@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawn } from 'child_process'
-import { srcDir, pageDir, serverDir, helperDir } from '../lib/dir.js'
+import { srcDir, watch as watchDir } from '../lib/dir.js'
 import { watchers, watch } from '../lib/watcher.js'
 import generate from '../lib/generate.js'
 import path from 'path'
@@ -14,12 +14,12 @@ const binDir = path.dirname(__filename) + '/../bin/'
 watchers.push({
   paths: srcDir,
   watchOptions: {
-    ignored: [pageDir, serverDir, helperDir],
+    ignored: [watchDir.pageDir, watchDir.serverDir, watchDir.helperDir],
   },
   callback: generate
 })
 watchers.push({
-  paths: pageDir,
+  paths: watchDir.pageDir,
   callback: generate,
   watchOptions: {
     ignoreInitial: true
@@ -27,7 +27,7 @@ watchers.push({
   event: ['change', 'unlink', 'add']
 })
 watchers.push({
-  paths: [serverDir, helperDir, libDir],
+  paths: [watchDir.serverDir, watchDir.helperDir, libDir],
   callback: () => {
     childProcess.kill('SIGINT')
     childProcess = proceed()
