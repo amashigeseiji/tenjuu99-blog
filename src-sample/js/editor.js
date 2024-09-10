@@ -5,7 +5,10 @@ const fetchData = (target) => {
     .then(async res => {
       if (!res.ok) {
         document.querySelector('#inputFileName').value = target
-        document.querySelector('#editorTextArea').value = `${target.split('.')[0]}についての記事を作成しましょう`
+        document.querySelector('#editorTextArea').value = `---
+title: ${target.split('.')[0].split('/').pop()}
+---
+${target.split('.')[0].split('/').pop()} についての記事を作成しましょう`
         // submit('/preview', form)
         throw new Error(`${target} does not exist.`)
       } else {
