@@ -61,3 +61,7 @@ const proceed = () => {
 }
 
 childProcess = proceed()
+
+process.on('exit', () => {
+  childProcess.kill('SIGINT')
+})
