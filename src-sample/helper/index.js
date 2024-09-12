@@ -1,6 +1,4 @@
-import { allData } from '@tenjuu99/blog/lib/indexer.js'
-import replaceVariablesFilter from '@tenjuu99/blog/lib/replaceVariablesFilter.js'
-import config from '@tenjuu99/blog/lib/config.js'
+import { allData, config } from '@tenjuu99/blog'
 
 export function readIndex (filter = null) {
   const data = Object.entries(allData)
@@ -15,42 +13,8 @@ export function dateFormat(dateString) {
   return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`
 }
 
-export function render(text, variables) {
-  return replaceVariablesFilter(text, variables)
-}
-
 export function getPageData(name) {
   return allData[name]
-}
-
-let indexedItemsSorted = null
-export function indexedItems() {
-  if (indexedItemsSorted) {
-    return indexedItemsSorted
-  }
-  const sorted = readIndex()
-    .filter(v => v.index && v.published != '1970-01-01')
-    .sort((a, b) => new Date(a.published) - new Date(b.published))
-  let prev, next
-  for (const item of sorted) {
-    if (prev) {
-      prev.next = {
-        name: item.name,
-        published: item.published,
-        url: item.url,
-        title: item.title,
-      }
-      item.prev = {
-        name: prev.name,
-        published: prev.published,
-        url: prev.url,
-        title: prev.title,
-      }
-    }
-    prev = item
-  }
-  indexedItemsSorted = sorted
-  return indexedItemsSorted
 }
 
 /**
