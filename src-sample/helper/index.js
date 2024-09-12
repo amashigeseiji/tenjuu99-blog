@@ -118,3 +118,21 @@ export function renderIndex(pages, nodate = 'nodate', headingTag = 'h3') {
 export function isEditorEnabled() {
   return allData.editor && allData.editor.distribute
 }
+
+export function breadcrumbList(pageName) {
+  const pageData = allData[pageName]
+  const breadCrumbs = ['/']
+  pageData.url.split('/').reduce((prev, curr) => {
+    breadCrumbs.push([`/${prev}${curr}/`, curr])
+    return `${prev}${curr}/`
+  })
+  const last = breadCrumbs.pop()
+  last[0] = last[0].substring(0, last[0].length - 1)
+
+  const output = breadCrumbs.map(v => {
+    return `<div style="margin-left: 10px;"><a href="${v[0]}">${v[0] === '/' ? 'top' : v[1]}</a> > </div>`
+  }).join('') + `<div style="margin-left: 10px;">${last[1]}</div>`
+  return '<div style="display: flex;flex-wrap: wrap;">'
+    + output
+    + '</div>'
+}

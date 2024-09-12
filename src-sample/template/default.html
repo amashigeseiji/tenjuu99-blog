@@ -28,6 +28,9 @@
     <p class="container"><a href="{{RELATIVE_PATH}}/">{{SITE_NAME}}</a></p>
   </header>
   <main>
+    <div class="container">
+      {{ breadcrumbList(name) }}
+    </div>
     <article class="container">
       <h1>{{TITLE}}</h1>
       {if published != '1970-01-01'}
