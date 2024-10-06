@@ -2,6 +2,7 @@
 template:
 url: /robots
 ext: txt
+index: false
 ---
 User-Agent: *
 
