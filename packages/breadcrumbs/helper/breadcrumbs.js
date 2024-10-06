@@ -1,4 +1,4 @@
-import { allData } from '@tenjuu99/blog'
+import { allData, config } from '@tenjuu99/blog'
 
 export function breadcrumbList(pageName) {
   const pageData = allData[pageName]
@@ -27,7 +27,8 @@ export function breadcrumbList(pageName) {
   last[0] = last[0].substring(0, last[0].length - 1)
 
   const output = breadCrumbs.map(v => {
-    return `<div class="breadcrumbs-item"><a href="${v[0]}">${v[0] === '/' ? 'top' : v[1]}</a></div>`
+    const href = config.relative_path ? config.relative_path + '/' + v[0] : v[0]
+    return `<div class="breadcrumbs-item"><a href="${href}">${v[0] === '/' ? 'top' : v[1]}</a></div>`
   }).join('') + `<div class="breadcrumbs-item">${last[1]}</div>`
   return '<div class="breadcrumbs">'
     + output
