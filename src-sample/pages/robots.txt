@@ -1,0 +1,8 @@
+---
+template:
+url: /robots
+ext: txt
+---
+User-Agent: *
+
+Allow: /
