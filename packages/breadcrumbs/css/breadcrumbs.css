@@ -1,0 +1,15 @@
+.breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content:flex-start;
+}
+.breadcrumbs-item {
+  margin-left: 10px;
+}
+.breadcrumbs-item::after {
+  content: '/';
+  margin-left: 10px;
+}
+.breadcrumbs-item:last-child:after {
+  content: none;
+}

@@ -4,8 +4,8 @@
   "src_dir": "src-sample",
   "dist_dir": "dist",
   "distribute_raw": "image,js",
-  "helper": "index.js,add.js",
+  "helper": "index.js,add.js,breadcrumbs.js",
   "editor_enable": true,
-  "packages": "editor,turbolink",
+  "packages": "editor,turbolink,breadcrumbs",
   "turbolink": true
 }
