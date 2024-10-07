@@ -26,6 +26,7 @@ const transition = async (href) => {
       document.head.appendChild(s)
     }
   })
+  window.scroll({top: 0, left: 0, behavior: 'instant'})
   // set body
   document.body = doc.getElementsByTagName('body')[0]
   // set header
