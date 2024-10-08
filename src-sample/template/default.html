@@ -47,12 +47,6 @@
 
     {include('template/prevNext.html')}
   </main>
-    {if isEditorEnabled() }
-    <div class="container">
-      <a href="/editor?md={{name}}.{{__filetype}}" class="editor_link">編集する</a>
-    </div>
-    {/if}
-
   {include('template/footer.html')}
   {if add_script}
   <script src="{{ADD_SCRIPT}}" async></script>

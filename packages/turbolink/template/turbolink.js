@@ -31,7 +31,17 @@ const transition = async (href) => {
   document.body = doc.getElementsByTagName('body')[0]
   // set header
   document.title = doc.getElementsByTagName('title')[0].textContent
-  const canonical = document.head.querySelector('link[rel=canonical]').href = doc.querySelector('link[rel=canonical]').href
+  const canonical = document.head.querySelector('link[rel=canonical]')
+  const newCanonical = doc.querySelector('link[rel=canonical]')
+  if (canonical) {
+    if (newCanonical) {
+      canonical.href = newCanonical.href
+    } else {
+      canonical.remove()
+    }
+  } else if (newCanonical) {
+    document.head.appendChild(newCanonical)
+  }
 
   const metas = [...document.head.querySelectorAll('meta')]
   metas.forEach(meta => {
@@ -53,13 +63,24 @@ const transition = async (href) => {
   })
 }
 
+const urlFromHref = (href) => {
+  try {
+    return new URL(encodeURI(href))
+  } catch (e) {
+    console.log(`${href} is invalid`)
+    throw e
+  }
+}
 const turbolinks = () => {
   const links = document.querySelectorAll('a')
-  const current = new URL(document.location.href)
+  const current = urlFromHref(document.location.href)
   const currentDom = document.body
   links.forEach(link => {
     const href = link.href
-    const url = new URL(href)
+    if (!href.trim() || href.startsWith('javascript:') || link.dataset['turbolink'] === 'disable') {
+      return
+    }
+    const url = urlFromHref(href)
     if (url.host === current.host) {
       link.onclick = async (e) => {
         e.preventDefault()
