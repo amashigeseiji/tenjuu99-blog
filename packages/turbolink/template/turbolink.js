@@ -61,6 +61,18 @@ const transition = async (href) => {
       document.head.appendChild(meta)
     }
   })
+  const scripts = [...document.scripts].forEach(script => {
+    if (script.dataset.turbolink === 'reapply') {
+      const newScript = document.createElement('script')
+      newScript.dataset.turbolink = 'reapply'
+      const newScriptHtml = `(() => {
+        ${script.innerHTML}
+      })()`
+      newScript.innerHTML = newScriptHtml
+      script.parentNode.append(newScript)
+      script.remove()
+    }
+  })
 }
 
 const urlFromHref = (href) => {
