@@ -6,6 +6,5 @@
   "distribute_raw": "image,js",
   "helper": "index.js,add.js",
   "editor_enable": true,
-  "packages": "editor,turbolink,breadcrumbs",
-  "turbolink": true
+  "packages": "editor,turbolink,breadcrumbs"
 }
