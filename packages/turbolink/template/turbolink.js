@@ -73,6 +73,9 @@ const transition = async (href) => {
       script.remove()
     }
   })
+  for (let k in window.after_transition) {
+    window.after_transition[k].apply()
+  }
 }
 
 const urlFromHref = (href) => {
