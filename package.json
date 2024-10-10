@@ -21,7 +21,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "chokidar": "^3.6.0",
+    "chokidar": "^4.0.x",
     "marked": "^13.x"
   },
   "devDependencies": {
