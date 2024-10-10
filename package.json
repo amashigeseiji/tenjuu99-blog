@@ -1,6 +1,6 @@
 {
   "name": "@tenjuu99/blog",
-  "version": "0.2.30",
+  "version": "0.2.31",
   "description": "blog template",
   "main": "index.js",
   "scripts": {
