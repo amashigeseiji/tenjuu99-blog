@@ -6,6 +6,7 @@ import { watchers, watch } from '../lib/watcher.js'
 import generate from '../lib/generate.js'
 import path from 'path'
 import { fileURLToPath } from 'url';
+import { warmUpTemplateCallback } from '../lib/applyTemplate.js'
 
 const __filename = fileURLToPath(import.meta.url);
 const libDir = path.dirname(__filename) + '/../lib/'
@@ -14,8 +15,9 @@ const binDir = path.dirname(__filename) + '/../bin/'
 watchers.push({
   paths: [srcDir],
   event: ['change', 'add', 'unlink'],
-  callback: (path) => {
+  callback: async (path) => {
     watchCallback(path)
+    await warmUpTemplateCallback()
     generate()
   },
   watchOptions: {
