@@ -73,9 +73,6 @@ const transition = async (href) => {
       script.remove()
     }
   })
-  for (let k in window.after_transition) {
-    window.after_transition[k].apply()
-  }
 }
 
 const urlFromHref = (href) => {
@@ -102,7 +99,13 @@ const turbolinks = () => {
         if (`${url.pathname}${url.search}` === `${current.pathname}${current.search}`) {
           return;
         }
+        for (let k in window.turbolink_before_transition) {
+          window.turbolink_before_transition[k].apply()
+        }
         await transition(href)
+        for (let k in window.turbolink_after_transition) {
+          window.turbolink_after_transition[k].apply()
+        }
         history.pushState({}, '', href)
         turbolinks()
       }
