@@ -20,10 +20,16 @@ const transition = async (href) => {
   // load style
   const styleInline = [...document.styleSheets].filter(s => !s.href)
   const newStyleInline = [...doc.getElementsByTagName('style')].filter(s => s.dataset.styleName)
-  newStyleInline.forEach(s => {
-    const name = s.dataset.styleName
-    if (!styleInline.find(si => si.ownerNode.dataset.styleName === name)) {
-      document.head.appendChild(s)
+  styleInline.forEach(style => {
+    const exist = newStyleInline.find(ns => ns.dataset.styleName === style.ownerNode.dataset.styleName)
+    if (!exist) {
+      style.ownerNode.remove()
+    }
+  })
+  newStyleInline.forEach(style => {
+    const exist = styleInline.find(s => s.ownerNode.dataset.styleName === style.dataset.styleName)
+    if (!exist) {
+      document.head.appendChild(style)
     }
   })
   window.scroll({top: 0, left: 0, behavior: 'instant'})
