@@ -18,7 +18,7 @@ const transition = async (href) => {
     document.head.appendChild(addLink)
   })
   // load style
-  const styleInline = [...document.styleSheets].filter(s => !s.href)
+  const styleInline = [...document.styleSheets].filter(s => !s.href && s.ownerNode.dataset.styleName)
   const newStyleInline = [...doc.getElementsByTagName('style')].filter(s => s.dataset.styleName)
   styleInline.forEach(style => {
     const exist = newStyleInline.find(ns => ns.dataset.styleName === style.ownerNode.dataset.styleName)
