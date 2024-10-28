@@ -27,7 +27,7 @@ const transition = async (href) => {
     }
   })
   newStyleInline.forEach(style => {
-    const exist = styleInline.find(s => s.ownerNode.dataset.styleName === style.dataset.styleName)
+    const exist = styleInline.filter(s => s.ownerNode).find(s => s.ownerNode.dataset.styleName === style.dataset.styleName)
     if (!exist) {
       document.head.appendChild(style)
     }
