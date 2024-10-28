@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{TITLE}} | {{SITE_NAME}}</title>
+  {if noindex}
+  <meta name="robots" content="noindex" />
+  {/if}
+  <meta property="og:url" content="{{URL_BASE}}{{URL}}">
+  <meta property="og:title" content="{{TITLE}}">
+  {if og_image}
+  <meta property="og:image" content="{{OG_IMAGE}}">
+  {/if}
+  <meta property="og:description" content="{{OG_DESCRIPTION}}">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="{{SITE_NAME}}">
+  {script}
+    const url = variables.url_base + encodeURI(variables.url)
+    return `<link rel="canonical" href="${url}">`
+  {/script}
+  <meta name="description" content="{{DESCRIPTION}}">
+
+  {include('template/css.html')}
+  <style data-style-name="body-grey">
+body {
+  background: black;
+}
+  </style>
+</head>
+<body>
+  <header>
+    <p class="container"><a href="{{RELATIVE_PATH}}/">{{SITE_NAME}}</a></p>
+  </header>
+  <main>
+    <div class="container">
+      {{ breadcrumbList(name) }}
+    </div>
+    <article class="container">
+{{MARKDOWN}}
+    </article>
+  </main>
+</body>
+</html>
