@@ -32,6 +32,25 @@ const transition = async (href) => {
       document.head.appendChild(style)
     }
   })
+  for (const t of doc.getElementsByTagName('template')) {
+    if (!document.querySelector(`template#${t.id}`)) {
+      document.head.appendChild(t)
+    }
+  }
+  const newScripts = [...doc.getElementsByTagName('script')].filter(s => {
+    return s.dataset.name && [...document.scripts].find(ds => ds.dataset.name !== s.dataset.name)
+  })
+  newScripts.forEach(script => {
+    document.head.appendChild(script)
+    const newScript = document.createElement('script')
+    const newScriptHtml = `(() => {
+      ${script.innerHTML}
+    })()`
+    newScript.innerHTML = newScriptHtml
+    script.parentNode.append(newScript)
+    script.remove()
+  })
+
   window.scroll({top: 0, left: 0, behavior: 'instant'})
   // set body
   document.body = doc.getElementsByTagName('body')[0]
