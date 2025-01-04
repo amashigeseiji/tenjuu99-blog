@@ -3,7 +3,7 @@
   flex-wrap: wrap;
   justify-content:flex-start;
 }
-.breadcrumbs-item {
+.breadcrumbs-item:not(:first-child) {
   margin-left: 10px;
 }
 .breadcrumbs-item::after {
