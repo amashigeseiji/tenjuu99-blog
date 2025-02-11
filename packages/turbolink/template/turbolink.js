@@ -124,22 +124,29 @@ const turbolinks = () => {
         if (`${url.pathname}${url.search}` === `${current.pathname}${current.search}`) {
           return;
         }
-        for (let k in window.turbolink_before_transition) {
-          window.turbolink_before_transition[k].apply()
-        }
-        await transition(href)
-        for (let k in window.turbolink_after_transition) {
-          window.turbolink_after_transition[k].apply()
-        }
-        history.pushState({}, '', href)
-        turbolinks()
+        await executeTransition(href)
       }
     }
   })
 }
+
+const executeTransition = async (href) => {
+  for (let k in window.turbolink_before_transition) {
+    window.turbolink_before_transition[k].apply()
+  }
+  await transition(href)
+  for (let k in window.turbolink_after_transition) {
+    window.turbolink_after_transition[k].apply()
+  }
+  history.pushState({}, '', href)
+  turbolinks()
+}
+
 document.body.onload = turbolinks
 window.onpopstate = async (e) => {
   const href = window.location.pathname + window.location.search + window.location.hash
   await transition(href)
   turbolinks()
 }
+
+window.executeTransition = executeTransition
