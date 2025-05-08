@@ -4,22 +4,28 @@ export function breadcrumbList(pageName, topPageName = 'top') {
   const pageData = allData[pageName]
   const entries = Object.entries(allData)
   const breadCrumbs = ['/']
-  pageData.url.split('/').reduce((prev, curr) => {
-    if (curr === 'index') {
-      return
-    }
-    let str = curr
-    if (allData[prev + curr]) {
-      str = allData[prev + curr].title
-    } else {
-      const entry = entries.find(v => `/${prev}${curr}` === v[1].url)
-      if (entry) {
-        str = entry[1].title
+  const urlSplit = pageData.url.split('/')
+  if (pageData.breadcrumbs) {
+    pageData.breadcrumbs.forEach(v => breadCrumbs.push(v))
+    breadCrumbs.push(['', urlSplit[urlSplit.length - 1]])
+  } else {
+    urlSplit.reduce((prev, curr) => {
+      if (curr === 'index') {
+        return
       }
-    }
-    breadCrumbs.push([`/${prev}${curr}/`, str])
-    return `${prev}${curr}/`
-  })
+      let str = curr
+      if (allData[prev + curr]) {
+        str = allData[prev + curr].title
+      } else {
+        const entry = entries.find(v => `/${prev}${curr}` === v[1].url)
+        if (entry) {
+          str = entry[1].title
+        }
+      }
+      breadCrumbs.push([`/${prev}${curr}/`, str])
+      return `${prev}${curr}/`
+    })
+  }
   if (breadCrumbs.length === 1) {
     return ''
   }
