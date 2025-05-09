@@ -4,12 +4,11 @@ export function breadcrumbList(pageName, topPageName = 'top') {
   const pageData = allData[pageName]
   const entries = Object.entries(allData)
   const breadCrumbs = ['/']
-  const urlSplit = pageData.url.split('/')
   if (pageData.breadcrumbs) {
     pageData.breadcrumbs.forEach(v => breadCrumbs.push(v))
-    breadCrumbs.push(['', urlSplit[urlSplit.length - 1]])
+    breadCrumbs.push(['', pageData.title])
   } else {
-    urlSplit.reduce((prev, curr) => {
+    pageData.url.split('/').reduce((prev, curr) => {
       if (curr === 'index') {
         return
       }
