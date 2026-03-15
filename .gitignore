@@ -7,3 +7,4 @@ data/index.json
 
 .env
 .cache/
+not_include/
