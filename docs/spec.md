@@ -440,11 +440,11 @@ helper.readIndex('/post')
 // カテゴリーツリーを取得
 const tree = helper.getCategoryTree()
 
-// 特定カテゴリーのページを取得
-const pages = helper.getCategoryPages('/tech/frontend')
+// 特定カテゴリーのページを取得（配列で指定）
+const pages = helper.getCategoryPages(['Tech', 'Frontend'])
 
-// サブカテゴリーを含む全ページを取得
-const allPages = helper.getCategoryPagesRecursive('/tech')
+// サブカテゴリーを含む全ページを取得（配列で指定）
+const allPages = helper.getCategoryPagesRecursive(['Tech'])
 ```
 
 ### 有効化方法
