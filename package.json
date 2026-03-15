@@ -7,7 +7,7 @@
     "dev": "node bin/dev-server",
     "server": "node bin/server",
     "generate": "node bin/generate",
-    "test": "node --test test/**/*.test.js",
+    "test": "node --test --test-concurrency=1 test/**/*.test.js",
     "test:watch": "node --test --watch test/**/*.test.js"
   },
   "bin": {
