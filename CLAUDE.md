@@ -100,12 +100,6 @@ cat dist/index.html         # 生成HTML確認
 
 詳細は [docs/develop.md#デバッグ方法](docs/develop.md#デバッグ方法) 参照。
 
-## テストについて
-
-**現状**: テストフレームワーク未導入
-**暫定対応**: `src-sample/` での手動テスト
-**今後**: テスト追加を検討中
-
 ## 追加情報が必要な場合
 
 - **完全な仕様**: [docs/spec.md](docs/spec.md)

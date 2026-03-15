@@ -311,11 +311,32 @@ npm run dev
 
 ## テストについて
 
-**現状**: テストフレームワークは未導入
+### テストフレームワーク
 
-**今後の計画**: テストの追加を検討中
+**Node.js標準の `node:test` を使用** - 追加の依存関係なし
 
-**暫定対応**: `src-sample/` での手動テスト
+```bash
+npm test              # 全テスト実行
+npm run test:watch    # ウォッチモード
+```
+
+### テストの追加方法
+
+新しいテストを追加する場合:
+
+```javascript
+// test/example.test.js
+import { test } from 'node:test';
+import assert from 'node:assert';
+
+test('テストの説明', () => {
+  assert.strictEqual(actual, expected);
+});
+```
+
+### 統合テスト
+
+ユニットテストに加えて、`src-sample/` での手動テストも推奨します。
 
 ## コントリビューション
 
