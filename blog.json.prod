@@ -7,5 +7,14 @@
   "distribute_raw": "image,js",
   "helper": "index.js,add.js",
   "editor_enable": false,
-  "packages": "breadcrumbs,turbolink"
+  "packages": "breadcrumbs,turbolink,category",
+  "hooks": {
+    "afterIndexing": "categoryIndexer.js"
+  },
+  "category": {
+    "template": "category.html",
+    "auto_generate": true,
+    "max_depth": 3,
+    "url_case": "lower"
+  }
 }
