@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="{{LANG}}">
+<head prefix="og: http://ogp.me/ns#">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{TITLE}} | {{SITE_NAME}}</title>
+  <meta property="og:url" content="{{FULL_URL}}">
+  <meta property="og:title" content="{{TITLE}}">
+  <meta property="og:description" content="{{OG_DESCRIPTION}}">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="{{SITE_NAME}}">
+  {script}
+    const url = variables.url_base + encodeURI(variables.url)
+    return `<link rel="canonical" href="${url}">`
+  {/script}
+  <meta name="description" content="{{DESCRIPTION}}">
+
+  {include('template/css.html')}
+  <style>
+    .category-header {
+      margin-bottom: 2rem;
+    }
+    .category-description {
+      color: #666;
+      margin-bottom: 2rem;
+    }
+    .category-section {
+      margin-bottom: 3rem;
+    }
+    .category-section h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid #333;
+    }
+    .category-children {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .category-child-card {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 1rem;
+      transition: box-shadow 0.2s;
+    }
+    .category-child-card:hover {
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .category-child-card a {
+      text-decoration: none;
+      color: #333;
+      font-weight: bold;
+    }
+    .category-child-card a:hover {
+      color: #0066cc;
+    }
+    .category-page-list {
+      list-style: none;
+      padding: 0;
+    }
+    .category-page-item {
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #eee;
+    }
+    .category-page-item:last-child {
+      border-bottom: none;
+    }
+    .category-page-title {
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
+    }
+    .category-page-title a {
+      text-decoration: none;
+      color: #333;
+    }
+    .category-page-title a:hover {
+      color: #0066cc;
+    }
+    .category-page-meta {
+      font-size: 0.9rem;
+      color: #666;
+    }
+    .category-page-description {
+      margin-top: 0.5rem;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <p class="container"><a href="{{RELATIVE_PATH}}/">{{SITE_NAME}}</a></p>
+  </header>
+  <main>
+    <div class="container">
+      {{ breadcrumbList(name) }}
+    </div>
+    <article class="container">
+      <div class="category-header">
+        <h1>{{TITLE}}</h1>
+        <p class="category-description">{{DESCRIPTION}}</p>
+      </div>
+
+      <!-- サブカテゴリーリスト -->
+      {if category_children}
+        {script}
+          const children = variables.category_children || []
+          if (children.length === 0) {
+            return ''
+          }
+          return ''
+        {/script}
+        <script type="ssg">
+          const children = variables.category_children || []
+          if (children.length === 0) {
+            return ''
+          }
+
+          let html = '<div class="category-section">'
+          html += '<h2>サブカテゴリー</h2>'
+          html += '<div class="category-children">'
+
+          for (const childUrl of children) {
+            const childPageName = childUrl.replace(/^\//, '') + '/index'
+            const childData = helper.getPageData(childPageName)
+
+            if (childData) {
+              html += '<div class="category-child-card">'
+              html += `<a href="${childUrl}">${childData.title}</a>`
+              html += '</div>'
+            }
+          }
+
+          html += '</div></div>'
+          return html
+        </script>
+      {/if}
+
+      <!-- ページリスト -->
+      <div class="category-section">
+        <h2>コンテンツ</h2>
+        <script type="ssg">
+          const pageNames = variables.category_pages || []
+          const pages = pageNames
+            .map(name => helper.getPageData(name))
+            .filter(Boolean)
+            .filter(page => !page.__is_auto_category)
+            .sort((a, b) => new Date(b.published) - new Date(a.published))
+
+          if (pages.length === 0) {
+            return '<p>このカテゴリーにはまだコンテンツがありません。</p>'
+          }
+
+          let html = '<ul class="category-page-list">'
+
+          for (const page of pages) {
+            html += '<li class="category-page-item">'
+            html += '<div class="category-page-title">'
+            html += `<a href="${page.url}">${page.title}</a>`
+            html += '</div>'
+
+            if (page.published && page.published !== '1970-01-01') {
+              html += '<div class="category-page-meta">'
+              html += `投稿: ${helper.dateFormat(page.published)}`
+              html += '</div>'
+            }
+
+            if (page.description) {
+              html += '<div class="category-page-description">'
+              html += page.description
+              html += '</div>'
+            }
+
+            html += '</li>'
+          }
+
+          html += '</ul>'
+          return html
+        </script>
+      </div>
+    </article>
+  </main>
+  {include('template/footer.html')}
+</body>
+</html>

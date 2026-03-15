@@ -1,0 +1,115 @@
+/* カテゴリーページ専用スタイル */
+
+.category-header {
+  margin-bottom: 2rem;
+}
+
+.category-description {
+  color: #666;
+  margin-bottom: 2rem;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.category-section {
+  margin-bottom: 3rem;
+}
+
+.category-section h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #333;
+}
+
+/* サブカテゴリーカード */
+.category-children {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.category-child-card {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 1rem;
+  transition: box-shadow 0.2s, border-color 0.2s;
+  background: #fff;
+}
+
+.category-child-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-color: #0066cc;
+}
+
+.category-child-card a {
+  text-decoration: none;
+  color: #333;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.category-child-card a:hover {
+  color: #0066cc;
+}
+
+/* ページリスト */
+.category-page-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.category-page-item {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.category-page-item:last-child {
+  border-bottom: none;
+}
+
+.category-page-title {
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+.category-page-title a {
+  text-decoration: none;
+  color: #333;
+  transition: color 0.2s;
+}
+
+.category-page-title a:hover {
+  color: #0066cc;
+}
+
+.category-page-meta {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 0.3rem;
+}
+
+.category-page-description {
+  margin-top: 0.5rem;
+  color: #555;
+  line-height: 1.5;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .category-children {
+    grid-template-columns: 1fr;
+  }
+
+  .category-section h2 {
+    font-size: 1.3rem;
+  }
+
+  .category-page-title {
+    font-size: 1.1rem;
+  }
+}
