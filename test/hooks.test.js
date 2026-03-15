@@ -202,7 +202,7 @@ export function someOtherFunction() {
   cleanupTestFiles();
 });
 
-test('runHooks - エラーが発生してもビルドは継続される', async () => {
+test('runHooks - エラーが発生するとビルドが中断される', async () => {
   setupTestFiles();
 
   // エラーを投げるフック
@@ -222,10 +222,15 @@ export async function afterIndexing(allData, config) {
 
   const testAllData = {};
 
-  // エラーが発生しても例外は投げられない（ログに出力されるのみ）
-  await assert.doesNotReject(async () => {
-    await runHooks('afterIndexing', testHelperDir, testAllData, testConfig);
-  });
+  // エラーが発生すると例外が投げられる（ビルド中断）
+  await assert.rejects(
+    async () => {
+      await runHooks('afterIndexing', testHelperDir, testAllData, testConfig);
+    },
+    {
+      message: 'Hook error'
+    }
+  );
 
   cleanupTestFiles();
 });
