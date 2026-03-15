@@ -92,9 +92,66 @@ tenjuu99-blog/
 
 1. **仕様検討**: 追加する機能の要件を明確化
 2. **影響範囲調査**: どのモジュールに影響があるか確認
-3. **実装**: 該当モジュールを編集
-4. **動作確認**: `src-sample/` で動作テスト
-5. **ドキュメント更新**: `docs/spec.md` を更新
+3. **テスト作成**: 機能の振る舞いを定義するテストコードを先に書く（TDD推奨）
+4. **実装**: 該当モジュールを編集してテストをパスさせる
+5. **動作確認**: `src-sample/` で実際の動作テスト
+6. **ドキュメント更新**: `docs/spec.md` を更新
+
+#### TDD（テスト駆動開発）のワークフロー
+
+新機能の実装時は、以下のTDDサイクルを推奨します:
+
+**Red → Green → Refactor サイクル:**
+
+1. **Red（テスト作成）**: 失敗するテストを書く
+   ```bash
+   # test/ ディレクトリにテストファイルを作成
+   # 例: test/category-tree.test.js
+   ```
+
+2. **Green（最小限の実装）**: テストがパスする最小限のコードを書く
+   ```bash
+   # 実装を追加
+   # 例: packages/category/helper/category.js
+   ```
+
+3. **テスト実行**: すべてのテストが通ることを確認
+   ```bash
+   npm test
+   ```
+
+4. **Refactor（リファクタリング）**: コードを改善（テストは変更しない）
+
+**テストファイルの配置:**
+
+- `test/` ディレクトリに `*.test.js` 形式で配置
+- Node.js標準のテストランナーを使用（`node --test`）
+
+**テストの例:**
+
+```javascript
+// test/example.test.js
+import { test } from 'node:test'
+import assert from 'node:assert'
+import { myFunction } from '../lib/myModule.js'
+
+test('機能の説明', () => {
+  const result = myFunction('input')
+  assert.strictEqual(result, 'expected')
+})
+```
+
+**実装例（カテゴリー機能の場合）:**
+
+1. `test/category-tree.test.js` - カテゴリーツリー構築のテスト（12件）
+2. `packages/category/helper/category.js` - 実装
+3. `npm test` - テスト実行
+4. すべてパス後、次のテストを作成
+
+このアプローチにより:
+- 仕様が明確になる
+- リグレッションを防止できる
+- リファクタリングが安全になる
 
 ### 2. バグ修正のフロー
 

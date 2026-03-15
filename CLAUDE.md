@@ -27,6 +27,7 @@ packages/    コアパッケージ（拡張機能）
 ```bash
 npm run dev        # 開発サーバー起動
 npm run generate   # 静的サイト生成
+npm test           # テスト実行（test/*.test.js）
 ```
 
 ## 開発時の重要ポイント
@@ -36,9 +37,11 @@ npm run generate   # 静的サイト生成
 - `lib/indexer.js` - 全ページスキャン → `allData` 生成
 - `lib/render.js` - レンダリングパイプライン
 - `lib/filter.js` - テンプレートエンジン（if, script）
-- `lib/generate.js` - ビルドプロセス統括
+- `lib/generate.js` - ビルドプロセス統括（Hook機構を含む）
 
 詳細は [docs/develop.md#主要モジュールの開発ガイド](docs/develop.md#主要モジュールの開発ガイド) 参照。
+
+**Hook機構**: `afterIndexing` フックでビルドプロセスに介入可能（カテゴリー自動生成など）。詳細は [docs/spec.md#Hook機構](docs/spec.md#Hook機構) 参照。
 
 ### 2. 制約事項（重要）
 - フロントマターはYAML完全互換でない（独自パーサー）
@@ -59,9 +62,11 @@ npm run generate   # 静的サイト生成
 ## 変更時のチェックリスト
 
 1. **影響範囲調査**: 該当モジュールの依存関係確認（`grep -r "import.*from.*lib/" lib/`）
-2. **動作確認**: `src-sample/` で手動テスト
-3. **リグレッションチェック**: 既存機能が壊れていないか確認
-4. **ドキュメント更新**: `docs/spec.md` を更新
+2. **テスト作成**: 新機能の場合はテストを先に書く（TDD推奨、詳細は [docs/develop.md#TDD](docs/develop.md#TDD（テスト駆動開発）のワークフロー) 参照）
+3. **実装**: テストがパスするように実装
+4. **動作確認**: `src-sample/` で手動テスト、`npm test` でテスト実行
+5. **リグレッションチェック**: 既存機能が壊れていないか確認
+6. **ドキュメント更新**: `docs/spec.md` を更新
 
 ## トークン効率化
 
