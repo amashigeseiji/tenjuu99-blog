@@ -16,78 +16,6 @@
   <meta name="description" content="{{DESCRIPTION}}">
 
   {include('template/css.html')}
-  <style>
-    .category-header {
-      margin-bottom: 2rem;
-    }
-    .category-description {
-      color: #666;
-      margin-bottom: 2rem;
-    }
-    .category-section {
-      margin-bottom: 3rem;
-    }
-    .category-section h2 {
-      font-size: 1.5rem;
-      margin-bottom: 1rem;
-      padding-bottom: 0.5rem;
-      border-bottom: 2px solid #333;
-    }
-    .category-children {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 1rem;
-      margin-bottom: 2rem;
-    }
-    .category-child-card {
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      padding: 1rem;
-      transition: box-shadow 0.2s;
-    }
-    .category-child-card:hover {
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    .category-child-card a {
-      text-decoration: none;
-      color: #333;
-      font-weight: bold;
-    }
-    .category-child-card a:hover {
-      color: #0066cc;
-    }
-    .category-page-list {
-      list-style: none;
-      padding: 0;
-    }
-    .category-page-item {
-      margin-bottom: 1.5rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid #eee;
-    }
-    .category-page-item:last-child {
-      border-bottom: none;
-    }
-    .category-page-title {
-      font-size: 1.2rem;
-      margin-bottom: 0.5rem;
-    }
-    .category-page-title a {
-      text-decoration: none;
-      color: #333;
-    }
-    .category-page-title a:hover {
-      color: #0066cc;
-    }
-    .category-page-meta {
-      font-size: 0.9rem;
-      color: #666;
-    }
-    .category-page-description {
-      margin-top: 0.5rem;
-      color: #555;
-    }
-  </style>
 </head>
 <body>
   <header>
@@ -128,7 +56,7 @@
 
             if (childData) {
               html += '<div class="category-child-card">'
-              html += `<a href="${childUrl}">${childData.title}</a>`
+              html += `<a href="${childUrl}/">${childData.title}</a>`
               html += '</div>'
             }
           }
