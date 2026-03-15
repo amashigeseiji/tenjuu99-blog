@@ -33,13 +33,6 @@
 
       <!-- サブカテゴリーリスト -->
       {if category_children}
-        {script}
-          const children = variables.category_children || []
-          if (children.length === 0) {
-            return ''
-          }
-          return ''
-        {/script}
         <script type="ssg">
           const children = variables.category_children || []
           if (children.length === 0) {
