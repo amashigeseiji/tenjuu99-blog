@@ -360,6 +360,92 @@ helper.readIndex('/post')
 - `breadcrumbs` - パンくずリスト機能
 - `editor` - エディター機能
 - `turbolink` - Turbolink機能
+- `category` - カテゴリー機能（階層型カテゴリーページ自動生成）
+
+#### category パッケージ詳細
+
+階層型カテゴリーの自動ページ生成機能を提供します。
+
+**基本的な使い方:**
+
+1. ページのフロントマターでカテゴリーを指定:
+   ```yaml
+   ---
+   title: React入門
+   category: ["Tech", "Frontend", "React"]
+   ---
+   ```
+
+2. `blog.json` で設定:
+   ```json
+   {
+     "packages": "category",
+     "hooks": {
+       "afterIndexing": "categoryIndexer.js"
+     },
+     "category": {
+       "template": "category.html",
+       "auto_generate": true,
+       "max_depth": 3,
+       "url_case": "lower"
+     }
+   }
+   ```
+
+3. ビルド時に以下のページが自動生成されます:
+   - `/tech/index.html`
+   - `/tech/frontend/index.html`
+   - `/tech/frontend/react/index.html`
+
+**設定オプション:**
+
+| オプション | 説明 | デフォルト |
+|-----------|------|-----------|
+| `template` | カテゴリーページのテンプレート | `category.html` |
+| `auto_generate` | 自動生成の有効/無効 | `true` |
+| `max_depth` | カテゴリーの最大階層数 | `3` |
+| `url_case` | URLの大文字小文字変換 (`lower`/`original`) | `lower` |
+
+**自動生成されるページのメタデータ:**
+
+```javascript
+{
+  name: 'tech/frontend/index',
+  url: '/tech/frontend',
+  __output: '/tech/frontend/index.html',
+  title: 'Frontend',                    // カテゴリー名
+  template: 'category.html',
+  category_path: ['Tech', 'Frontend'],  // カテゴリーパス
+  category_pages: ['tech/frontend/react/tutorial', ...],  // このカテゴリーのページ
+  category_children: ['/tech/frontend/react', ...],       // サブカテゴリー
+  __is_auto_category: true,
+  distribute: true
+}
+```
+
+**テンプレート内で利用可能な変数:**
+
+- `{{title}}` - カテゴリー名
+- `{{category_path}}` - カテゴリーパス配列
+- `{{category_pages}}` - このカテゴリーに属するページ名の配列
+- `{{category_children}}` - サブカテゴリーのURL配列
+
+**手動ページによる上書き:**
+
+`src/pages/tech/index.md` が存在する場合、自動生成はスキップされます。
+
+**ヘルパー関数:**
+
+```javascript
+// カテゴリーツリーを取得
+const tree = helper.getCategoryTree()
+
+// 特定カテゴリーのページを取得（配列で指定）
+const pages = helper.getCategoryPages(['Tech', 'Frontend'])
+
+// サブカテゴリーを含む全ページを取得（配列で指定）
+const allPages = helper.getCategoryPagesRecursive(['Tech'])
+```
 
 ### 有効化方法
 
@@ -381,6 +467,78 @@ packages/breadcrumbs/
 パッケージを有効化すると:
 1. パッケージディレクトリが `.cache/` にコピーされる
 2. `{パッケージ名}.js` が自動的に `helper` に追加される
+
+## Hook機構
+
+ビルドプロセスの特定のタイミングで、カスタムロジックを実行できるフック機構を提供しています。
+
+### Hook設定
+
+`blog.json` で設定:
+
+```json
+{
+  "hooks": {
+    "afterIndexing": "categoryIndexer.js"
+  }
+}
+```
+
+- **複数フック対応**: 配列で複数ファイル指定可能
+  ```json
+  {
+    "hooks": {
+      "afterIndexing": ["hook1.js", "hook2.js"]
+    }
+  }
+  ```
+
+### 利用可能なフックポイント
+
+#### `afterIndexing`
+
+全ページのインデックス化完了後、レンダリング開始前に実行されます。
+
+**実行タイミング:**
+```
+indexing() → afterIndexing Hook → distribute()
+```
+
+**関数シグネチャ:**
+```javascript
+export async function afterIndexing(allData, config) {
+  // allData: 全ページデータ（参照渡し、変更可能）
+  // config: blog.json の設定内容
+}
+```
+
+**使用例:**
+```javascript
+// src/helper/categoryIndexer.js
+export async function afterIndexing(allData, config) {
+  // カテゴリーページを自動生成
+  allData['tech/index'] = {
+    name: 'tech/index',
+    title: 'Tech',
+    template: 'category.html',
+    distribute: true,
+    // ... その他のメタデータ
+  }
+}
+```
+
+### Hook関数の配置
+
+- **配置場所**: `src/helper/` ディレクトリ
+- **形式**: ES Module（`export` 必須）
+- **実行順序**: 配列で指定した順に実行
+
+### 注意事項
+
+- フック関数は非同期（`async`）に対応
+- `allData` は参照渡しのため、直接変更可能
+- エラー発生時はビルドが中断される
+- フックファイルが存在しない場合はスキップ（エラーにならない）
 
 ## ビルドプロセス
 
