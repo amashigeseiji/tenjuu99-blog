@@ -39,6 +39,8 @@
             return ''
           }
 
+          const relativePath = variables.relative_path || ''
+
           let html = '<div class="category-section">'
           html += '<h2>サブカテゴリー</h2>'
           html += '<div class="category-children">'
@@ -49,7 +51,7 @@
 
             if (childData) {
               html += '<div class="category-child-card">'
-              html += `<a href="${childUrl}/">${childData.title}</a>`
+              html += `<a href="${relativePath}${childUrl}/">${childData.title}</a>`
               html += '</div>'
             }
           }
@@ -74,12 +76,14 @@
             return '<p>このカテゴリーにはまだコンテンツがありません。</p>'
           }
 
+          const relativePath = variables.relative_path || ''
+
           let html = '<ul class="category-page-list">'
 
           for (const page of pages) {
             html += '<li class="category-page-item">'
             html += '<div class="category-page-title">'
-            html += `<a href="${page.url}">${page.title}</a>`
+            html += `<a href="${relativePath}${page.url}">${page.title}</a>`
             html += '</div>'
 
             if (page.published && page.published !== '1970-01-01') {
