@@ -1,362 +1,116 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
+import { buildCategoryTree, getCategoryTree, getCategoryPages, getCategoryPagesRecursive } from '../packages/category/helper/category.js';
 
 // ========================================
 // buildCategoryTree関数のテスト
 // ========================================
 
 test('buildCategoryTree - 空のallDataで空オブジェクトを返す', () => {
-  const buildCategoryTree = (allData, config = {}) => {
-    const tree = {};
-    return tree;
-  };
-
-  const result = buildCategoryTree({});
+  const result = buildCategoryTree({}, {});
   assert.deepStrictEqual(result, {});
 });
 
 test('buildCategoryTree - 単一カテゴリーを正しく構築する', () => {
-  const buildCategoryTree = (allData, config = {}) => {
-    const tree = {};
-    const urlCase = config.category?.url_case || 'lower';
-
-    for (const [name, page] of Object.entries(allData)) {
-      if (!page.category || !Array.isArray(page.category)) {
-        continue;
-      }
-
-      const categoryPath = page.category;
-      let currentPath = '';
-
-      for (let i = 0; i < categoryPath.length; i++) {
-        const category = categoryPath[i];
-        const categoryLower = urlCase === 'lower' ? category.toLowerCase() : category;
-        currentPath += `/${categoryLower}`;
-
-        if (!tree[currentPath]) {
-          tree[currentPath] = {
-            title: category,
-            path: categoryPath.slice(0, i + 1),
-            pages: [],
-            children: {}
-          };
-        }
-
-        tree[currentPath].pages.push(name);
-      }
+  const allData = {
+    'art/sample': {
+      name: 'art/sample',
+      category: ['Art']
     }
-
-    return tree;
   };
 
-  const testAllData = {
-    'post/1': { category: ['Tech'] },
-    'post/2': { category: ['Tech'] }
-  };
+  const config = {};
+  const result = buildCategoryTree(allData, config);
 
-  const result = buildCategoryTree(testAllData);
-
-  assert.ok(result['/tech']);
-  assert.strictEqual(result['/tech'].title, 'Tech');
-  assert.deepStrictEqual(result['/tech'].path, ['Tech']);
-  assert.deepStrictEqual(result['/tech'].pages, ['post/1', 'post/2']);
-  assert.deepStrictEqual(result['/tech'].children, {});
+  assert.ok(result['/art']);
+  assert.strictEqual(result['/art'].title, 'Art');
+  assert.deepStrictEqual(result['/art'].path, ['Art']);
+  assert.deepStrictEqual(result['/art'].pages, ['art/sample']);
 });
 
 test('buildCategoryTree - 階層カテゴリーを正しく構築する', () => {
-  const buildCategoryTree = (allData, config = {}) => {
-    const tree = {};
-    const urlCase = config.category?.url_case || 'lower';
-
-    for (const [name, page] of Object.entries(allData)) {
-      if (!page.category || !Array.isArray(page.category)) {
-        continue;
-      }
-
-      const categoryPath = page.category;
-      let currentPath = '';
-
-      for (let i = 0; i < categoryPath.length; i++) {
-        const category = categoryPath[i];
-        const categoryLower = urlCase === 'lower' ? category.toLowerCase() : category;
-        currentPath += `/${categoryLower}`;
-
-        if (!tree[currentPath]) {
-          tree[currentPath] = {
-            title: category,
-            path: categoryPath.slice(0, i + 1),
-            pages: [],
-            children: {}
-          };
-        }
-
-        tree[currentPath].pages.push(name);
-      }
+  const allData = {
+    'art/painting/sample': {
+      name: 'art/painting/sample',
+      category: ['Art', 'Painting']
     }
-
-    return tree;
   };
 
-  const testAllData = {
-    'post/1': { category: ['Tech', 'Frontend'] },
-    'post/2': { category: ['Tech', 'Backend'] }
-  };
+  const config = {};
+  const result = buildCategoryTree(allData, config);
 
-  const result = buildCategoryTree(testAllData);
-
-  // ルートカテゴリー
-  assert.ok(result['/tech']);
-  assert.strictEqual(result['/tech'].title, 'Tech');
-  assert.deepStrictEqual(result['/tech'].path, ['Tech']);
-  assert.deepStrictEqual(result['/tech'].pages, ['post/1', 'post/2']);
-
-  // サブカテゴリー
-  assert.ok(result['/tech/frontend']);
-  assert.strictEqual(result['/tech/frontend'].title, 'Frontend');
-  assert.deepStrictEqual(result['/tech/frontend'].path, ['Tech', 'Frontend']);
-  assert.deepStrictEqual(result['/tech/frontend'].pages, ['post/1']);
-
-  assert.ok(result['/tech/backend']);
-  assert.strictEqual(result['/tech/backend'].title, 'Backend');
-  assert.deepStrictEqual(result['/tech/backend'].path, ['Tech', 'Backend']);
-  assert.deepStrictEqual(result['/tech/backend'].pages, ['post/2']);
-});
-
-test('buildCategoryTree - 複数のルートカテゴリーを処理する', () => {
-  const buildCategoryTree = (allData, config = {}) => {
-    const tree = {};
-    const urlCase = config.category?.url_case || 'lower';
-
-    for (const [name, page] of Object.entries(allData)) {
-      if (!page.category || !Array.isArray(page.category)) {
-        continue;
-      }
-
-      const categoryPath = page.category;
-      let currentPath = '';
-
-      for (let i = 0; i < categoryPath.length; i++) {
-        const category = categoryPath[i];
-        const categoryLower = urlCase === 'lower' ? category.toLowerCase() : category;
-        currentPath += `/${categoryLower}`;
-
-        if (!tree[currentPath]) {
-          tree[currentPath] = {
-            title: category,
-            path: categoryPath.slice(0, i + 1),
-            pages: [],
-            children: {}
-          };
-        }
-
-        tree[currentPath].pages.push(name);
-      }
-    }
-
-    return tree;
-  };
-
-  const testAllData = {
-    'post/1': { category: ['Tech'] },
-    'post/2': { category: ['Art'] },
-    'post/3': { category: ['Music'] }
-  };
-
-  const result = buildCategoryTree(testAllData);
-
-  assert.ok(result['/tech']);
   assert.ok(result['/art']);
-  assert.ok(result['/music']);
-  assert.deepStrictEqual(result['/tech'].pages, ['post/1']);
-  assert.deepStrictEqual(result['/art'].pages, ['post/2']);
-  assert.deepStrictEqual(result['/music'].pages, ['post/3']);
+  assert.ok(result['/art/painting']);
+  assert.strictEqual(result['/art'].title, 'Art');
+  assert.strictEqual(result['/art/painting'].title, 'Painting');
+  assert.deepStrictEqual(result['/art'].path, ['Art']);
+  assert.deepStrictEqual(result['/art/painting'].path, ['Art', 'Painting']);
 });
 
-test('buildCategoryTree - categoryフィールドを持たないページを無視する', () => {
-  const buildCategoryTree = (allData, config = {}) => {
-    const tree = {};
-    const urlCase = config.category?.url_case || 'lower';
-
-    for (const [name, page] of Object.entries(allData)) {
-      if (!page.category || !Array.isArray(page.category)) {
-        continue;
-      }
-
-      const categoryPath = page.category;
-      let currentPath = '';
-
-      for (let i = 0; i < categoryPath.length; i++) {
-        const category = categoryPath[i];
-        const categoryLower = urlCase === 'lower' ? category.toLowerCase() : category;
-        currentPath += `/${categoryLower}`;
-
-        if (!tree[currentPath]) {
-          tree[currentPath] = {
-            title: category,
-            path: categoryPath.slice(0, i + 1),
-            pages: [],
-            children: {}
-          };
-        }
-
-        tree[currentPath].pages.push(name);
-      }
+test('buildCategoryTree - 複数ページが同じカテゴリーに属する', () => {
+  const allData = {
+    'art/sample1': {
+      name: 'art/sample1',
+      category: ['Art']
+    },
+    'art/sample2': {
+      name: 'art/sample2',
+      category: ['Art']
     }
-
-    return tree;
   };
 
-  const testAllData = {
-    'post/1': { category: ['Tech'] },
-    'post/2': { title: 'No category' },
-    'post/3': {}
+  const config = {};
+  const result = buildCategoryTree(allData, config);
+
+  assert.ok(result['/art']);
+  assert.deepStrictEqual(result['/art'].pages, ['art/sample1', 'art/sample2']);
+});
+
+test('buildCategoryTree - カテゴリーがないページは無視する', () => {
+  const allData = {
+    'no-category': {
+      name: 'no-category'
+    },
+    'art/sample': {
+      name: 'art/sample',
+      category: ['Art']
+    }
   };
 
-  const result = buildCategoryTree(testAllData);
+  const config = {};
+  const result = buildCategoryTree(allData, config);
 
-  assert.ok(result['/tech']);
-  assert.deepStrictEqual(result['/tech'].pages, ['post/1']);
+  assert.ok(result['/art']);
   assert.strictEqual(Object.keys(result).length, 1);
 });
 
-test('buildCategoryTree - 不正なcategory値（文字列、null）をスキップする', () => {
-  const buildCategoryTree = (allData, config = {}) => {
-    const tree = {};
-    const urlCase = config.category?.url_case || 'lower';
-
-    for (const [name, page] of Object.entries(allData)) {
-      if (!page.category || !Array.isArray(page.category)) {
-        continue;
-      }
-
-      const categoryPath = page.category;
-      let currentPath = '';
-
-      for (let i = 0; i < categoryPath.length; i++) {
-        const category = categoryPath[i];
-        const categoryLower = urlCase === 'lower' ? category.toLowerCase() : category;
-        currentPath += `/${categoryLower}`;
-
-        if (!tree[currentPath]) {
-          tree[currentPath] = {
-            title: category,
-            path: categoryPath.slice(0, i + 1),
-            pages: [],
-            children: {}
-          };
-        }
-
-        tree[currentPath].pages.push(name);
-      }
+test('buildCategoryTree - max_depth を尊重する', () => {
+  const allData = {
+    'deep/page': {
+      name: 'deep/page',
+      category: ['Level1', 'Level2', 'Level3', 'Level4']
     }
-
-    return tree;
-  };
-
-  const testAllData = {
-    'post/1': { category: ['Tech'] },
-    'post/2': { category: 'InvalidString' },
-    'post/3': { category: null },
-    'post/4': { category: 123 }
-  };
-
-  const result = buildCategoryTree(testAllData);
-
-  assert.ok(result['/tech']);
-  assert.deepStrictEqual(result['/tech'].pages, ['post/1']);
-  assert.strictEqual(Object.keys(result).length, 1);
-});
-
-test('buildCategoryTree - max_depthを超える階層を無視する', () => {
-  const buildCategoryTree = (allData, config = {}) => {
-    const tree = {};
-    const urlCase = config.category?.url_case || 'lower';
-    const maxDepth = config.category?.max_depth || 3;
-
-    for (const [name, page] of Object.entries(allData)) {
-      if (!page.category || !Array.isArray(page.category)) {
-        continue;
-      }
-
-      const categoryPath = page.category.slice(0, maxDepth);
-      let currentPath = '';
-
-      for (let i = 0; i < categoryPath.length; i++) {
-        const category = categoryPath[i];
-        const categoryLower = urlCase === 'lower' ? category.toLowerCase() : category;
-        currentPath += `/${categoryLower}`;
-
-        if (!tree[currentPath]) {
-          tree[currentPath] = {
-            title: category,
-            path: categoryPath.slice(0, i + 1),
-            pages: [],
-            children: {}
-          };
-        }
-
-        tree[currentPath].pages.push(name);
-      }
-    }
-
-    return tree;
-  };
-
-  const testAllData = {
-    'post/1': { category: ['A', 'B', 'C', 'D', 'E'] }
   };
 
   const config = {
     category: {
-      max_depth: 3
+      max_depth: 2
     }
   };
 
-  const result = buildCategoryTree(testAllData, config);
+  const result = buildCategoryTree(allData, config);
 
-  assert.ok(result['/a']);
-  assert.ok(result['/a/b']);
-  assert.ok(result['/a/b/c']);
-  assert.strictEqual(result['/a/b/c/d'], undefined);
-  assert.strictEqual(Object.keys(result).length, 3);
+  assert.ok(result['/level1']);
+  assert.ok(result['/level1/level2']);
+  assert.strictEqual(result['/level1/level2/level3'], undefined);
 });
 
-test('buildCategoryTree - url_case: "lower" でURLを小文字化する', () => {
-  const buildCategoryTree = (allData, config = {}) => {
-    const tree = {};
-    const urlCase = config.category?.url_case || 'lower';
-
-    for (const [name, page] of Object.entries(allData)) {
-      if (!page.category || !Array.isArray(page.category)) {
-        continue;
-      }
-
-      const categoryPath = page.category;
-      let currentPath = '';
-
-      for (let i = 0; i < categoryPath.length; i++) {
-        const category = categoryPath[i];
-        const categoryLower = urlCase === 'lower' ? category.toLowerCase() : category;
-        currentPath += `/${categoryLower}`;
-
-        if (!tree[currentPath]) {
-          tree[currentPath] = {
-            title: category,
-            path: categoryPath.slice(0, i + 1),
-            pages: [],
-            children: {}
-          };
-        }
-
-        tree[currentPath].pages.push(name);
-      }
+test('buildCategoryTree - url_case: lower でURLを小文字化する', () => {
+  const allData = {
+    'art/sample': {
+      name: 'art/sample',
+      category: ['Art', 'Painting']
     }
-
-    return tree;
-  };
-
-  const testAllData = {
-    'post/1': { category: ['Art', 'Painting'] }
   };
 
   const config = {
@@ -365,49 +119,19 @@ test('buildCategoryTree - url_case: "lower" でURLを小文字化する', () => 
     }
   };
 
-  const result = buildCategoryTree(testAllData, config);
+  const result = buildCategoryTree(allData, config);
 
   assert.ok(result['/art']);
   assert.ok(result['/art/painting']);
   assert.strictEqual(result['/Art'], undefined);
 });
 
-test('buildCategoryTree - url_case: "original" で元の大文字小文字を保持する', () => {
-  const buildCategoryTree = (allData, config = {}) => {
-    const tree = {};
-    const urlCase = config.category?.url_case || 'lower';
-
-    for (const [name, page] of Object.entries(allData)) {
-      if (!page.category || !Array.isArray(page.category)) {
-        continue;
-      }
-
-      const categoryPath = page.category;
-      let currentPath = '';
-
-      for (let i = 0; i < categoryPath.length; i++) {
-        const category = categoryPath[i];
-        const categoryLower = urlCase === 'lower' ? category.toLowerCase() : category;
-        currentPath += `/${categoryLower}`;
-
-        if (!tree[currentPath]) {
-          tree[currentPath] = {
-            title: category,
-            path: categoryPath.slice(0, i + 1),
-            pages: [],
-            children: {}
-          };
-        }
-
-        tree[currentPath].pages.push(name);
-      }
+test('buildCategoryTree - url_case: original でURLを元のまま保持する', () => {
+  const allData = {
+    'art/sample': {
+      name: 'art/sample',
+      category: ['Art', 'Painting']
     }
-
-    return tree;
-  };
-
-  const testAllData = {
-    'post/1': { category: ['Art', 'Painting'] }
   };
 
   const config = {
@@ -416,100 +140,73 @@ test('buildCategoryTree - url_case: "original" で元の大文字小文字を保
     }
   };
 
-  const result = buildCategoryTree(testAllData, config);
+  const result = buildCategoryTree(allData, config);
 
   assert.ok(result['/Art']);
   assert.ok(result['/Art/Painting']);
   assert.strictEqual(result['/art'], undefined);
 });
 
-// ========================================
-// getCategoryPages関数のテスト
-// ========================================
-
-test('getCategoryPages - 特定カテゴリーのページを取得する', () => {
-  const getCategoryPages = (allData, categoryPath) => {
-    const pages = [];
-
-    for (const [name, page] of Object.entries(allData)) {
-      if (!page.category || !Array.isArray(page.category)) {
-        continue;
-      }
-
-      if (JSON.stringify(page.category) === JSON.stringify(categoryPath)) {
-        pages.push(page);
-      }
+test('buildCategoryTree - 異なるカテゴリーパスが正しく分離される', () => {
+  const allData = {
+    'art/painting/sample1': {
+      name: 'art/painting/sample1',
+      category: ['Art', 'Painting']
+    },
+    'art/sculpture/sample2': {
+      name: 'art/sculpture/sample2',
+      category: ['Art', 'Sculpture']
     }
-
-    return pages;
   };
 
-  const testAllData = {
-    'post/1': { category: ['Art'], title: 'Post 1' },
-    'post/2': { category: ['Art'], title: 'Post 2' },
-    'post/3': { category: ['Art', 'Painting'], title: 'Post 3' }
-  };
+  const config = {};
+  const result = buildCategoryTree(allData, config);
 
-  const result = getCategoryPages(testAllData, ['Art']);
-
-  assert.strictEqual(result.length, 2);
-  assert.strictEqual(result[0].title, 'Post 1');
-  assert.strictEqual(result[1].title, 'Post 2');
+  assert.ok(result['/art']);
+  assert.ok(result['/art/painting']);
+  assert.ok(result['/art/sculpture']);
+  assert.deepStrictEqual(result['/art'].pages, ['art/painting/sample1', 'art/sculpture/sample2']);
+  assert.deepStrictEqual(result['/art/painting'].pages, ['art/painting/sample1']);
+  assert.deepStrictEqual(result['/art/sculpture'].pages, ['art/sculpture/sample2']);
 });
 
-test('getCategoryPages - 階層カテゴリーのページを取得する', () => {
-  const getCategoryPages = (allData, categoryPath) => {
-    const pages = [];
-
-    for (const [name, page] of Object.entries(allData)) {
-      if (!page.category || !Array.isArray(page.category)) {
-        continue;
-      }
-
-      if (JSON.stringify(page.category) === JSON.stringify(categoryPath)) {
-        pages.push(page);
-      }
+test('buildCategoryTree - children が正しく計算される', () => {
+  const allData = {
+    'art/painting/sample': {
+      name: 'art/painting/sample',
+      category: ['Art', 'Painting']
+    },
+    'art/sculpture/sample': {
+      name: 'art/sculpture/sample',
+      category: ['Art', 'Sculpture']
     }
-
-    return pages;
   };
 
-  const testAllData = {
-    'post/1': { category: ['Art', 'Painting'], title: 'Post 1' },
-    'post/2': { category: ['Art', 'Painting'], title: 'Post 2' },
-    'post/3': { category: ['Art'], title: 'Post 3' }
-  };
+  const config = {};
+  const result = buildCategoryTree(allData, config);
 
-  const result = getCategoryPages(testAllData, ['Art', 'Painting']);
+  // /art の children には /art/painting と /art/sculpture が含まれるべき
+  assert.ok(result['/art'].children['/art/painting']);
+  assert.ok(result['/art'].children['/art/sculpture']);
+  assert.strictEqual(Object.keys(result['/art'].children).length, 2);
 
-  assert.strictEqual(result.length, 2);
-  assert.strictEqual(result[0].title, 'Post 1');
-  assert.strictEqual(result[1].title, 'Post 2');
+  // /art/painting と /art/sculpture には children がない
+  assert.strictEqual(Object.keys(result['/art/painting'].children).length, 0);
+  assert.strictEqual(Object.keys(result['/art/sculpture'].children).length, 0);
 });
 
-test('getCategoryPages - 存在しないカテゴリーで空配列を返す', () => {
-  const getCategoryPages = (allData, categoryPath) => {
-    const pages = [];
-
-    for (const [name, page] of Object.entries(allData)) {
-      if (!page.category || !Array.isArray(page.category)) {
-        continue;
-      }
-
-      if (JSON.stringify(page.category) === JSON.stringify(categoryPath)) {
-        pages.push(page);
-      }
+test('buildCategoryTree - 深い階層の children が正しく計算される', () => {
+  const allData = {
+    'tech/frontend/react/sample': {
+      name: 'tech/frontend/react/sample',
+      category: ['Tech', 'Frontend', 'React']
     }
-
-    return pages;
   };
 
-  const testAllData = {
-    'post/1': { category: ['Art'], title: 'Post 1' }
-  };
+  const config = {};
+  const result = buildCategoryTree(allData, config);
 
-  const result = getCategoryPages(testAllData, ['NonExistent']);
-
-  assert.strictEqual(result.length, 0);
-  assert.deepStrictEqual(result, []);
+  assert.ok(result['/tech'].children['/tech/frontend']);
+  assert.ok(result['/tech/frontend'].children['/tech/frontend/react']);
+  assert.strictEqual(Object.keys(result['/tech/frontend/react'].children).length, 0);
 });
