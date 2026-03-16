@@ -421,6 +421,8 @@ helper.readIndex('/post')
 
 | オプション | 説明 | デフォルト |
 |-----------|------|-----------|
+| `name` | カテゴリーシステムの識別子（`categories` 配列使用時のみ） | - |
+| `path_filter` | 対象とするページのパスプレフィックス（`categories` 配列使用時に推奨） | `""` (全ページ) |
 | `template` | カテゴリーページのテンプレート | `category.html` |
 | `auto_generate` | 自動生成の有効/無効 | `true` |
 | `max_depth` | カテゴリーの最大階層数 | `3` |
@@ -429,6 +431,13 @@ helper.readIndex('/post')
 | `url_prefix` | カテゴリーURLのプレフィックス | `""` |
 
 **設定オプションの詳細:**
+
+- **`name`**: カテゴリーシステムの識別子。`categories` 配列で複数のカテゴリーシステムを定義する際に使用します。
+
+- **`path_filter`**: 対象とするページのパスプレフィックス。
+  - 例: `path_filter: "book/"` → `book/` 配下のページのみがこのカテゴリーシステムに含まれる
+  - 空文字列の場合は全ページが対象
+  - 複数カテゴリーシステムを使用する場合は、各システムで `path_filter` を設定することを推奨
 
 - **`url_separator`**: カテゴリー名にスペースが含まれる場合の置き換え文字を指定します。
   - 例: `category: ["Contemporary Art"]` + `url_separator: "-"` → `/contemporary-art/`
@@ -461,6 +470,58 @@ helper.readIndex('/post')
 - `{{category_path}}` - カテゴリーパス配列
 - `{{category_pages}}` - このカテゴリーに属するページ名の配列
 - `{{category_children}}` - サブカテゴリーのURL配列
+
+**複数カテゴリーシステムの使用:**
+
+`categories` 配列を使用することで、複数の独立したカテゴリーシステムを定義できます。
+
+```json
+{
+  "packages": "category",
+  "hooks": {
+    "afterIndexing": "categoryIndexer.js"
+  },
+  "categories": [
+    {
+      "name": "books",
+      "url_prefix": "/book-list",
+      "path_filter": "book/",
+      "template": "category.html",
+      "auto_generate": true,
+      "max_depth": 3,
+      "url_case": "lower",
+      "url_separator": "-"
+    },
+    {
+      "name": "articles",
+      "url_prefix": "/article-list",
+      "path_filter": "article/",
+      "template": "article-category.html",
+      "auto_generate": true,
+      "max_depth": 2
+    }
+  ]
+}
+```
+
+**動作例:**
+- `book/after-rain.md` (category: ["Art", "Painting"]) → `/book-list/art/painting/index.html`
+- `article/news/200910.md` (category: ["News"]) → `/article-list/news/index.html`
+- `/book-list/news/index.html` は生成**されない**（意図しないページ生成を防止）
+- `/article-list/art/index.html` は生成**されない**（各システムは独立）
+
+**後方互換性:**
+
+既存の `category`（単数形）設定も引き続き動作します。`categories` 配列と `category` の両方が定義されている場合、`categories` が優先されます。
+
+```json
+{
+  "category": {
+    "template": "category.html",
+    "auto_generate": true
+  }
+}
+```
 
 **手動ページによる上書き:**
 
