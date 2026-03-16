@@ -704,7 +704,46 @@ export async function afterIndexing(allData, config) {
 
 ## ファイル操作とキャッシュ
 
-### `.cache/` ディレクトリ
+### `.cache/` ディレクトリの役割
+
+#### 概要
+
+`.cache/` はパッケージとユーザーコードを統合した「実効的なソースディレクトリ」として機能します。ビルドシステムはこのディレクトリを実際のソースとして扱います。
+
+#### ファイル展開の仕組み
+
+`lib/dir.js` の `cache()` 関数が以下の順序で実行します:
+
+1. **コアパッケージの展開**: `packages/*/` → `.cache/`（名前空間フラット化）
+2. **ユーザーパッケージの展開**: `src/packages/*/` → `.cache/`
+3. **ユーザーコードのコピー**: `src/` → `.cache/`（上書き）
+
+**展開例**:
+```
+packages/breadcrumbs/helper/breadcrumbs.js → .cache/helper/breadcrumbs.js
+packages/breadcrumbs/css/breadcrumbs.css   → .cache/css/breadcrumbs.css
+packages/category/template/category.html   → .cache/template/category.html
+src/helper/custom.js                       → .cache/helper/custom.js（追加）
+src/template/category.html                 → .cache/template/category.html（上書き）
+```
+
+#### ファイル優先順位
+
+同名ファイルが存在する場合の優先順位:
+
+1. **`src/`** （最優先 - ユーザーカスタム）
+2. **`src/packages/`** （ユーザー定義パッケージ）
+3. **`packages/`** （コアパッケージ）
+
+この仕組みにより、ユーザーはパッケージが提供する任意のファイルを上書きしてカスタマイズできます。
+
+#### Helper の自動登録
+
+`blog.json` の `packages` で指定されたパッケージは:
+- `.cache/helper/<package>.js` が自動的に `config.helper` に追加される（`lib/dir.js:38-40, 45-47`）
+- ユーザーが明示的に設定する必要はない
+
+#### ディレクトリ構造
 
 ビルド時に以下がコピーされます:
 

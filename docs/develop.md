@@ -238,6 +238,95 @@ packages/{パッケージ名}/
 - `packages/editor/` - エディター機能
 - `packages/turbolink/` - Turbolink機能
 
+## パッケージのカスタマイズ方法
+
+### 基本原則
+
+パッケージが提供する任意のファイルを `src/` 配下に同じ構造で配置すると上書きできます。これは `.cache/` ディレクトリへの展開時に、`src/` の内容が `packages/` の内容を上書きするためです（`lib/dir.js:53-57`）。
+
+### テンプレートのカスタマイズ
+
+**例**: category パッケージのテンプレートを変更
+
+1. `src/template/category.html` を作成
+2. 独自のデザインを実装
+3. `.cache/` を削除して再ビルド
+
+```html
+<!-- src/template/category.html -->
+{include('meta.html')}
+<h1>My Custom Category Page</h1>
+{script}
+  const items = allData.filter(data => data.category === page.category)
+  include('item-list.html', { items })
+{/script}
+```
+
+パッケージのデフォルトテンプレート（`packages/category/template/category.html`）が `src/template/category.html` で上書きされます。
+
+### CSS のカスタマイズ
+
+**例**: breadcrumbs.css のスタイルを変更
+
+1. `src/css/breadcrumbs.css` を作成
+2. カスタムスタイルを記述
+3. テンプレートからの読み込み方法は変更不要
+
+```css
+/* src/css/breadcrumbs.css */
+.breadcrumbs {
+  /* カスタムスタイル */
+  background-color: #f0f0f0;
+  padding: 1rem;
+}
+```
+
+CSS は `.cache/css/` に展開され、通常の静的ファイルとして配信されます。テンプレート内で以下のように読み込みます:
+
+```html
+<!-- src/template/css.html -->
+<link rel="stylesheet" href="${/css/lazy.css<<page.css,markdown.css,breadcrumbs.css}">
+```
+
+### Helper のカスタマイズ
+
+**例**: breadcrumbs ヘルパーの動作を変更
+
+1. `src/helper/breadcrumbs.js` を作成
+2. 独自の実装を提供
+
+```javascript
+// src/helper/breadcrumbs.js
+export function breadcrumbs(page) {
+  // カスタムロジック
+  return page.url.split('/').filter(Boolean).map((segment, i, arr) => {
+    const path = '/' + arr.slice(0, i + 1).join('/')
+    return `<a href="${path}">${segment}</a>`
+  }).join(' > ')
+}
+```
+
+パッケージのデフォルト実装（`packages/breadcrumbs/helper/breadcrumbs.js`）が上書きされます。
+
+### 部分的な拡張
+
+パッケージの一部だけを利用し、他をカスタマイズすることも可能です:
+
+- `packages/category/template/category.html` → `src/template/category.html` で上書き
+- `packages/category/helper/category.js` → そのまま使用（上書きしない）
+- CSS は追加ファイルで拡張（`src/css/category-custom.css` など）
+
+### .cache/ の再生成
+
+キャッシュの問題が発生した場合や、パッケージのカスタマイズが反映されない場合:
+
+```bash
+rm -rf .cache/
+npm run dev  # または npm run generate
+```
+
+`.cache/` を削除すると、次回のビルド時に `lib/dir.js` の `cache()` 関数が再度実行され、パッケージとユーザーコードが正しい優先順位で展開されます。
+
 ## デバッグ方法
 
 ### 1. console.log デバッグ
