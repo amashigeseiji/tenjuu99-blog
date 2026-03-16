@@ -12,7 +12,10 @@ export function buildCategoryTree(data = allData, conf = config) {
   const tree = {}
   const urlCase = conf.category?.url_case || 'lower'
   const urlSeparator = conf.category?.url_separator || '-'
-  const urlPrefix = conf.category?.url_prefix || ''
+  const rawUrlPrefix = conf.category?.url_prefix || ''
+  const urlPrefix = rawUrlPrefix
+    ? '/' + rawUrlPrefix.replace(/^\/+|\/+$/g, '')
+    : ''
   const maxDepth = conf.category?.max_depth || 3
 
   for (const [name, page] of Object.entries(data)) {
