@@ -210,3 +210,90 @@ test('buildCategoryTree - 深い階層の children が正しく計算される',
   assert.ok(result['/tech/frontend'].children['/tech/frontend/react']);
   assert.strictEqual(Object.keys(result['/tech/frontend/react'].children).length, 0);
 });
+
+test('buildCategoryTree - スペースをハイフンに変換する（デフォルト）', () => {
+  const allData = {
+    'art/sample': {
+      name: 'art/sample',
+      category: ['Contemporary Art', 'Modern Painting']
+    }
+  };
+
+  const config = {
+    category: {
+      url_case: 'lower'
+    }
+  };
+
+  const result = buildCategoryTree(allData, config);
+
+  assert.ok(result['/contemporary-art']);
+  assert.ok(result['/contemporary-art/modern-painting']);
+  assert.strictEqual(result['/contemporary art'], undefined);
+});
+
+test('buildCategoryTree - url_separator でスペースの置き換え文字を変更', () => {
+  const allData = {
+    'art/sample': {
+      name: 'art/sample',
+      category: ['Contemporary Art']
+    }
+  };
+
+  const config = {
+    category: {
+      url_case: 'lower',
+      url_separator: '_'
+    }
+  };
+
+  const result = buildCategoryTree(allData, config);
+
+  assert.ok(result['/contemporary_art']);
+  assert.strictEqual(result['/contemporary-art'], undefined);
+});
+
+test('buildCategoryTree - url_prefix でURLにプレフィックスを追加', () => {
+  const allData = {
+    'book/sample': {
+      name: 'book/sample',
+      category: ['Art', 'Painting']
+    }
+  };
+
+  const config = {
+    category: {
+      url_case: 'lower',
+      url_prefix: '/books/category'
+    }
+  };
+
+  const result = buildCategoryTree(allData, config);
+
+  assert.ok(result['/books/category/art']);
+  assert.ok(result['/books/category/art/painting']);
+  assert.strictEqual(result['/art'], undefined);
+});
+
+test('buildCategoryTree - url_prefix とスペース変換を組み合わせ', () => {
+  const allData = {
+    'book/sample': {
+      name: 'book/sample',
+      category: ['Contemporary Art']
+    }
+  };
+
+  const config = {
+    category: {
+      url_case: 'lower',
+      url_prefix: '/wf/book-list',
+      url_separator: '-'
+    }
+  };
+
+  const result = buildCategoryTree(allData, config);
+
+  assert.ok(result['/wf/book-list/contemporary-art']);
+  assert.strictEqual(result['/contemporary-art'], undefined);
+  assert.strictEqual(result['/wf/book-list/contemporary art'], undefined);
+});

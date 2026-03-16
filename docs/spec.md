@@ -387,7 +387,9 @@ helper.readIndex('/post')
        "template": "category.html",
        "auto_generate": true,
        "max_depth": 3,
-       "url_case": "lower"
+       "url_case": "lower",
+       "url_separator": "-",
+       "url_prefix": ""
      }
    }
    ```
@@ -397,6 +399,24 @@ helper.readIndex('/post')
    - `/tech/frontend/index.html`
    - `/tech/frontend/react/index.html`
 
+**スペース変換とURLプレフィックスの使用例:**
+
+```json
+{
+  "category": {
+    "url_case": "lower",
+    "url_separator": "-",
+    "url_prefix": "/books/category"
+  }
+}
+```
+
+カテゴリー指定: `category: ["Contemporary Art", "Abstract Painting"]`
+
+生成されるURL:
+- `/books/category/contemporary-art/index.html`
+- `/books/category/contemporary-art/abstract-painting/index.html`
+
 **設定オプション:**
 
 | オプション | 説明 | デフォルト |
@@ -405,6 +425,18 @@ helper.readIndex('/post')
 | `auto_generate` | 自動生成の有効/無効 | `true` |
 | `max_depth` | カテゴリーの最大階層数 | `3` |
 | `url_case` | URLの大文字小文字変換 (`lower`/`original`) | `lower` |
+| `url_separator` | スペースの置き換え文字 | `"-"` |
+| `url_prefix` | カテゴリーURLのプレフィックス | `""` |
+
+**設定オプションの詳細:**
+
+- **`url_separator`**: カテゴリー名にスペースが含まれる場合の置き換え文字を指定します。
+  - 例: `category: ["Contemporary Art"]` + `url_separator: "-"` → `/contemporary-art/`
+  - 例: `category: ["Contemporary Art"]` + `url_separator: "_"` → `/contemporary_art/`
+
+- **`url_prefix`**: すべてのカテゴリーURLに共通のプレフィックスを追加します。
+  - 例: `url_prefix: "/blog/categories"` → カテゴリーページは `/blog/categories/tech/`、`/blog/categories/art/` など
+  - 空文字列の場合はルート直下に生成されます
 
 **自動生成されるページのメタデータ:**
 

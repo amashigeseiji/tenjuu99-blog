@@ -15,6 +15,8 @@
     "template": "category.html",
     "auto_generate": true,
     "max_depth": 3,
-    "url_case": "lower"
+    "url_case": "lower",
+    "url_separator": "-",
+    "url_prefix": ""
   }
 }

@@ -11,6 +11,8 @@ let categoryTreeCache = null
 export function buildCategoryTree(data = allData, conf = config) {
   const tree = {}
   const urlCase = conf.category?.url_case || 'lower'
+  const urlSeparator = conf.category?.url_separator || '-'
+  const urlPrefix = conf.category?.url_prefix || ''
   const maxDepth = conf.category?.max_depth || 3
 
   for (const [name, page] of Object.entries(data)) {
@@ -19,11 +21,12 @@ export function buildCategoryTree(data = allData, conf = config) {
     }
 
     const categoryPath = page.category.slice(0, maxDepth)
-    let currentPath = ''
+    let currentPath = urlPrefix
 
     for (let i = 0; i < categoryPath.length; i++) {
       const category = categoryPath[i]
-      const categoryUrl = urlCase === 'lower' ? category.toLowerCase() : category
+      let categoryUrl = urlCase === 'lower' ? category.toLowerCase() : category
+      categoryUrl = categoryUrl.replace(/\s+/g, urlSeparator)
       currentPath += `/${categoryUrl}`
 
       if (!tree[currentPath]) {
