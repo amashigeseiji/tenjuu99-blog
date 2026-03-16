@@ -8,6 +8,6 @@ published: 2024-02-20
 
 これは書籍「Modern Sculpture」のページです。
 
-カテゴリー: Art > Sculpture
+カテゴリー: [Art]({{RELATIVE_PATH}}/book-list/art/) > [Sculpture]({{RELATIVE_PATH}}/book-list/art/sculpture/)
 
 このページは `/book-list/art/sculpture/` カテゴリーに含まれるべきです。

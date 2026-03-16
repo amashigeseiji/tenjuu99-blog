@@ -11,12 +11,46 @@
   "hooks": {
     "afterIndexing": "categoryIndexer.js"
   },
-  "category": {
-    "template": "category.html",
-    "auto_generate": true,
-    "max_depth": 3,
-    "url_case": "lower",
-    "url_separator": "-",
-    "url_prefix": ""
-  }
+  "categories": [
+    {
+      "name": "books",
+      "url_prefix": "/book-list",
+      "path_filter": "book/",
+      "template": "category.html",
+      "auto_generate": true,
+      "max_depth": 3,
+      "url_case": "lower",
+      "url_separator": "-"
+    },
+    {
+      "name": "articles",
+      "url_prefix": "/article-list",
+      "path_filter": "article/",
+      "template": "category.html",
+      "auto_generate": true,
+      "max_depth": 3,
+      "url_case": "lower",
+      "url_separator": "-"
+    },
+    {
+      "name": "art",
+      "url_prefix": "",
+      "path_filter": "art/",
+      "template": "category.html",
+      "auto_generate": true,
+      "max_depth": 3,
+      "url_case": "lower",
+      "url_separator": "-"
+    },
+    {
+      "name": "tech",
+      "url_prefix": "",
+      "path_filter": "tech/",
+      "template": "category.html",
+      "auto_generate": true,
+      "max_depth": 3,
+      "url_case": "lower",
+      "url_separator": "-"
+    }
+  ]
 }

@@ -8,6 +8,6 @@ published: 2024-03-10
 
 これは書籍「Japanese History」のページです。
 
-カテゴリー: History > Japan
+カテゴリー: [History]({{RELATIVE_PATH}}/book-list/history/) > [Japan]({{RELATIVE_PATH}}/book-list/history/japan/)
 
 このページは `/book-list/history/japan/` カテゴリーに含まれるべきです。
