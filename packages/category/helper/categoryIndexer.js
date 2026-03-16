@@ -1,19 +1,28 @@
 import { buildCategoryTree } from './category.js'
 
 /**
- * afterIndexing フック関数
- * カテゴリーツリーを構築し、仮想カテゴリーインデックスページを生成する
- * @param {Object} allData - 全ページデータ
- * @param {Object} config - 設定オブジェクト
+ * 単一カテゴリー設定に対してカテゴリーページを生成する
+ * @param {Object} allData - 全ページデータ（仮想ページの追加先）
+ * @param {Object} categoryConfig - 単一カテゴリー設定オブジェクト
+ * @param {Object} config - グローバル設定オブジェクト
  */
-export async function afterIndexing(allData, config) {
-  // auto_generate が false の場合は何もしない
-  if (config.category?.auto_generate === false) {
-    return
+function generateCategoryPages(allData, categoryConfig, config) {
+  // path_filter でページをフィルタ
+  const pathFilter = categoryConfig.path_filter || ''
+  let filteredData = allData
+
+  if (pathFilter) {
+    filteredData = {}
+    for (const [name, page] of Object.entries(allData)) {
+      if (name.startsWith(pathFilter)) {
+        filteredData[name] = page
+      }
+    }
   }
 
-  // カテゴリーツリーを構築
-  const tree = buildCategoryTree(allData, config)
+  // カテゴリーツリーを構築（category キーにラップして buildCategoryTree に渡す）
+  const treeConfig = { category: categoryConfig }
+  const tree = buildCategoryTree(filteredData, treeConfig)
 
   // 各カテゴリーに対して仮想ページを生成
   for (const [url, categoryData] of Object.entries(tree)) {
@@ -30,7 +39,7 @@ export async function afterIndexing(allData, config) {
       url: url,
       __output: `${url}/index.html`,
       title: categoryData.title,
-      template: config.category?.template || 'category.html',
+      template: categoryConfig.template || 'category.html',
       markdown: '',
       category_path: categoryData.path,
       category_pages: categoryData.pages,
@@ -51,5 +60,27 @@ export async function afterIndexing(allData, config) {
       markdown_not_parsed: '',
       full_url: `${config.url_base || 'http://localhost:8000'}${url}`
     }
+  }
+}
+
+/**
+ * afterIndexing フック関数
+ * カテゴリーツリーを構築し、仮想カテゴリーインデックスページを生成する
+ * `config.categories`（配列）と `config.category`（単一、後方互換）の両方をサポート。
+ * @param {Object} allData - 全ページデータ
+ * @param {Object} config - 設定オブジェクト
+ */
+export async function afterIndexing(allData, config) {
+  // categories 配列または category 単一設定からカテゴリーシステム一覧を取得
+  const categorySystems = config.categories
+    ? config.categories
+    : (config.category ? [config.category] : [])
+
+  for (const categoryConfig of categorySystems) {
+    if (categoryConfig.auto_generate === false) {
+      continue
+    }
+
+    generateCategoryPages(allData, categoryConfig, config)
   }
 }

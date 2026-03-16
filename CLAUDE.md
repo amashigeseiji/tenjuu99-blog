@@ -43,6 +43,8 @@ npm test           # テスト実行（test/*.test.js）
 
 **Hook機構**: `afterIndexing` フックでビルドプロセスに介入可能（カテゴリー自動生成など）。詳細は [docs/spec.md#Hook機構](docs/spec.md#Hook機構) 参照。
 
+**カテゴリーパッケージ**: `packages/category` は階層型カテゴリーの自動生成機能を提供。`categories` 配列で複数の独立したカテゴリーシステムを定義可能（`path_filter` でページを絞り込み）。詳細は [docs/spec.md#category-パッケージ詳細](docs/spec.md#category-パッケージ詳細) 参照。
+
 ### 2. 制約事項（重要）
 - フロントマターはYAML完全互換でない（独自パーサー）
 - 配列・オブジェクトはJSON形式必須（`["item1", "item2"]`）
