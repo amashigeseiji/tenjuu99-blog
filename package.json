@@ -36,7 +36,9 @@
     "lib",
     "bin",
     "src-sample",
-    "packages"
+    "packages",
+    "docs",
+    "README.md"
   ],
   "publishConfig": {
     "access": "public"
