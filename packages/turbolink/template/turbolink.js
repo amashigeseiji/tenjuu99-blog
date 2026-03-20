@@ -51,9 +51,22 @@ const transition = async (href) => {
     script.remove()
   })
 
-  window.scroll({top: 0, left: 0, behavior: 'instant'})
   // set body
   document.body = doc.getElementsByTagName('body')[0]
+
+  // Handle hash navigation
+  const url = new URL(href, window.location.origin)
+  if (url.hash) {
+    // Wait for next tick to ensure DOM is ready
+    setTimeout(() => {
+      const targetElement = document.querySelector(url.hash)
+      if (targetElement) {
+        targetElement.scrollIntoView({ behavior: 'instant' })
+      }
+    }, 0)
+  } else {
+    window.scroll({top: 0, left: 0, behavior: 'instant'})
+  }
   // set header
   document.title = doc.getElementsByTagName('title')[0].textContent
   const canonical = document.head.querySelector('link[rel=canonical]')
