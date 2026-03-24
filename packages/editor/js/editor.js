@@ -19,7 +19,8 @@ ${target.split('.')[0].split('/').pop()} についての記事を作成しまし
 }
 const onloadFunction = async (e) => {
   const form = document.querySelector('#editor')
-  const textarea = form.querySelector('#editorTextArea')
+  const textarea = form.querySelector('#editorTextAreaHidden')
+  const textareaContentEditable = form.querySelector('#editorTextArea')
   const select = form.querySelector('#selectDataFile')
   const inputFileName = form.querySelector('#inputFileName')
   const preview = document.querySelector('#previewContent')
@@ -28,6 +29,7 @@ const onloadFunction = async (e) => {
   if (target) {
     fetchData(target).then(json => {
       textarea.value = json.content
+      textareaContentEditable.innerHTML = textToHtml(json.content)
       select.value = json.filename
       inputFileName.value = json.filename
       inputFileName.setAttribute('disabled', true)
@@ -37,10 +39,26 @@ const onloadFunction = async (e) => {
       console.log(e)
     })
   }
+  const textToHtml = (text) => {
+    return text.split('\n').map(line => {
+      const escaped = line.replace(/[&'`"<>]/g, (match) => {
+        return {
+          '&': '&amp;',
+          "'": '&#x27;',
+          '`': '&#x60;',
+          '"': '&quot;',
+          '<': '&lt;',
+          '>': '&gt;',
+        }[match]
+      })
+      return `<div>${escaped}</div>`
+    }).join('')
+  }
   select.addEventListener('change', async (event) => {
     if (select.value) {
       const json = await fetchData(select.value)
       textarea.value = json.content
+      textareaContentEditable.innerHTML = textToHtml(json.content)
       inputFileName.value = json.filename
       inputFileName.setAttribute('disabled', true)
       url.searchParams.set('md', select.value)
@@ -49,6 +67,7 @@ const onloadFunction = async (e) => {
       inputFileName.value = ""
       inputFileName.removeAttribute('disabled')
       textarea.value = ''
+      textareaContentEditable.innerHTML = ''
       url.searchParams.set('md', "")
       const iframe = preview.querySelector('iframe')
       if (iframe) {
@@ -56,6 +75,22 @@ const onloadFunction = async (e) => {
       }
     }
     history.pushState({}, "", url)
+  })
+const dummy = document.querySelector('.dummy-input')
+  textareaContentEditable.addEventListener('input', (event) => {
+    dummy.innerHTML = ''
+    console.log(event)
+    const pos = window.getSelection().getRangeAt(0).getBoundingClientRect()
+    const div = document.createElement('div')
+    div.style.position = 'fixed'
+    div.style.left = `${pos.right + 2}px`
+    div.style.top = `${pos.bottom + 3}px`
+    div.style.backgroundColor = '#aa7'
+    div.style.color = '#fff'
+    div.innerHTML = '<span>hogehoge</span>'
+    dummy.appendChild(div)
+
+    textarea.value = textareaContentEditable.innerText
   })
 
   const submit = (fetchUrl, form) => {

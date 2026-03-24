@@ -64,6 +64,10 @@ main.container {
   transition: background 0.2s;
   outline: none;
 }
+#editorTextAreaHidden {
+}
+.dummy-input {
+}
 form select {
   padding: 5px;
   border-radius: 5px;
