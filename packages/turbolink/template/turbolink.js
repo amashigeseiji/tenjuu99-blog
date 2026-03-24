@@ -38,17 +38,16 @@ const transition = async (href) => {
     }
   }
   const newScripts = [...doc.getElementsByTagName('script')].filter(s => {
-    return s.dataset.name && [...document.scripts].find(ds => ds.dataset.name !== s.dataset.name)
+    return s.dataset.name && ![...document.scripts].find(ds => ds.dataset.name === s.dataset.name)
   })
   newScripts.forEach(script => {
-    document.head.appendChild(script)
     const newScript = document.createElement('script')
+    newScript.dataset.name = script.dataset.name
     const newScriptHtml = `(() => {
       ${script.innerHTML}
     })()`
     newScript.innerHTML = newScriptHtml
-    script.parentNode.append(newScript)
-    script.remove()
+    document.head.appendChild(newScript)
   })
 
   // set body
