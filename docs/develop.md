@@ -455,6 +455,14 @@ npm run dev
 - YAML完全互換ではなく独自実装（lib/pageData.js:61-93）
 - 配列・オブジェクトはJSON形式必須
 
+### 5. helper.js の top-level await 禁止
+
+`lib/helper.js` では top-level await を使用してはならない。
+
+**理由:** `.cache/helper/` 以下のヘルパーファイルが `replaceVariablesFilter.js` を静的 import し、そこから `helper.js` が再度 import される循環依存がある。top-level await があると ESM のモジュール評価が完了前に循環参照が解決されずデッドロックが発生する。
+
+**対処:** IIFE `(async () => { ... })()` の中で await し、その Promise を `helperReady` としてエクスポートする（lib/helper.js 参照）。
+
 ## テストについて
 
 ### テストフレームワーク
