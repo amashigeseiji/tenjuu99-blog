@@ -1,6 +1,8 @@
 import { test } from 'node:test'
 import assert from 'node:assert'
 import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { join, dirname } from 'node:path'
 import helper, { helperReady } from '../lib/helper.js'
 import render from '../lib/render.js'
 
@@ -35,6 +37,7 @@ test('TC-04: render() はヘルパー関数呼び出しを含むテンプレー�
 })
 
 test('TC-05: render.js のソースに helperReady が含まれている', () => {
-  const source = readFileSync('./lib/render.js', 'utf8')
+  const renderPath = join(dirname(fileURLToPath(import.meta.url)), '../lib/render.js')
+  const source = readFileSync(renderPath, 'utf8')
   assert.ok(source.includes('helperReady'))
 })
