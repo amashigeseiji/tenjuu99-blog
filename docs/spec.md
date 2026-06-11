@@ -166,6 +166,12 @@ published: true
 # 配列（JSON形式）
 tags: ["tag1", "tag2", "tag3"]
 
+# 配列（YAMLリスト形式）
+tags:
+  - tag1
+  - tag2
+  - tag3
+
 # オブジェクト（JSON形式）
 metadata: {"author": "名前", "year": 2024}
 
@@ -178,7 +184,7 @@ description: "これは
 url_base: config.url_base
 ```
 
-**重要**: 配列・オブジェクトは `JSON.parse()` で解析されるため、有効なJSON形式である必要があります。
+**配列の記述形式**: JSON形式（`["item1", "item2"]`）とYAMLリスト形式（`- item`）の両方をサポートします。オブジェクトはJSON形式のみ対応です。
 
 ## テンプレート記法
 
@@ -843,7 +849,8 @@ import { allData, config, dir } from '@tenjuu99/blog'
 ## 制約事項
 
 - フロントマターは YAML 完全互換ではなく、独自パーサーを使用
-- 配列・オブジェクトは JSON 形式で記述必須
+- 配列は JSON 形式（`["item1"]`）または YAML リスト形式（`- item`）で記述可能
+- オブジェクトは JSON 形式で記述必須
 - 変数名は強制的に小文字化される
 - `include()` は同期処理のため、非同期ファイル読み込みは不可
 - SSGスクリプト内で `import()` は使用不可（ヘルパー関数を使用）
