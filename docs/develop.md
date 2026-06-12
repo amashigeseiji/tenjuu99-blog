@@ -452,7 +452,7 @@ npm run dev
 
 ### 4. フロントマターパーサー
 
-- YAML完全互換ではなく独自実装（lib/pageData.js:61-93）
+- YAML完全互換ではなく独自実装（`parseMetaData()` in lib/pageData.js）
 - 配列はJSON形式（`["item1"]`）またはYAMLリスト形式（`- item`）で記述可能
 - オブジェクトはJSON形式必須
 
