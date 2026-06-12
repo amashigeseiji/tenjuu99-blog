@@ -498,7 +498,7 @@ test('テストの説明', () => {
 
 - ES Modules使用（`import/export`）
 - `"use strict"` は一部モジュールで使用
-- JSDocコメントは部分的に記載
+- JSDocコメントは基本的に記載する
 
 ### 変更を加える際の確認事項
 
