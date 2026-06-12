@@ -581,7 +581,7 @@ helper.readIndex('/post')
 |------|----------------|-----------------|
 | 生成ページ数 | 1 | ceil(記事数 / per_page) |
 | `category_pages` | 全記事 | 当該ページの記事スライス |
-| `category_current_page` 等 | なし | あり |
+| `category_current_page` 等 | あり（current_page=1, total_pages=1） | あり |
 
 **ページネーション UI パーシャル（`_pagination.html`）:**
 
