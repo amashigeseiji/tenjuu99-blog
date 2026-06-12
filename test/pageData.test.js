@@ -338,6 +338,25 @@ tags:
   assert.deepStrictEqual(result.tags, ['item1', 'item2', 'item3']);
 });
 
+test('YAMLリスト形式の配列（数値・真偽値）', () => {
+  const markdown = `<!--
+title: テスト
+numbers:
+  - 1
+  - 2
+  - 3
+flags:
+  - true
+  - false
+-->
+本文`;
+
+  const result = makePageData('test.md', markdown);
+
+  assert.deepStrictEqual(result.numbers, [1, 2, 3]);
+  assert.deepStrictEqual(result.flags, [true, false]);
+});
+
 test('YAMLリスト形式の配列とその他のキーが混在', () => {
   const markdown = `<!--
 title: テスト
