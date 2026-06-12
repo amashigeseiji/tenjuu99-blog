@@ -627,19 +627,19 @@ buildWindowedPages(totalPages, currentPage, windowSize = 2)
 
 **`category_children` の型（破壊的変更）:**
 
-v0.3.4 以降、`category_children` の型が `string[]`（URL文字列の配列）から `{url: string, title: string}[]`（オブジェクトの配列）に変わりました。
+この変更により、`category_children` の型が `string[]`（URL文字列の配列）から `{url: string, title: string}[]`（オブジェクトの配列）に変わりました。
 
 既存のカスタムテンプレートで `category_children` を文字列として扱っている場合は更新が必要です。
 
 ```html
-<!-- 旧 (v0.3.3 以前) -->
+<!-- 旧 (変更前) -->
 <script type="ssg">
   for (const childUrl of variables.category_children) {
     html += `<a href="${childUrl}">${childUrl}</a>`
   }
 </script>
 
-<!-- 新 (v0.3.4 以降) -->
+<!-- 新 (変更後) -->
 <script type="ssg">
   for (const child of variables.category_children) {
     html += `<a href="${child.url}">${child.title}</a>`
