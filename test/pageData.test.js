@@ -245,3 +245,133 @@ url: /articles/test
   assert.strictEqual(result.description, 'これは説明文です');
   assert.strictEqual(result.url, '/articles/test');
 });
+
+test('YAMLリスト形式の配列（クォートなし）', () => {
+  const markdown = `<!--
+title: テスト
+tags:
+  - javascript
+  - nodejs
+  - testing
+-->
+本文`;
+
+  const result = makePageData('test.md', markdown);
+
+  assert.strictEqual(result.title, 'テスト');
+  assert.deepStrictEqual(result.tags, ['javascript', 'nodejs', 'testing']);
+});
+
+test('YAMLリスト形式の配列（ダブルクォートあり）', () => {
+  const markdown = `<!--
+title: テスト
+tags:
+  - "hello world"
+  - "foo bar"
+-->
+本文`;
+
+  const result = makePageData('test.md', markdown);
+
+  assert.deepStrictEqual(result.tags, ['hello world', 'foo bar']);
+});
+
+test('YAMLリスト形式の配列（シングルクォートあり）', () => {
+  const markdown = `<!--
+title: テスト
+tags:
+  - 'foo'
+  - 'bar'
+-->
+本文`;
+
+  const result = makePageData('test.md', markdown);
+
+  assert.deepStrictEqual(result.tags, ['foo', 'bar']);
+});
+
+test('YAMLリスト形式の配列が最後のキー', () => {
+  const markdown = `<!--
+title: テスト
+tags:
+  - last-item
+-->
+本文`;
+
+  const result = makePageData('test.md', markdown);
+
+  assert.strictEqual(result.title, 'テスト');
+  assert.deepStrictEqual(result.tags, ['last-item']);
+});
+
+test('YAMLリスト形式の配列が複数', () => {
+  const markdown = `<!--
+title: テスト
+tags:
+  - javascript
+  - nodejs
+categories:
+  - tech
+  - web
+-->
+本文`;
+
+  const result = makePageData('test.md', markdown);
+
+  assert.deepStrictEqual(result.tags, ['javascript', 'nodejs']);
+  assert.deepStrictEqual(result.categories, ['tech', 'web']);
+});
+
+test('YAMLリスト形式の配列（--- 形式）', () => {
+  const markdown = `---
+title: テスト
+tags:
+  - item1
+  - item2
+  - item3
+---
+本文`;
+
+  const result = makePageData('test.md', markdown);
+
+  assert.strictEqual(result.title, 'テスト');
+  assert.deepStrictEqual(result.tags, ['item1', 'item2', 'item3']);
+});
+
+test('YAMLリスト形式の配列（数値・真偽値）', () => {
+  const markdown = `<!--
+title: テスト
+numbers:
+  - 1
+  - 2
+  - 3
+flags:
+  - true
+  - false
+-->
+本文`;
+
+  const result = makePageData('test.md', markdown);
+
+  assert.deepStrictEqual(result.numbers, [1, 2, 3]);
+  assert.deepStrictEqual(result.flags, [true, false]);
+});
+
+test('YAMLリスト形式の配列とその他のキーが混在', () => {
+  const markdown = `<!--
+title: テスト
+published: 2024-01-01
+tags:
+  - javascript
+  - testing
+draft: false
+-->
+本文`;
+
+  const result = makePageData('test.md', markdown);
+
+  assert.strictEqual(result.title, 'テスト');
+  assert.strictEqual(result.published, '2024-01-01');
+  assert.deepStrictEqual(result.tags, ['javascript', 'testing']);
+  assert.strictEqual(result.draft, false);
+});

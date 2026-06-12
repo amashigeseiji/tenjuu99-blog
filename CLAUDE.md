@@ -47,7 +47,8 @@ npm test           # テスト実行（test/*.test.js）
 
 ### 2. 制約事項（重要）
 - フロントマターはYAML完全互換でない（独自パーサー）
-- 配列・オブジェクトはJSON形式必須（`["item1", "item2"]`）
+- 配列はJSON形式（`["item1", "item2"]`）またはYAMLリスト形式（`- item`）で記述可能
+- オブジェクトはJSON形式必須（`{"key": "value"}`）
 - 変数名は強制小文字化（`{{TITLE}}` → `{{title}}`）
 - `include()` は同期処理のみ
 - SSGスクリプト内で `import()` 不可
