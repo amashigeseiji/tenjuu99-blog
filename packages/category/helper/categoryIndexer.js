@@ -44,7 +44,7 @@ function buildVirtualPage(url, categoryData, children, currentPage, totalPages, 
 
   const page = {
     name: pageName,
-    url: url,
+    url: url + '/',
     __output: `${url}/index.html`,
     title: categoryData.title,
     template: categoryConfig.template || 'category.html',
@@ -65,7 +65,7 @@ function buildVirtualPage(url, categoryData, children, currentPage, totalPages, 
     og_description: `${categoryData.title} カテゴリーのページ一覧`,
     __filetype: 'md',
     markdown_not_parsed: '',
-    full_url: `${config.url_base || 'http://localhost:8000'}${url}`,
+    full_url: `${config.url_base || 'http://localhost:8000'}${url}/`,
     category_pages: [],
     category_current_page: currentPage,
     category_total_pages: totalPages,
@@ -100,7 +100,7 @@ function generateCategoryPages(allData, categoryConfig, config) {
 
   for (const [url, categoryData] of Object.entries(tree)) {
     const children = Object.entries(categoryData.children).map(([childUrl, childNode]) => ({
-      url: childUrl,
+      url: childUrl + '/',
       title: childNode.title,
     }))
 
