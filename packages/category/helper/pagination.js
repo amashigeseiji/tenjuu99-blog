@@ -3,8 +3,9 @@
  * page === 1 なら basePath、それ以外なら basePath + page + '/'
  */
 export function getPaginationUrl(basePath, page) {
-  if (page === 1) return basePath
-  return `${basePath}${page}/`
+  const base = basePath.endsWith('/') ? basePath : `${basePath}/`
+  if (page === 1) return base
+  return `${base}${page}/`
 }
 
 /**
