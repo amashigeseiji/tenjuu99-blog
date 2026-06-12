@@ -1,6 +1,6 @@
 ---
 title: After Rain
-category: ["Art", "Painting"]
+category: ["Book", "Art", "Painting"]
 published: 2024-01-15
 ---
 
@@ -10,4 +10,4 @@ published: 2024-01-15
 
 カテゴリー: Art > Painting
 
-このページは `/book-list/art/painting/` カテゴリーに含まれるべきです。
+このページは `/book/art/painting/` カテゴリーに含まれるべきです。

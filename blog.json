@@ -13,13 +13,14 @@
   "categories": [
     {
       "name": "books",
-      "url_prefix": "/book-list",
+      "url_prefix": "",
       "path_filter": "book/",
       "template": "category.html",
       "auto_generate": true,
       "max_depth": 3,
       "url_case": "lower",
-      "url_separator": "-"
+      "url_separator": "-",
+      "per_page": 2
     },
     {
       "name": "articles",
