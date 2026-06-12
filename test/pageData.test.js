@@ -357,6 +357,32 @@ flags:
   assert.deepStrictEqual(result.flags, [true, false]);
 });
 
+test('url に末尾スラッシュを指定すると __output が index.html になる', () => {
+  const markdown = `<!--
+title: リスト
+url: /book/
+-->
+本文`;
+
+  const result = makePageData('book.md', markdown);
+
+  assert.strictEqual(result.url, '/book/');
+  assert.strictEqual(result.__output, '/book/index.html');
+});
+
+test('url に末尾スラッシュなしの場合は .html になる', () => {
+  const markdown = `<!--
+title: 記事
+url: /book/foo
+-->
+本文`;
+
+  const result = makePageData('foo.md', markdown);
+
+  assert.strictEqual(result.url, '/book/foo');
+  assert.strictEqual(result.__output, '/book/foo.html');
+});
+
 test('YAMLリスト形式の配列とその他のキーが混在', () => {
   const markdown = `<!--
 title: テスト
