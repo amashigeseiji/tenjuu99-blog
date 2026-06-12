@@ -24,7 +24,7 @@ test('afterIndexing - 単一カテゴリーの仮想ページを生成する', a
   // 仮想ページが生成されていることを確認
   assert.ok(testAllData['tech/index']);
   assert.strictEqual(testAllData['tech/index'].title, 'Tech');
-  assert.strictEqual(testAllData['tech/index'].url, '/tech');
+  assert.strictEqual(testAllData['tech/index'].url, '/tech/');
   assert.strictEqual(testAllData['tech/index'].__output, '/tech/index.html');
   assert.strictEqual(testAllData['tech/index'].__is_auto_category, true);
   assert.deepStrictEqual(testAllData['tech/index'].category_pages, ['post/1', 'post/2']);
@@ -112,8 +112,8 @@ test('afterIndexing - category_children が正しく設定される', async () =
   // tech/frontend/index の children には react と vue が含まれる（{url, title}[] 型）
   const frontendChildren = testAllData['tech/frontend/index'].category_children;
   const childUrls = frontendChildren.map(c => c.url);
-  assert.ok(childUrls.includes('/tech/frontend/react'));
-  assert.ok(childUrls.includes('/tech/frontend/vue'));
+  assert.ok(childUrls.includes('/tech/frontend/react/'));
+  assert.ok(childUrls.includes('/tech/frontend/vue/'));
   assert.strictEqual(frontendChildren.length, 2);
 });
 

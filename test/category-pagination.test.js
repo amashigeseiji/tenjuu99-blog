@@ -84,7 +84,7 @@ describe('P-02: 1ページ目の仮想ページ名・URLは既存と同じ', () 
     await afterIndexing(allData, makeConfig(3))
 
     assert.ok(allData['tech/index'], 'tech/index が存在する')
-    assert.strictEqual(allData['tech/index'].url, '/tech')
+    assert.strictEqual(allData['tech/index'].url, '/tech/')
     assert.strictEqual(allData['tech/index'].__output, '/tech/index.html')
   })
 })
@@ -100,7 +100,7 @@ describe('P-03: 2ページ目以降は {category_path}/2/index 形式', () => {
     await afterIndexing(allData, makeConfig(3))
 
     assert.ok(allData['tech/2/index'], 'tech/2/index が存在する')
-    assert.strictEqual(allData['tech/2/index'].url, '/tech/2')
+    assert.strictEqual(allData['tech/2/index'].url, '/tech/2/')
     assert.strictEqual(allData['tech/2/index'].__output, '/tech/2/index.html')
   })
 
@@ -112,7 +112,7 @@ describe('P-03: 2ページ目以降は {category_path}/2/index 形式', () => {
     await afterIndexing(allData, makeConfig(3))
 
     assert.ok(allData['tech/3/index'], 'tech/3/index が存在する')
-    assert.strictEqual(allData['tech/3/index'].url, '/tech/3')
+    assert.strictEqual(allData['tech/3/index'].url, '/tech/3/')
   })
 })
 
