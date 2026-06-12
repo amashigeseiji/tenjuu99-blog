@@ -1,0 +1,57 @@
+<script type="ssg">
+  const totalPages = variables.category_total_pages || 0
+  if (totalPages <= 1) return ''
+
+  const currentPage = variables.category_current_page || 1
+  const paginationBase = variables.category_pagination_base || ''
+  const relativePath = variables.relative_path || ''
+
+  function getPaginationUrl(basePath, page) {
+    return page === 1 ? basePath : `${basePath}${page}/`
+  }
+
+  function buildWindowedPages(total, current, windowSize = 2) {
+    if (total <= 0) return []
+    if (total === 1) return [{ num: 1, isCurrent: current === 1 }]
+    const rangeStart = Math.max(2, current - windowSize)
+    const rangeEnd = Math.min(total - 1, current + windowSize)
+    const result = []
+    result.push({ num: 1, isCurrent: current === 1 })
+    if (rangeStart > 2) result.push({ num: null, isEllipsis: true })
+    for (let i = rangeStart; i <= rangeEnd; i++) {
+      result.push({ num: i, isCurrent: i === current })
+    }
+    if (rangeEnd < total - 1) result.push({ num: null, isEllipsis: true })
+    result.push({ num: total, isCurrent: current === total })
+    return result
+  }
+
+  const pages = buildWindowedPages(totalPages, currentPage)
+
+  let html = '<nav class="pagination" aria-label="ページネーション">'
+  html += '<ul class="pagination-list">'
+
+  if (currentPage > 1) {
+    const prevUrl = getPaginationUrl(paginationBase, currentPage - 1)
+    html += `<li class="pagination-prev"><a href="${relativePath}${prevUrl}">&laquo; 前へ</a></li>`
+  }
+
+  for (const p of pages) {
+    if (p.isEllipsis) {
+      html += '<li class="pagination-ellipsis"><span>…</span></li>'
+    } else if (p.isCurrent) {
+      html += `<li class="pagination-current"><span>${p.num}</span></li>`
+    } else {
+      const pageUrl = getPaginationUrl(paginationBase, p.num)
+      html += `<li><a href="${relativePath}${pageUrl}">${p.num}</a></li>`
+    }
+  }
+
+  if (currentPage < totalPages) {
+    const nextUrl = getPaginationUrl(paginationBase, currentPage + 1)
+    html += `<li class="pagination-next"><a href="${relativePath}${nextUrl}">次へ &raquo;</a></li>`
+  }
+
+  html += '</ul></nav>'
+  return html
+</script>

@@ -16,6 +16,9 @@
   <meta name="description" content="{{DESCRIPTION}}">
 
   {include('template/css.html')}
+  <style>
+    {include('css/pagination.css')}
+  </style>
 </head>
 <body>
   <header>
@@ -45,15 +48,16 @@
           html += '<h2>サブカテゴリー</h2>'
           html += '<div class="category-children">'
 
-          for (const childUrl of children) {
+          for (const child of children) {
+            const childUrl = typeof child === 'string' ? child : child.url
+            const childTitle = typeof child === 'string' ? null : child.title
             const childPageName = childUrl.replace(/^\//, '') + '/index'
             const childData = helper.getPageData(childPageName)
+            const title = childTitle || (childData && childData.title) || childUrl
 
-            if (childData) {
-              html += '<div class="category-child-card">'
-              html += `<a href="${relativePath}${childUrl}/">${childData.title}</a>`
-              html += '</div>'
-            }
+            html += '<div class="category-child-card">'
+            html += `<a href="${relativePath}${childUrl}/">${title}</a>`
+            html += '</div>'
           }
 
           html += '</div></div>'
@@ -104,6 +108,7 @@
           html += '</ul>'
           return html
         </script>
+        {include('template/_pagination.html')}
       </div>
     </article>
   </main>

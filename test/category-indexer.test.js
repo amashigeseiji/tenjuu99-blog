@@ -109,10 +109,11 @@ test('afterIndexing - category_children が正しく設定される', async () =
 
   await afterIndexing(testAllData, testConfig);
 
-  // tech/frontend/index の children には react と vue が含まれる
+  // tech/frontend/index の children には react と vue が含まれる（{url, title}[] 型）
   const frontendChildren = testAllData['tech/frontend/index'].category_children;
-  assert.ok(frontendChildren.includes('/tech/frontend/react'));
-  assert.ok(frontendChildren.includes('/tech/frontend/vue'));
+  const childUrls = frontendChildren.map(c => c.url);
+  assert.ok(childUrls.includes('/tech/frontend/react'));
+  assert.ok(childUrls.includes('/tech/frontend/vue'));
   assert.strictEqual(frontendChildren.length, 2);
 });
 
