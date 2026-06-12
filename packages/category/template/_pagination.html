@@ -18,9 +18,9 @@
 
   for (const p of pages) {
     if (p.isEllipsis) {
-      html += '<li class="pagination-ellipsis"><span>…</span></li>'
+      html += '<li class="pagination-ellipsis"><span aria-hidden="true">…</span></li>'
     } else if (p.isCurrent) {
-      html += `<li class="pagination-current"><span>${p.num}</span></li>`
+      html += `<li class="pagination-current"><span aria-current="page">${p.num}</span></li>`
     } else {
       const pageUrl = helper.getPaginationUrl(paginationBase, p.num)
       html += `<li><a href="${relativePath}${pageUrl}">${p.num}</a></li>`
