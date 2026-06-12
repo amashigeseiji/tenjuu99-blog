@@ -1,0 +1,37 @@
+<script type="ssg">
+  const totalPages = variables.category_total_pages || 0
+  if (totalPages <= 1) return ''
+
+  const currentPage = variables.category_current_page || 1
+  const paginationBase = variables.category_pagination_base || ''
+  const relativePath = variables.relative_path || ''
+
+  const pages = helper.buildWindowedPages(totalPages, currentPage)
+
+  let html = '<nav class="pagination" aria-label="ページネーション">'
+  html += '<ul class="pagination-list">'
+
+  if (currentPage > 1) {
+    const prevUrl = helper.getPaginationUrl(paginationBase, currentPage - 1)
+    html += `<li class="pagination-prev"><a href="${relativePath}${prevUrl}">&laquo; 前へ</a></li>`
+  }
+
+  for (const p of pages) {
+    if (p.isEllipsis) {
+      html += '<li class="pagination-ellipsis"><span aria-hidden="true">…</span></li>'
+    } else if (p.isCurrent) {
+      html += `<li class="pagination-current"><span aria-current="page">${p.num}</span></li>`
+    } else {
+      const pageUrl = helper.getPaginationUrl(paginationBase, p.num)
+      html += `<li><a href="${relativePath}${pageUrl}">${p.num}</a></li>`
+    }
+  }
+
+  if (currentPage < totalPages) {
+    const nextUrl = helper.getPaginationUrl(paginationBase, currentPage + 1)
+    html += `<li class="pagination-next"><a href="${relativePath}${nextUrl}">次へ &raquo;</a></li>`
+  }
+
+  html += '</ul></nav>'
+  return html
+</script>
