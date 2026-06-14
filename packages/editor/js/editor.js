@@ -101,6 +101,8 @@ const onloadFunction = async (e) => {
 const SIDEBAR_OPEN_KEY = 'sidebar-is-open'
 const DIR_OPEN_KEY = 'sidebar-dir-open'
 
+// @vocab: 展開状態 (docs/dictionary.md#展開状態)
+// @test: tests/editor/editor-sidebar.test.js
 const loadDirOpenState = () => {
   try {
     return JSON.parse(localStorage.getItem(DIR_OPEN_KEY) || '{}')
@@ -109,10 +111,16 @@ const loadDirOpenState = () => {
   }
 }
 
+// @vocab: 展開状態 (docs/dictionary.md#展開状態)
+// @test: tests/editor/editor-sidebar.test.js
 const saveDirOpenState = (state) => {
   localStorage.setItem(DIR_OPEN_KEY, JSON.stringify(state))
 }
 
+// @vocab: サイドバー (docs/dictionary.md#サイドバー)
+// @vocab: アクティブファイル (docs/dictionary.md#アクティブファイル)
+// @vocab: 展開状態 (docs/dictionary.md#展開状態)
+// @test: tests/editor/editor-sidebar.test.js
 const initSidebarTree = (activeFile) => {
   const state = loadDirOpenState()
 
@@ -148,6 +156,8 @@ const initSidebarTree = (activeFile) => {
   }
 }
 
+// @vocab: サイドバー (docs/dictionary.md#サイドバー)
+// @test: tests/editor/editor-sidebar.test.js
 const sidebarToggle = (e) => {
   const sidebar = document.querySelector('.sidebar')
   const main = document.querySelector('main')

@@ -2,6 +2,9 @@
  * getPaginationUrl: ページ番号から URL を生成する
  * page === 1 なら basePath、それ以外なら basePath + page + '/'
  */
+// @vocab: ページネーション (docs/dictionary.md#ページネーション)
+// @vocab: カテゴリーページ (docs/dictionary.md#カテゴリーページ)
+// @test: tests/category/category-pagination.test.js
 export function getPaginationUrl(basePath, page) {
   const base = basePath.endsWith('/') ? basePath : `${basePath}/`
   if (page === 1) return base
@@ -12,6 +15,8 @@ export function getPaginationUrl(basePath, page) {
  * buildWindowedPages: ウィンドウ付きページ番号リストを生成する
  * 各要素は {num, isCurrent} または {num: null, isEllipsis: true}
  */
+// @vocab: ページネーション (docs/dictionary.md#ページネーション)
+// @test: tests/category/category-pagination.test.js
 export function buildWindowedPages(totalPages, currentPage, windowSize = 2) {
   if (totalPages <= 0) return []
   if (totalPages === 1) return [{ num: 1, isCurrent: currentPage === 1 }]

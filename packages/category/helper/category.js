@@ -8,6 +8,11 @@ let categoryTreeCache = null
  * @param {Object} config - 設定オブジェクト
  * @returns {Object} カテゴリーツリー
  */
+// @vocab: カテゴリーシステム (docs/dictionary.md#カテゴリーシステム)
+// @vocab: カテゴリー (docs/dictionary.md#カテゴリー)
+// @vocab: カテゴリーパス (docs/dictionary.md#カテゴリーパス)
+// @vocab: サブカテゴリー (docs/dictionary.md#サブカテゴリー)
+// @test: tests/category/category-tree.test.js
 export function buildCategoryTree(data = allData, conf = config) {
   const tree = {}
   const urlCase = conf.category?.url_case || 'lower'
@@ -74,6 +79,10 @@ export function getCategoryTree() {
  * @param {Array} categoryPath - カテゴリーパス（例: ["Art", "Painting"]）
  * @returns {Array} ページデータの配列
  */
+// @vocab: カテゴリーパス (docs/dictionary.md#カテゴリーパス)
+// @vocab: カテゴリー (docs/dictionary.md#カテゴリー)
+// @vocab: ページ (docs/dictionary.md#ページ)
+// @test: tests/category/category-helper.test.js
 export function getCategoryPages(categoryPath) {
   const pages = []
 
@@ -95,6 +104,10 @@ export function getCategoryPages(categoryPath) {
  * @param {Array} categoryPath - カテゴリーパス（例: ["Art"]）
  * @returns {Array} ページデータの配列
  */
+// @vocab: サブカテゴリー (docs/dictionary.md#サブカテゴリー)
+// @vocab: カテゴリーパス (docs/dictionary.md#カテゴリーパス)
+// @vocab: ページ (docs/dictionary.md#ページ)
+// @test: tests/category/category-helper.test.js
 export function getCategoryPagesRecursive(categoryPath) {
   const pages = []
 
