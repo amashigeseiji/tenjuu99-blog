@@ -105,8 +105,8 @@ tenjuu99-blog/
 
 1. **Red（テスト作成）**: 失敗するテストを書く
    ```bash
-   # test/ ディレクトリにテストファイルを作成
-   # 例: test/category-tree.test.js
+   # tests/ ディレクトリにテストファイルを作成
+   # 例: tests/category-tree.test.js
    ```
 
 2. **Green（最小限の実装）**: テストがパスする最小限のコードを書く
@@ -124,13 +124,13 @@ tenjuu99-blog/
 
 **テストファイルの配置:**
 
-- `test/` ディレクトリに `*.test.js` 形式で配置
+- `tests/` ディレクトリに `*.test.js` 形式で配置
 - Node.js標準のテストランナーを使用（`node --test`）
 
 **テストの例:**
 
 ```javascript
-// test/example.test.js
+// tests/example.test.js
 import { test } from 'node:test'
 import assert from 'node:assert'
 import { myFunction } from '../lib/myModule.js'
@@ -143,7 +143,7 @@ test('機能の説明', () => {
 
 **実装例（カテゴリー機能の場合）:**
 
-1. `test/category-tree.test.js` - カテゴリーツリー構築のテスト（12件）
+1. `tests/category-tree.test.js` - カテゴリーツリー構築のテスト（12件）
 2. `packages/category/helper/category.js` - 実装
 3. `npm test` - テスト実行
 4. すべてパス後、次のテストを作成
@@ -480,7 +480,7 @@ npm run test:watch    # ウォッチモード
 新しいテストを追加する場合:
 
 ```javascript
-// test/example.test.js
+// tests/example.test.js
 import { test } from 'node:test';
 import assert from 'node:assert';
 

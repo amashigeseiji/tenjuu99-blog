@@ -27,7 +27,7 @@ packages/    コアパッケージ（拡張機能）
 ```bash
 npm run dev        # 開発サーバー起動
 npm run generate   # 静的サイト生成
-npm test           # テスト実行（test/*.test.js）
+npm test           # テスト実行（tests/*.test.js）
 ```
 
 ## 開発時の重要ポイント

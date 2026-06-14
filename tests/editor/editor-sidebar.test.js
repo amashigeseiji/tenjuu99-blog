@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
-import { buildTree, renderTreeHtml } from '../packages/editor/js/tree.js'
+import { buildTree, renderTreeHtml } from '../../packages/editor/js/tree.js'
 
 const sampleFiles = [
   { name: 'index', __filetype: 'md', url: '/index' },

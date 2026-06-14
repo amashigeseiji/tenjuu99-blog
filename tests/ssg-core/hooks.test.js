@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert';
 import { writeFileSync, mkdirSync, rmSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { runHooks } from '../lib/generate.js';
+import { runHooks } from '../../lib/generate.js';
 
 // テスト用の一時ディレクトリ
 const testDir = join(process.cwd(), 'test-temp-hooks');

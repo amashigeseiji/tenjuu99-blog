@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import replaceVariablesFilter from '../lib/replaceVariablesFilter.js';
+import replaceVariablesFilter from '../../lib/replaceVariablesFilter.js';
 
 // ========================================
 // 基本的な変数展開

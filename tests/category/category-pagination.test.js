@@ -4,8 +4,8 @@
  */
 import { test, describe } from 'node:test'
 import assert from 'node:assert/strict'
-import { afterIndexing } from '../packages/category/helper/categoryIndexer.js'
-import { getPaginationUrl, buildWindowedPages } from '../packages/category/helper/pagination.js'
+import { afterIndexing } from '../../packages/category/helper/categoryIndexer.js'
+import { getPaginationUrl, buildWindowedPages } from '../../packages/category/helper/pagination.js'
 
 const BASE_CONFIG = {
   site_name: 'Test',
