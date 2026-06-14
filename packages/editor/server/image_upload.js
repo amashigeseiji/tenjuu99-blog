@@ -67,9 +67,14 @@ export async function createConverter(converterOrName = null) {
  * @returns {{ saveSubPath: string, markdownUrl: string }}
  */
 export function resolveImagePath(mdFilePath, imageFilename, outputExt = null) {
-  const mdSlug = mdFilePath.replace(/\.[^.]+$/, '')
-  const imgBasename = imageFilename.replace(/\.[^.]+$/, '')
-  const originalExt = imageFilename.match(/\.[^.]+$/)?.[0] ?? ''
+  const normalizedMd = nodePath.normalize(mdFilePath)
+  if (nodePath.isAbsolute(normalizedMd) || normalizedMd.startsWith('..')) {
+    throw new Error(`不正な mdFilePath: ${mdFilePath}`)
+  }
+  const safeFilename = nodePath.basename(imageFilename)
+  const mdSlug = normalizedMd.replace(/\.[^.]+$/, '')
+  const imgBasename = safeFilename.replace(/\.[^.]+$/, '')
+  const originalExt = safeFilename.match(/\.[^.]+$/)?.[0] ?? ''
   const finalExt = outputExt != null ? `.${outputExt}` : originalExt
   const imageSubPath = `image/${mdSlug}/${imgBasename}${finalExt}`
   return {
@@ -86,7 +91,11 @@ export function resolveImagePath(mdFilePath, imageFilename, outputExt = null) {
  * @param {string} [baseDir]
  */
 export function writeImageFile(saveSubPath, data, baseDir = srcDir) {
-  const fullPath = nodePath.join(baseDir, saveSubPath)
+  const resolvedBase = nodePath.resolve(baseDir)
+  const fullPath = nodePath.resolve(baseDir, saveSubPath)
+  if (!fullPath.startsWith(resolvedBase + nodePath.sep)) {
+    throw new Error(`保存先パスが許可ディレクトリ外です: ${saveSubPath}`)
+  }
   fs.mkdirSync(nodePath.dirname(fullPath), { recursive: true })
   fs.writeFileSync(fullPath, data)
 }
