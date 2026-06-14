@@ -11,13 +11,9 @@
 <body>
   <main class="container">
     <div class="sidebar">
-      <ul>
-        <script type="ssg">
-        return helper.readIndex().map(p => {
-          return `<li><a href="/editor?md=${p.name}.${p.__filetype}">${p.url}.${p.__filetype}</a></li>`
-        }).join("\n")
-        </script>
-      </ul>
+      <script type="ssg">
+      return helper.renderSidebarTree(helper.readIndex())
+      </script>
       <div class="sidebar-toggle">&nbsp;</div>
     </div>
     <form action="/editor" class="editor" method="post" id="editor">

@@ -90,7 +90,7 @@ form select {
   background: rgb(192, 198, 217);
   height: 100%;
   padding: 0;
-  overflow-y: hidden;
+  overflow-y: auto;
   flex-basis: 300px;
   position: relative;
   z-index: 3;
@@ -117,8 +117,27 @@ form select {
   color: #666;
   text-decoration: none;
 }
+.sidebar a.active {
+  font-weight: bold;
+  color: #333;
+  background: rgba(104, 117, 154, .2);
+  display: block;
+}
 .sidebar li:hover {
   background: rgba(104, 117, 154, .3);
+}
+.sidebar details > summary {
+  cursor: pointer;
+  padding: 2px 0;
+  color: #444;
+  font-size: 0.9em;
+  list-style: disclosure-closed;
+}
+.sidebar details[open] > summary {
+  list-style: disclosure-open;
+}
+.sidebar details > ul {
+  padding-left: 8px;
 }
 .sidebar-toggle {
   cursor: pointer;
