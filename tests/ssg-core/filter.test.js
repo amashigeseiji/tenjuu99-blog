@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { replaceIfFilter, replaceScriptFilter } from '../lib/filter.js';
+import { replaceIfFilter, replaceScriptFilter } from '../../lib/filter.js';
 
 // ========================================
 // replaceIfFilter のテスト

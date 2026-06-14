@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { buildCategoryTree, getCategoryTree, getCategoryPages, getCategoryPagesRecursive } from '../packages/category/helper/category.js';
+import { buildCategoryTree, getCategoryTree, getCategoryPages, getCategoryPagesRecursive } from '../../packages/category/helper/category.js';
 
 // ========================================
 // buildCategoryTree関数のテスト

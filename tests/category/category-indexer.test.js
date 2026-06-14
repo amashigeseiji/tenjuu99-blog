@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { afterIndexing } from '../packages/category/helper/categoryIndexer.js';
+import { afterIndexing } from '../../packages/category/helper/categoryIndexer.js';
 
 // ========================================
 // afterIndexing フック関数のテスト

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert';
-import makePageData from '../lib/pageData.js';
+import makePageData from '../../lib/pageData.js';
 
 test('基本的なフロントマター解析', () => {
   const markdown = `<!--
