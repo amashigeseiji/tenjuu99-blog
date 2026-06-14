@@ -10,15 +10,31 @@ export const path = '/upload-image'
 
 const converterPromise = createConverter(config.image_converter ?? null)
 
+const MAX_BODY_SIZE = 10 * 1024 * 1024 // 10MB
+
 /**
  * @vocab: アップロードエンドポイント (plans/editor-image-upload/dictionary.md#アップロードエンドポイント)
  * @test: tests/editor/editor-image-upload.test.js
  */
 export const post = async (req, res) => {
   const chunks = []
+  let totalSize = 0
+  let aborted = false
   req
-    .on('data', chunk => chunks.push(chunk))
+    .on('data', chunk => {
+      if (aborted) return
+      totalSize += chunk.length
+      if (totalSize > MAX_BODY_SIZE) {
+        aborted = true
+        res.writeHead(413, { 'content-type': 'application/json' })
+        res.end(JSON.stringify({ message: 'ファイルサイズが上限を超えています' }))
+        req.destroy()
+        return
+      }
+      chunks.push(chunk)
+    })
     .on('end', async () => {
+      if (aborted) return
       try {
         const { imageData, imageFilename, mdFile } = JSON.parse(chunks.join(''))
         if (!imageData || !imageFilename || !mdFile) {
