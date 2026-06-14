@@ -177,10 +177,47 @@ const sidebarToggle = (e) => {
     main.classList.toggle('sidebar-close')
   })
 }
+// @vocab: 画像アップローダー (plans/editor-image-upload/dictionary.md#画像アップローダー)
+const uploadImage = async (file, mdFile) => {
+  const buffer = await file.arrayBuffer()
+  const base64 = btoa(new Uint8Array(buffer).reduce((s, b) => s + String.fromCharCode(b), ''))
+  const res = await fetch('/upload-image', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ imageData: base64, imageFilename: file.name, mdFile })
+  })
+  if (!res.ok) return null
+  const json = await res.json()
+  return json.markdownUrl
+}
+
+// @vocab: ドロップレシーバー (plans/editor-image-upload/dictionary.md#ドロップレシーバー)
+const initDropReceiver = (textarea, getMdFile) => {
+  textarea.addEventListener('dragover', (e) => {
+    e.preventDefault()
+  })
+  textarea.addEventListener('drop', async (e) => {
+    e.preventDefault()
+    const files = [...e.dataTransfer.files].filter(f => f.type.startsWith('image/'))
+    for (const file of files) {
+      const markdownUrl = await uploadImage(file, getMdFile())
+      if (markdownUrl) {
+        const start = textarea.selectionStart
+        const content = textarea.value
+        textarea.value = content.slice(0, start) + `![](${markdownUrl})` + content.slice(start)
+        textarea.selectionStart = textarea.selectionEnd = start + `![](${markdownUrl})`.length
+      }
+    }
+  })
+}
+
 document.addEventListener('DOMContentLoaded', (event) => {
   const url = new URL(location)
   const activeFile = url.searchParams.get('md') || ''
   onloadFunction(event)
   sidebarToggle(event)
   initSidebarTree(activeFile)
+  const textarea = document.querySelector('#editorTextArea')
+  const inputFileName = document.querySelector('#inputFileName')
+  initDropReceiver(textarea, () => inputFileName.value)
 })
