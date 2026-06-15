@@ -10,6 +10,20 @@
   "hooks": {
     "afterIndexing": "categoryIndexer.js"
   },
+  "frontmatter_templates": [
+    {
+      "path_prefix": "book/",
+      "fields": {
+        "title": "",
+        "price": "0",
+        "author": "",
+        "publisher": "",
+        "isbn": "",
+        "language": "ja",
+        "in_stock": "true"
+      }
+    }
+  ],
   "categories": [
     {
       "name": "books",

@@ -1,14 +1,54 @@
 const sleep = waitTime => new Promise( resolve => setTimeout(resolve, waitTime) );
 
+// @vocab: テンプレートマッチャー (plans/editor-frontmatter-template/dictionary.md#テンプレートマッチャー)
+// @test: tests/editor/editor-frontmatter-template.test.js
+const matchTemplate = (filePath, templates) => {
+  if (!filePath || !templates || templates.length === 0) return null
+  let best = null
+  for (const tmpl of templates) {
+    if (filePath.startsWith(tmpl.path_prefix)) {
+      if (!best || tmpl.path_prefix.length > best.path_prefix.length) {
+        best = tmpl
+      }
+    }
+  }
+  return best
+}
+
+// @vocab: テンプレートインジェクター (plans/editor-frontmatter-template/dictionary.md#テンプレートインジェクター)
+// @test: tests/editor/editor-frontmatter-template.test.js
+const buildFrontmatterString = (template, baseName) => {
+  const fields = { ...template.fields }
+  fields.title = baseName
+  const lines = Object.entries(fields).map(([key, value]) => `${key}: ${value}`)
+  return `---\n${lines.join('\n')}\n---\n`
+}
+
+// @vocab: テンプレートレゾルバー (plans/editor-frontmatter-template/dictionary.md#テンプレートレゾルバー)
+let _frontmatterTemplates = []
+const initFrontmatterTemplate = async () => {
+  try {
+    const res = await fetch('/get_frontmatter_templates')
+    if (res.ok) {
+      const json = await res.json()
+      _frontmatterTemplates = json.templates || []
+    }
+  } catch (e) {
+    console.log('[frontmatter-template] 設定の取得に失敗しました', e)
+  }
+}
+
 const fetchData = (target) => {
   return fetch(`/get_editor_target?md=${target}`)
     .then(async res => {
       if (!res.ok) {
         document.querySelector('#inputFileName').value = target
-        document.querySelector('#editorTextArea').value = `---
-title: ${target.split('.')[0].split('/').pop()}
----
-${target.split('.')[0].split('/').pop()} についての記事を作成しましょう`
+        const baseName = target.split('.')[0].split('/').pop()
+        const matched = matchTemplate(target, _frontmatterTemplates)
+        const initialContent = matched
+          ? buildFrontmatterString(matched, baseName)
+          : `---\ntitle: ${baseName}\n---\n${baseName} についての記事を作成しましょう`
+        document.querySelector('#editorTextArea').value = initialContent
         // submit('/preview', form)
         throw new Error(`${target} does not exist.`)
       } else {
@@ -56,6 +96,12 @@ const onloadFunction = async (e) => {
       }
     }
     history.pushState({}, "", url)
+  })
+
+  inputFileName.addEventListener('blur', async () => {
+    if (inputFileName.value && !select.value) {
+      fetchData(inputFileName.value).catch(() => {})
+    }
   })
 
   const submit = (fetchUrl, form) => {
@@ -211,9 +257,10 @@ const initDropReceiver = (textarea, getMdFile) => {
   })
 }
 
-document.addEventListener('DOMContentLoaded', (event) => {
+document.addEventListener('DOMContentLoaded', async (event) => {
   const url = new URL(location)
   const activeFile = url.searchParams.get('md') || ''
+  await initFrontmatterTemplate()
   onloadFunction(event)
   sidebarToggle(event)
   initSidebarTree(activeFile)
