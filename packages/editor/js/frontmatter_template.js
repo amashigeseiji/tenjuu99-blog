@@ -6,7 +6,7 @@
  * ファイルパスにマッチするフロントマターテンプレート設定を選択する。
  * 複数マッチする場合は最も長いプレフィックスを優先する。
  *
- * @vocab: テンプレートマッチャー (plans/editor-frontmatter-template/dictionary.md#テンプレートマッチャー)
+ * @vocab: テンプレートマッチャー (docs/dictionary.md#テンプレートマッチャー)
  * @test: tests/editor/editor-frontmatter-template.test.js
  *
  * @param {string} filePath - 新規ファイルのパス（例: "book/my-book.md"）
@@ -32,7 +32,7 @@ export function matchTemplate(filePath, templates) {
  * フロントマターテンプレート設定をフロントマター文字列に変換する。
  * title はファイル名から自動生成する（fields に title がある場合でもファイル名を優先）。
  *
- * @vocab: テンプレートインジェクター (plans/editor-frontmatter-template/dictionary.md#テンプレートインジェクター)
+ * @vocab: テンプレートインジェクター (docs/dictionary.md#テンプレートインジェクター)
  * @test: tests/editor/editor-frontmatter-template.test.js
  *
  * @param {FrontmatterTemplateConfig} template - マッチしたテンプレート設定
@@ -46,4 +46,22 @@ export function buildFrontmatterString(template, baseName) {
 
   const lines = Object.entries(fields).map(([key, value]) => `${key}: ${value}`)
   return `---\n${lines.join('\n')}\n---\n`
+}
+
+/**
+ * ファイルパスとテンプレート設定一覧からフロントマター文字列を生成する。
+ * マッチするテンプレートがない場合は null を返す。
+ *
+ * @vocab: フロントマターテンプレートローダー (docs/dictionary.md#フロントマターテンプレートローダー)
+ * @test: tests/editor/editor-frontmatter-template.test.js
+ *
+ * @param {string} filePath - 新規ファイルのパス（例: "book/my-book.md"）
+ * @param {FrontmatterTemplateConfig[]} templates - テンプレート設定の配列
+ * @returns {string|null} フロントマター文字列、またはマッチしない場合は null
+ */
+export function loadFrontmatterTemplate(filePath, templates) {
+  const matched = matchTemplate(filePath, templates)
+  if (!matched) return null
+  const baseName = filePath.split('.')[0].split('/').pop()
+  return buildFrontmatterString(matched, baseName)
 }

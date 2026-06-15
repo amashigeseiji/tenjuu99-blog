@@ -1,6 +1,6 @@
 const sleep = waitTime => new Promise( resolve => setTimeout(resolve, waitTime) );
 
-// @vocab: テンプレートマッチャー (plans/editor-frontmatter-template/dictionary.md#テンプレートマッチャー)
+// @vocab: テンプレートマッチャー (docs/dictionary.md#テンプレートマッチャー)
 // @test: tests/editor/editor-frontmatter-template.test.js
 const matchTemplate = (filePath, templates) => {
   if (!filePath || !templates || templates.length === 0) return null
@@ -15,7 +15,7 @@ const matchTemplate = (filePath, templates) => {
   return best
 }
 
-// @vocab: テンプレートインジェクター (plans/editor-frontmatter-template/dictionary.md#テンプレートインジェクター)
+// @vocab: テンプレートインジェクター (docs/dictionary.md#テンプレートインジェクター)
 // @test: tests/editor/editor-frontmatter-template.test.js
 const buildFrontmatterString = (template, baseName) => {
   const fields = { ...template.fields }
@@ -24,7 +24,17 @@ const buildFrontmatterString = (template, baseName) => {
   return `---\n${lines.join('\n')}\n---\n`
 }
 
-// @vocab: テンプレートレゾルバー (plans/editor-frontmatter-template/dictionary.md#テンプレートレゾルバー)
+// @vocab: フロントマターテンプレートローダー (docs/dictionary.md#フロントマターテンプレートローダー)
+// @test: tests/editor/editor-frontmatter-template.test.js
+const loadFrontmatterTemplate = (filePath, templates) => {
+  const matched = matchTemplate(filePath, templates)
+  if (!matched) return null
+  const baseName = filePath.split('.')[0].split('/').pop()
+  return buildFrontmatterString(matched, baseName)
+}
+
+// @vocab: テンプレートレゾルバー (docs/dictionary.md#テンプレートレゾルバー)
+// @test: tests/editor/editor-frontmatter-template.test.js
 let _frontmatterTemplates = []
 const initFrontmatterTemplate = async () => {
   try {
@@ -44,10 +54,8 @@ const fetchData = (target) => {
       if (!res.ok) {
         document.querySelector('#inputFileName').value = target
         const baseName = target.split('.')[0].split('/').pop()
-        const matched = matchTemplate(target, _frontmatterTemplates)
-        const initialContent = matched
-          ? buildFrontmatterString(matched, baseName)
-          : `---\ntitle: ${baseName}\n---\n${baseName} についての記事を作成しましょう`
+        const initialContent = loadFrontmatterTemplate(target, _frontmatterTemplates)
+          ?? `---\ntitle: ${baseName}\n---\n${baseName} についての記事を作成しましょう`
         document.querySelector('#editorTextArea').value = initialContent
         // submit('/preview', form)
         throw new Error(`${target} does not exist.`)
