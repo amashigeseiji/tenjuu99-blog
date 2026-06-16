@@ -1,4 +1,3 @@
-import { IncomingMessage, ServerResponse } from 'http'
 import config from '@tenjuu99/blog/lib/config.js'
 
 export const path = '/get_frontmatter_templates'
@@ -10,8 +9,8 @@ export const path = '/get_frontmatter_templates'
 export const getTemplates = (cfg) => cfg.frontmatter_templates || []
 
 /**
- * @param {IncomingMessage} req
- * @param {ServerResponse} res
+ * @param {import('http').IncomingMessage} req
+ * @param {import('http').ServerResponse} res
  */
 export const get = async (req, res) => {
   const templates = getTemplates(config)

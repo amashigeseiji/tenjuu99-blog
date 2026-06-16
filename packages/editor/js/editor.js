@@ -29,7 +29,7 @@ const buildFrontmatterString = (template, baseName) => {
 const loadFrontmatterTemplate = (filePath, templates) => {
   const matched = matchTemplate(filePath, templates)
   if (!matched) return null
-  const baseName = filePath.split('.')[0].split('/').pop()
+  const baseName = filePath.split('/').pop().replace(/\.[^.]+$/, '')
   return buildFrontmatterString(matched, baseName)
 }
 
@@ -49,11 +49,11 @@ const initFrontmatterTemplate = async () => {
 }
 
 const fetchData = (target) => {
-  return fetch(`/get_editor_target?md=${target}`)
+  return fetch(`/get_editor_target?md=${encodeURIComponent(target)}`)
     .then(async res => {
       if (!res.ok) {
         document.querySelector('#inputFileName').value = target
-        const baseName = target.split('.')[0].split('/').pop()
+        const baseName = target.split('/').pop().replace(/\.[^.]+$/, '')
         const initialContent = loadFrontmatterTemplate(target, _frontmatterTemplates)
           ?? `---\ntitle: ${baseName}\n---\n${baseName} についての記事を作成しましょう`
         document.querySelector('#editorTextArea').value = initialContent

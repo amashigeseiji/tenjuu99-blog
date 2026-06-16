@@ -62,6 +62,6 @@ export function buildFrontmatterString(template, baseName) {
 export function loadFrontmatterTemplate(filePath, templates) {
   const matched = matchTemplate(filePath, templates)
   if (!matched) return null
-  const baseName = filePath.split('.')[0].split('/').pop()
+  const baseName = filePath.split('/').pop().replace(/\.[^.]+$/, '')
   return buildFrontmatterString(matched, baseName)
 }
