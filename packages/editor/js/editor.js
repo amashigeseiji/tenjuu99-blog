@@ -231,7 +231,7 @@ const sidebarToggle = (e) => {
     main.classList.toggle('sidebar-close')
   })
 }
-// @vocab: 画像アップローダー (plans/editor-image-upload/dictionary.md#画像アップローダー)
+// @vocab: 画像アップローダー (docs/dictionary.md#画像アップローダー)
 const uploadImage = async (file, mdFile) => {
   const buffer = await file.arrayBuffer()
   const base64 = btoa(new Uint8Array(buffer).reduce((s, b) => s + String.fromCharCode(b), ''))
@@ -245,7 +245,7 @@ const uploadImage = async (file, mdFile) => {
   return json.markdownUrl
 }
 
-// @vocab: ドロップレシーバー (plans/editor-image-upload/dictionary.md#ドロップレシーバー)
+// @vocab: ドロップレシーバー (docs/dictionary.md#ドロップレシーバー)
 const initDropReceiver = (textarea, getMdFile) => {
   textarea.addEventListener('dragover', (e) => {
     e.preventDefault()

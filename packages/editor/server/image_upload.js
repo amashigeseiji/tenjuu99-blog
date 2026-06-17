@@ -13,7 +13,7 @@ const converterPromise = createConverter(config.image_converter ?? null)
 const MAX_BODY_SIZE = 10 * 1024 * 1024 // 10MB
 
 /**
- * @vocab: アップロードエンドポイント (plans/editor-image-upload/dictionary.md#アップロードエンドポイント)
+ * @vocab: アップロードエンドポイント (docs/dictionary.md#アップロードエンドポイント)
  * @test: tests/editor/editor-image-upload.test.js
  */
 export const post = async (req, res) => {
@@ -57,17 +57,22 @@ export const post = async (req, res) => {
 }
 
 /**
- * @vocab: コンバーターファクトリー (plans/editor-image-upload/dictionary.md#コンバーターファクトリー)
- * @vocab: 画像コンバーター (plans/editor-image-upload/dictionary.md#画像コンバーター)
+ * @vocab: コンバーターファクトリー (docs/dictionary.md#コンバーターファクトリー)
+ * @vocab: 画像コンバーター (docs/dictionary.md#画像コンバーター)
  * @test: tests/editor/editor-image-upload.test.js
- * @param {Function|string|null} converterOrName
+ * @param {Function|string|null} converterOrName - 関数、ユーザーパス（./で始まる）、またはビルトイン名
  * @returns {Promise<{ fn: Function, ext: string|null }>}
  */
 export async function createConverter(converterOrName = null) {
   if (!converterOrName) return { fn: (buffer) => buffer, ext: null }
   if (typeof converterOrName === 'function') return { fn: converterOrName, ext: null }
   try {
-    const module = await import(`./converters/${converterOrName}.js`)
+    let module
+    if (converterOrName.startsWith('.') || nodePath.isAbsolute(converterOrName)) {
+      module = await import(nodePath.resolve(rootDir, converterOrName))
+    } else {
+      module = await import(`./converters/${converterOrName}.js`)
+    }
     return { fn: module.default, ext: module.ext ?? null }
   } catch {
     return { fn: (buffer) => buffer, ext: null }
@@ -75,7 +80,7 @@ export async function createConverter(converterOrName = null) {
 }
 
 /**
- * @vocab: パスリゾルバー (plans/editor-image-upload/dictionary.md#パスリゾルバー)
+ * @vocab: パスリゾルバー (docs/dictionary.md#パスリゾルバー)
  * @test: tests/editor/editor-image-upload.test.js
  * @param {string} mdFilePath
  * @param {string} imageFilename
@@ -100,7 +105,7 @@ export function resolveImagePath(mdFilePath, imageFilename, outputExt = null) {
 }
 
 /**
- * @vocab: ファイルライター (plans/editor-image-upload/dictionary.md#ファイルライター)
+ * @vocab: ファイルライター (docs/dictionary.md#ファイルライター)
  * @test: tests/editor/editor-image-upload.test.js
  * @param {string} saveSubPath - src/ 以下の相対パス
  * @param {Buffer} data
@@ -117,7 +122,7 @@ export function writeImageFile(saveSubPath, data, baseDir = srcDir) {
 }
 
 /**
- * @vocab: アップロードエンドポイント (plans/editor-image-upload/dictionary.md#アップロードエンドポイント)
+ * @vocab: アップロードエンドポイント (docs/dictionary.md#アップロードエンドポイント)
  * @test: tests/editor/editor-image-upload.test.js
  * @param {{ imageData: string, imageFilename: string, mdFile: string }} payload
  * @param {{ converterFn?: Function, outputExt?: string|null, baseDir?: string }} [options]
