@@ -1,6 +1,6 @@
 # 語彙定義: tenjuu99-blog
 
-**最終更新:** 2026-06-18（editor-image-upload 昇格）
+**最終更新:** 2026-06-18（editor-image-converter 昇格）
 
 ---
 
@@ -400,11 +400,12 @@ en: HotReload
 
 ### コンバーターファクトリー
 
-**定義:** 設定（blog.json）から変換ドライバーを解決し、画像コンバーターを生成する装置。ドライバーが指定されていない場合はパススルーする画像コンバーターを返す。
+**定義:** 設定（blog.json）の `image_converter` を解釈し[画像コンバーター](#画像コンバーター)を生成する装置。ビルトイン名（例: `"sharp"`）はパッケージ内の `converters/` から解決し、パス（`.` または `/` で始まる）はプロジェクトルートを起点に[ユーザー提供コンバーターモジュール](#ユーザー提供コンバーターモジュール)を解決する。コンバーターが利用不可の場合はパススルーにフォールバックする。
 **関係:**
 - `references`: [アップロードエンドポイント](#アップロードエンドポイント) — 初期化時に呼ばれる
 - `references`: [変換ドライバー](#変換ドライバー) — 解決して画像コンバーターに注入する
 - `references`: [画像コンバーター](#画像コンバーター) — 生成して返す
+- `references`: [ユーザー提供コンバーターモジュール](#ユーザー提供コンバーターモジュール) — パス指定時に読み込む
 **src:** `packages/editor/server/image_upload.js` `createConverter`
 
 ---
@@ -427,6 +428,22 @@ en: HotReload
 - `references`: [コンバーターファクトリー](#コンバーターファクトリー) — 生成され画像コンバーターに注入される
 - `references`: [画像コンバーター](#画像コンバーター) — 注入される
 **src:** `packages/editor/server/converters/sharp.js`
+
+---
+
+### ユーザー提供コンバーターモジュール
+
+en: UserProvidedConverterModule
+**定義:** ユーザーがプロジェクトに配置する JavaScript モジュール。変換関数をデフォルトエクスポートし、出力拡張子を `ext` としてエクスポートする。`blog.json` の `image_converter` にパスを指定することで[コンバーターファクトリー](#コンバーターファクトリー)が解決する。
+**インターフェース:**
+```js
+export default async function(buffer) { return convertedBuffer }
+export const ext = 'webp' // 省略可
+```
+**関係:**
+- `references`: [コンバーターファクトリー](#コンバーターファクトリー) — 読み込まれる
+- `references`: [変換ドライバー](#変換ドライバー) — の具体的な実装形態
+**src:** `src-sample/converters/webp.js`（サンプル実装）
 
 ---
 
