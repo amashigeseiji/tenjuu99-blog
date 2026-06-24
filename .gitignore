@@ -8,6 +8,7 @@ data/index.json
 .env
 .cache/
 not_include/
+.claude/tdd/config.json
 
 # Playwright
 /test-results/

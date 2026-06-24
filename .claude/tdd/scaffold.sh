@@ -9,14 +9,29 @@ CONTEXT="$3"
   echo "Usage: scaffold.sh <Subject> <verb> <context>" >&2; exit 1
 }
 
-SRC_ROOT="lib"
 TEST_ROOT="tests"
-
 SUBJECT_FILE="$(echo "$SUBJECT" | awk '{print tolower(substr($0,1,1)) substr($0,2)}')"
-SRC_FILE="${SRC_ROOT}/${CONTEXT}/${SUBJECT_FILE}.js"
-TEST_FILE="${TEST_ROOT}/${CONTEXT}/${SUBJECT_FILE}.test.js"
 
-mkdir -p "${SRC_ROOT}/${CONTEXT}"
+# Context-to-source path mapping (matches existing project conventions)
+case "$CONTEXT" in
+  ssg-core)
+    SRC_FILE="lib/${SUBJECT_FILE}.js"
+    ;;
+  editor)
+    SRC_FILE="packages/editor/js/${SUBJECT_FILE}.js"
+    ;;
+  category)
+    SRC_FILE="packages/category/${SUBJECT_FILE}.js"
+    ;;
+  *)
+    SRC_FILE="lib/${CONTEXT}/${SUBJECT_FILE}.js"
+    mkdir -p "lib/${CONTEXT}"
+    ;;
+esac
+
+TEST_FILE="${TEST_ROOT}/${CONTEXT}/${SUBJECT_FILE}.test.js"
+SRC_DIR="$(dirname "$SRC_FILE")"
+mkdir -p "$SRC_DIR"
 
 add_stub() {
   echo ""
