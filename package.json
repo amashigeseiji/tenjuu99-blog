@@ -23,7 +23,8 @@
   "license": "MIT",
   "dependencies": {
     "chokidar": "^4.0.x",
-    "marked": "^13.x"
+    "marked": "^13.x",
+    "sharp": "^0.35.2"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.0",
