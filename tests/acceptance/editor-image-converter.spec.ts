@@ -4,28 +4,42 @@ import { distributeImages } from '../../lib/imageDistributor.js'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const srcDir = path.join(__dirname, '..', '..', 'src-sample')
+const testJpeg = path.join(srcDir, 'image', 'test.jpg')
+
+// アップロードで生成されたファイルを後片付け
+const cleanup = (markdownUrl: string) => {
+  const filePath = path.join(srcDir, markdownUrl.slice(1))
+  if (fs.existsSync(filePath)) {
+    fs.rmSync(filePath)
+  }
+}
 
 // ─── US-01: アップロード時の画像変換 ───────────────────────────────────────────────
 
 test.describe('US-01: アップロード時の画像変換', () => {
 
-  test('シナリオ 1: 画像をアップロードすると変換されて保存される', async () => {
-    // Given: image_converter として "sharp" が設定されている
-    const { fn, ext } = await createConverter('sharp')
+  test('シナリオ 1: 編集画面からアップロードすると変換されて保存される', async ({ page, request }) => {
+    // Given: blog.json に image_converter として "sharp" が設定されているサーバーが起動している
+    await page.goto('/editor.html')
+    await expect(page).toHaveTitle(/test/)
 
-    // When: 画像ファイルをアップロードする
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'us01-s1-'))
-    const jpegBuf = fs.readFileSync(new URL('../../src-sample/image/test.jpg', import.meta.url))
-    const imageData = jpegBuf.toString('base64')
-    const { markdownUrl } = await handleImageUpload(
-      { imageData, imageFilename: 'photo.jpg', mdFile: 'posts/test.md' },
-      { converterFn: fn, outputExt: ext, baseDir: tmpDir }
-    )
+    // When: 編集画面から画像ファイルをアップロードする
+    const imageData = fs.readFileSync(testJpeg).toString('base64')
+    const response = await request.post('/upload-image', {
+      data: { imageData, imageFilename: 'acceptance-test-photo.jpg', mdFile: 'acceptance/upload-test.md' }
+    })
 
-    // Then: 元のフォーマットではなく、Webに適したフォーマットに変換されて保存される
-    expect(markdownUrl).toMatch(/\.webp$/)
-    expect(fs.existsSync(path.join(tmpDir, markdownUrl.slice(1)))).toBe(true)
-    fs.rmSync(tmpDir, { recursive: true })
+    // Then: 元のフォーマットではなく、Webに適したフォーマットに変換された画像が保存される
+    expect(response.ok()).toBe(true)
+    const json = await response.json()
+    expect(json.markdownUrl).toMatch(/\.webp$/)
+    expect(fs.existsSync(path.join(srcDir, json.markdownUrl.slice(1)))).toBe(true)
+
+    cleanup(json.markdownUrl)
   })
 
   test('シナリオ 2: sharp がインストール済みなので追加作業なく変換が動作する', async () => {
@@ -69,9 +83,7 @@ test.describe('US-02: ビルド時の画像変換', () => {
     // And: src/ ディレクトリに画像ファイルが存在する
     const tmpSrc = fs.mkdtempSync(path.join(os.tmpdir(), 'us02-s1-src-'))
     const tmpDist = fs.mkdtempSync(path.join(os.tmpdir(), 'us02-s1-dist-'))
-    const jpegBuf = fs.readFileSync(
-      new URL('../../src-sample/image/test.jpg', import.meta.url)
-    )
+    const jpegBuf = fs.readFileSync(testJpeg)
     fs.writeFileSync(path.join(tmpSrc, 'photo.jpg'), jpegBuf)
 
     // When: generate を実行する
