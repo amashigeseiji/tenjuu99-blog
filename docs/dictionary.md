@@ -423,7 +423,7 @@ en: HotReload
 - `references`: [変換ドライバー](#変換ドライバー) — 解決して画像コンバーターに注入する
 - `references`: [画像コンバーター](#画像コンバーター) — 生成して返す
 - `references`: [ユーザー提供コンバーターモジュール](#ユーザー提供コンバーターモジュール) — パス指定時に読み込む
-**src:** `packages/editor/server/image_upload.js` `createConverter`
+**src:** `packages/editor/server/createConverter.js` `createConverter`
 
 ---
 
@@ -434,7 +434,7 @@ en: HotReload
 - `references`: [コンバーターファクトリー](#コンバーターファクトリー) — 生成される
 - `references`: [アップロードエンドポイント](#アップロードエンドポイント) — 使用される
 - `references`: [変換ドライバー](#変換ドライバー) — 注入される
-**src:** `packages/editor/server/image_upload.js` `createConverter` の返り値 `fn`
+**src:** `packages/editor/server/createConverter.js` `createConverter` の返り値 `fn`
 
 ---
 

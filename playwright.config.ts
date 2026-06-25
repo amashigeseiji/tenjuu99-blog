@@ -73,7 +73,7 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'pnpm run server',
+    command: 'node bin/server',
     port: 8000,
     reuseExistingServer: !process.env.CI,
   },

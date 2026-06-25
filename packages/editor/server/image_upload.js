@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import nodePath from 'node:path'
 import { styleText } from 'node:util'
 import config from '@tenjuu99/blog/lib/config.js'
+import { createConverter } from './createConverter.js'
 
 const rootDir = process.cwd()
 const srcDir = nodePath.join(rootDir, config.src_dir)
@@ -56,28 +57,7 @@ export const post = async (req, res) => {
   return true
 }
 
-/**
- * @vocab: コンバーターファクトリー (docs/dictionary.md#コンバーターファクトリー)
- * @vocab: 画像コンバーター (docs/dictionary.md#画像コンバーター)
- * @test: tests/editor/editor-image-upload.test.js
- * @param {Function|string|null} converterOrName - 関数、ユーザーパス（./で始まる）、またはビルトイン名
- * @returns {Promise<{ fn: Function, ext: string|null }>}
- */
-export async function createConverter(converterOrName = null) {
-  if (!converterOrName) return { fn: (buffer) => buffer, ext: null }
-  if (typeof converterOrName === 'function') return { fn: converterOrName, ext: null }
-  try {
-    let module
-    if (converterOrName.startsWith('.') || nodePath.isAbsolute(converterOrName)) {
-      module = await import(nodePath.resolve(rootDir, converterOrName))
-    } else {
-      module = await import(`./converters/${converterOrName}.js`)
-    }
-    return { fn: module.default, ext: module.ext ?? null }
-  } catch {
-    return { fn: (buffer) => buffer, ext: null }
-  }
-}
+export { createConverter }
 
 /**
  * @vocab: パスリゾルバー (docs/dictionary.md#パスリゾルバー)

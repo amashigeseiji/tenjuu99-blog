@@ -19,7 +19,7 @@
 
 | ノード | コンテキスト | 実装 |
 |--------|-------------|------|
-| コンバーターファクトリー (builtin) | editor | `packages/editor/server/image_upload.js:createConverter`（既存） |
+| コンバーターファクトリー (builtin) | editor | `packages/editor/server/createConverter.js:createConverter`（既存） |
 | ビルトインsharpコンバーター | editor | `packages/editor/server/converters/sharp.js`（既存、sharp インストール済み） |
 | ビルド画像配布器 | ssg-core | `lib/imageDistributor.js`（新規） |
 
