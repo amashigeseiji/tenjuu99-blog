@@ -1,6 +1,6 @@
 # 語彙定義: tenjuu99-blog
 
-**最終更新:** 2026-06-18（editor-image-converter 昇格）
+**最終更新:** 2026-06-25（editor-image-converter 昇格 - ビルトインコンバーター・ビルド画像配布器を追加）
 
 ---
 
@@ -88,6 +88,23 @@ en: Filter
 **定義:** [テンプレート](#テンプレート)テキストを処理する変換関数の総称。変数展開・条件分岐（`{if}`）・[SSGスクリプト](#ssgスクリプト)実行の各処理が独立したフィルターとして実装され、パイプライン状に適用される。
 **関係:** [テンプレート](#テンプレート)に適用される。[SSGスクリプト](#ssgスクリプト)はフィルターの一種として実行される。
 **src:** `lib/filter.js`、`lib/replaceVariablesFilter.js`、`lib/includeFilter.js`
+
+---
+
+### ビルド画像配布器
+
+en: BuildImageDistributor
+**定義:** ビルドコマンド実行時に、変換設定に従い画像を dist ディレクトリに出力する装置。変換設定がある場合は各画像ファイルを[コンバーターファクトリー](#コンバーターファクトリー)が解決した変換ドライバーに通し、ない場合はそのままコピーする。
+**インターフェース:**
+```js
+distributeImages(srcDir, distDir, { fn, ext })
+// fn: Buffer → Promise<Buffer>
+// ext: 出力拡張子（null のとき元の拡張子を保持）
+```
+**関係:**
+- `references`: [コンバーターファクトリー](#コンバーターファクトリー) — 解決済みの変換関数 `{ fn, ext }` を受け取る
+- `references`: [ビルド](#ビルド) — ビルドの一部として実行される
+**src:** `lib/imageDistributor.js`
 
 ---
 
@@ -444,6 +461,17 @@ export const ext = 'webp' // 省略可
 - `references`: [コンバーターファクトリー](#コンバーターファクトリー) — 読み込まれる
 - `references`: [変換ドライバー](#変換ドライバー) — の具体的な実装形態
 **src:** `src-sample/converters/webp.js`（サンプル実装）
+
+---
+
+### ビルトインコンバーター
+
+en: BuiltinConverter
+**定義:** `@tenjuu99/blog` パッケージに同梱された[変換ドライバー](#変換ドライバー)。`blog.json` の `image_converter` でビルトイン名（例: `"sharp"`）を指定することで[コンバーターファクトリー](#コンバーターファクトリー)が解決する。ユーザーが別途ライブラリをインストールしなくても変換が動作することを保証する。
+**関係:**
+- `references`: [コンバーターファクトリー](#コンバーターファクトリー) — ビルトイン名から解決される
+- `references`: [変換ドライバー](#変換ドライバー) — の一種
+**src:** `packages/editor/server/converters/sharp.js`
 
 ---
 
