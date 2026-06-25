@@ -89,7 +89,7 @@ test.describe('US-02: ビルド時の画像変換', () => {
 
   test('シナリオ 2: 変換設定がない場合は従来どおりコピーされる', async () => {
     // Given: blog.json に画像変換の設定がされていない
-    const converter = await createConverter(null)
+    const converter = { fn: null, ext: null }
 
     // And: src/ ディレクトリに画像ファイルが存在する
     const tmpSrc = fs.mkdtempSync(path.join(os.tmpdir(), 'us02-s2-src-'))

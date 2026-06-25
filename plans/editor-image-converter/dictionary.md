@@ -55,6 +55,6 @@ distributeImages(srcDir, distDir, { fn, ext })
 // ext: 出力拡張子（null のとき元の拡張子を保持）
 ```
 **関係:** [コンバーターファクトリー](docs/dictionary.md#コンバーターファクトリー)が解決した `{ fn, ext }` を受け取る。[ビルド](docs/dictionary.md#ビルド)の一部として実行される。
-**実装参照:** `lib/image-distributor.js`（新規）
+**実装参照:** `lib/imageDistributor.js`（新規）
 **テスト:** `tests/ssg-core/imageDistributor.test.js`
 **src:** `lib/imageDistributor.js`

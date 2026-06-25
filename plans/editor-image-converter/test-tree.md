@@ -21,12 +21,12 @@
 |--------|-------------|------|
 | コンバーターファクトリー (builtin) | editor | `packages/editor/server/image_upload.js:createConverter`（既存） |
 | ビルトインsharpコンバーター | editor | `packages/editor/server/converters/sharp.js`（既存、sharp インストール済み） |
-| ビルド画像配布器 | ssg-core | `lib/image-distributor.js`（新規） |
+| ビルド画像配布器 | ssg-core | `lib/imageDistributor.js`（新規） |
 
 ## テストファイル
 
 - `tests/editor/editor-image-upload.test.js` — TODO を実装（既存ファイル）
-- `tests/ssg-core/image-distributor.test.js` — 新規作成
+- `tests/ssg-core/imageDistributor.test.js` — 新規作成
 
 ## 利用仮説
 
