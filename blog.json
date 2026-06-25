@@ -6,6 +6,7 @@
   "distribute_raw": "image,js",
   "helper": "index.js,add.js",
   "editor_enable": true,
+  "image_converter": "sharp",
   "packages": "editor,turbolink,breadcrumbs,category",
   "hooks": {
     "afterIndexing": "categoryIndexer.js"
