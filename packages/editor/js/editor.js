@@ -1,5 +1,18 @@
 const sleep = waitTime => new Promise( resolve => setTimeout(resolve, waitTime) );
 
+// @vocab: デバウンサー (plans/editor-realtime-preview/dictionary.md#デバウンサー)
+// @test: tests/editor/auto-preview.test.js
+const createDebounce = (fn, delay) => {
+  let timer = null
+  return function (...args) {
+    if (timer) clearTimeout(timer)
+    timer = setTimeout(() => {
+      timer = null
+      fn(...args)
+    }, delay)
+  }
+}
+
 // @vocab: テンプレートマッチャー (docs/dictionary.md#テンプレートマッチャー)
 // @test: tests/editor/editor-frontmatter-template.test.js
 const matchTemplate = (filePath, templates) => {
@@ -150,6 +163,10 @@ const onloadFunction = async (e) => {
     const fetchUrl = event.submitter.dataset.url
     submit(fetchUrl, event.target)
   })
+
+  // @vocab: プレビュー自動更新器 (plans/editor-realtime-preview/dictionary.md#プレビュー自動更新器)
+  textarea.addEventListener('input', createDebounce(() => submit('/preview', form), 500))
+  initDropReceiver(textarea, () => inputFileName.value, () => submit('/preview', form))
 }
 
 const SIDEBAR_OPEN_KEY = 'sidebar-is-open'
@@ -246,7 +263,8 @@ const uploadImage = async (file, mdFile) => {
 }
 
 // @vocab: ドロップレシーバー (docs/dictionary.md#ドロップレシーバー)
-const initDropReceiver = (textarea, getMdFile) => {
+// @vocab: ドロップ後更新 (plans/editor-realtime-preview/dictionary.md#ドロップレシーバー拡張)
+const initDropReceiver = (textarea, getMdFile, onUpdate) => {
   textarea.addEventListener('dragover', (e) => {
     e.preventDefault()
   })
@@ -262,6 +280,7 @@ const initDropReceiver = (textarea, getMdFile) => {
         textarea.selectionStart = textarea.selectionEnd = start + `![](${markdownUrl})`.length
       }
     }
+    if (onUpdate) onUpdate()
   })
 }
 
@@ -272,7 +291,4 @@ document.addEventListener('DOMContentLoaded', async (event) => {
   onloadFunction(event)
   sidebarToggle(event)
   initSidebarTree(activeFile)
-  const textarea = document.querySelector('#editorTextArea')
-  const inputFileName = document.querySelector('#inputFileName')
-  initDropReceiver(textarea, () => inputFileName.value)
 })
