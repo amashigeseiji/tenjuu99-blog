@@ -2,6 +2,9 @@ import { allData, config } from '@tenjuu99/blog'
 
 export function breadcrumbList(pageName, topPageName = 'top') {
   const pageData = allData[pageName]
+  if (!pageData) {
+    return ''
+  }
   const entries = Object.entries(allData)
   const breadCrumbs = ['/']
   if (pageData.breadcrumbs) {
