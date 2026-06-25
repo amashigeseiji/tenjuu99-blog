@@ -1,17 +1,6 @@
-const sleep = waitTime => new Promise( resolve => setTimeout(resolve, waitTime) );
+import { initAutoPreview } from './autoPreviewInitializer.js'
 
-// @vocab: デバウンサー (plans/editor-realtime-preview/dictionary.md#デバウンサー)
-// @test: tests/editor/auto-preview.test.js
-const createDebounce = (fn, delay) => {
-  let timer = null
-  return function (...args) {
-    if (timer) clearTimeout(timer)
-    timer = setTimeout(() => {
-      timer = null
-      fn(...args)
-    }, delay)
-  }
-}
+const sleep = waitTime => new Promise( resolve => setTimeout(resolve, waitTime) );
 
 // @vocab: テンプレートマッチャー (docs/dictionary.md#テンプレートマッチャー)
 // @test: tests/editor/editor-frontmatter-template.test.js
@@ -165,7 +154,7 @@ const onloadFunction = async (e) => {
   })
 
   // @vocab: プレビュー自動更新器 (plans/editor-realtime-preview/dictionary.md#プレビュー自動更新器)
-  textarea.addEventListener('input', createDebounce(() => submit('/preview', form), 500))
+  initAutoPreview(textarea, () => submit('/preview', form), 500)
   initDropReceiver(textarea, () => inputFileName.value, () => submit('/preview', form))
 }
 
