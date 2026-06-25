@@ -493,6 +493,36 @@ test('テストの説明', () => {
 
 ユニットテストに加えて、`src-sample/` での手動テストも推奨します。
 
+### 受け入れテスト
+
+ブラウザを使ったE2Eテストには **Playwright** を使用します。
+
+**配置場所**: `tests/acceptance/*.spec.ts`
+
+**実行方法**:
+
+```bash
+npx playwright test              # 全受け入れテスト実行
+npx playwright test --ui         # UIモードで実行
+npx playwright test --headed     # ブラウザを表示して実行
+```
+
+**対象**: ユニットテストでは検証しにくいブラウザ操作・画面表示を伴う機能（主に `packages/editor` の操作フロー）。
+
+**テストファイルの例**:
+
+```typescript
+// tests/acceptance/example.spec.ts
+import { test, expect } from '@playwright/test';
+
+test('機能の説明', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('heading')).toBeVisible();
+});
+```
+
+設定は `playwright.config.ts` を参照してください。開発サーバーは `node bin/server`（ポート8000）が自動起動します。
+
 ## コントリビューション
 
 ### コーディングスタイル
