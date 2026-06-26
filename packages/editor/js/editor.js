@@ -1,39 +1,7 @@
 import { initAutoPreview } from './autoPreviewInitializer.js'
+import { matchTemplate, buildFrontmatterString, loadFrontmatterTemplate } from './frontmatter_template.js'
 
 const sleep = waitTime => new Promise( resolve => setTimeout(resolve, waitTime) );
-
-// @vocab: テンプレートマッチャー (docs/dictionary.md#テンプレートマッチャー)
-// @test: tests/editor/editor-frontmatter-template.test.js
-const matchTemplate = (filePath, templates) => {
-  if (!filePath || !templates || templates.length === 0) return null
-  let best = null
-  for (const tmpl of templates) {
-    if (filePath.startsWith(tmpl.path_prefix)) {
-      if (!best || tmpl.path_prefix.length > best.path_prefix.length) {
-        best = tmpl
-      }
-    }
-  }
-  return best
-}
-
-// @vocab: テンプレートインジェクター (docs/dictionary.md#テンプレートインジェクター)
-// @test: tests/editor/editor-frontmatter-template.test.js
-const buildFrontmatterString = (template, baseName) => {
-  const fields = { ...template.fields }
-  fields.title = baseName
-  const lines = Object.entries(fields).map(([key, value]) => `${key}: ${value}`)
-  return `---\n${lines.join('\n')}\n---\n`
-}
-
-// @vocab: フロントマターテンプレートローダー (docs/dictionary.md#フロントマターテンプレートローダー)
-// @test: tests/editor/editor-frontmatter-template.test.js
-const loadFrontmatterTemplate = (filePath, templates) => {
-  const matched = matchTemplate(filePath, templates)
-  if (!matched) return null
-  const baseName = filePath.split('/').pop().replace(/\.[^.]+$/, '')
-  return buildFrontmatterString(matched, baseName)
-}
 
 // @vocab: テンプレートレゾルバー (docs/dictionary.md#テンプレートレゾルバー)
 // @test: tests/editor/editor-frontmatter-template.test.js

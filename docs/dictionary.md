@@ -356,7 +356,6 @@ en: HotReload
 - `references`: [テンプレートマッチャー](#テンプレートマッチャー) — マッチャーとインジェクターを合成する
 - `references`: [テンプレートインジェクター](#テンプレートインジェクター)
 **src:** `packages/editor/js/frontmatter_template.js` `loadFrontmatterTemplate(filePath, templates)`
-**注記:** `packages/editor/js/editor.js` にブラウザ環境用のインライン実装が存在する（ESモジュール import 不可のため）。変更時は両方に同じ修正を適用すること。
 
 ---
 
@@ -367,7 +366,6 @@ en: HotReload
 - `references`: [テンプレート設定](#テンプレート設定) — テンプレート設定を参照する
 - `references`: [フロントマターテンプレート](#フロントマターテンプレート) — マッチしたテンプレートを返す
 **src:** `packages/editor/js/frontmatter_template.js` `matchTemplate(filePath, templates)`
-**注記:** `packages/editor/js/editor.js` にブラウザ環境用のインライン実装が存在する（ESモジュール import 不可のため）。変更時は両方に同じ修正を適用すること。
 
 ---
 
@@ -387,7 +385,6 @@ en: HotReload
 **関係:**
 - `references`: [フロントマターテンプレート](#フロントマターテンプレート) — テンプレートを受け取りフロントマター文字列を生成する
 **src:** `packages/editor/js/frontmatter_template.js` `buildFrontmatterString(template, baseName)`
-**注記:** `packages/editor/js/editor.js` にブラウザ環境用のインライン実装が存在する（ESモジュール import 不可のため）。変更時は両方に同じ修正を適用すること。
 
 ---
 
