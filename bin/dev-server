@@ -10,6 +10,7 @@ const __filename = fileURLToPath(import.meta.url);
 const libDir = path.dirname(__filename) + '/../lib/'
 const binDir = path.dirname(__filename) + '/../bin/'
 
+const imageDir = path.join(srcDir, 'image')
 watchers.push({
   paths: [srcDir, libDir, packageDirCore],
   event: ['change', 'add', 'unlink'],
@@ -19,7 +20,8 @@ watchers.push({
     console.error('restarting')
   },
   watchOptions: {
-    ignoreInitial: true
+    ignoreInitial: true,
+    ignored: (filePath) => filePath.startsWith(imageDir)
   }
 })
 watch()

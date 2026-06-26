@@ -1,3 +1,5 @@
+import { initAutoPreview } from './autoPreviewInitializer.js'
+
 const sleep = waitTime => new Promise( resolve => setTimeout(resolve, waitTime) );
 
 // @vocab: テンプレートマッチャー (docs/dictionary.md#テンプレートマッチャー)
@@ -132,14 +134,15 @@ const onloadFunction = async (e) => {
         location.href = json.href
       }
       if (json.preview) {
-        const iframe = document.createElement('iframe')
-        iframe.setAttribute('srcdoc', json.preview)
-        iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts')
         const old = preview.querySelector('iframe')
         if (!old) {
+          const iframe = document.createElement('iframe')
+          iframe.setAttribute('srcdoc', json.preview)
+          iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts')
           preview.appendChild(iframe)
+        } else {
+          old.setAttribute('srcdoc', json.preview)
         }
-        old.setAttribute('srcdoc', json.preview)
       }
     }).catch(e => {
       console.log(e.message)
@@ -150,6 +153,10 @@ const onloadFunction = async (e) => {
     const fetchUrl = event.submitter.dataset.url
     submit(fetchUrl, event.target)
   })
+
+  // @vocab: プレビュー自動更新器 (plans/editor-realtime-preview/dictionary.md#プレビュー自動更新器)
+  const debouncedUpdate = initAutoPreview(textarea, () => submit('/preview', form), 500)
+  initDropReceiver(textarea, () => inputFileName.value, () => submit('/preview', form), () => debouncedUpdate.cancel())
 }
 
 const SIDEBAR_OPEN_KEY = 'sidebar-is-open'
@@ -246,13 +253,16 @@ const uploadImage = async (file, mdFile) => {
 }
 
 // @vocab: ドロップレシーバー (docs/dictionary.md#ドロップレシーバー)
-const initDropReceiver = (textarea, getMdFile) => {
+// @vocab: ドロップ後更新 (plans/editor-realtime-preview/dictionary.md#ドロップレシーバー拡張)
+const initDropReceiver = (textarea, getMdFile, onUpdate, cancelPendingDebounce) => {
   textarea.addEventListener('dragover', (e) => {
     e.preventDefault()
   })
   textarea.addEventListener('drop', async (e) => {
     e.preventDefault()
+    if (cancelPendingDebounce) cancelPendingDebounce()
     const files = [...e.dataTransfer.files].filter(f => f.type.startsWith('image/'))
+    let inserted = false
     for (const file of files) {
       const markdownUrl = await uploadImage(file, getMdFile())
       if (markdownUrl) {
@@ -260,8 +270,10 @@ const initDropReceiver = (textarea, getMdFile) => {
         const content = textarea.value
         textarea.value = content.slice(0, start) + `![](${markdownUrl})` + content.slice(start)
         textarea.selectionStart = textarea.selectionEnd = start + `![](${markdownUrl})`.length
+        inserted = true
       }
     }
+    if (inserted && onUpdate) onUpdate()
   })
 }
 
@@ -272,7 +284,4 @@ document.addEventListener('DOMContentLoaded', async (event) => {
   onloadFunction(event)
   sidebarToggle(event)
   initSidebarTree(activeFile)
-  const textarea = document.querySelector('#editorTextArea')
-  const inputFileName = document.querySelector('#inputFileName')
-  initDropReceiver(textarea, () => inputFileName.value)
 })
