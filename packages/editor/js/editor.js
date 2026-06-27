@@ -50,6 +50,7 @@ const onloadFunction = async (e) => {
       inputFileName.value = json.filename
       inputFileName.setAttribute('disabled', true)
       submit('/preview', form)
+      fetchPublicationStatus(target)
     }).catch(e => {
       console.log('error!!!')
       console.log(e)
@@ -63,6 +64,7 @@ const onloadFunction = async (e) => {
       inputFileName.setAttribute('disabled', true)
       url.searchParams.set('md', select.value)
       submit('/preview', form)
+      fetchPublicationStatus(select.value)
     } else {
       inputFileName.value = ""
       inputFileName.removeAttribute('disabled')
@@ -126,6 +128,24 @@ const onloadFunction = async (e) => {
     }
   })
 
+  const statusLabels = { new: '新規', modified: '更新あり', published: '公開済み' }
+  const fetchPublicationStatus = async (filePath) => {
+    if (!filePath) return
+    const statusEl = document.querySelector('#publicationStatus')
+    if (!statusEl) return
+    statusEl.textContent = '...'
+    statusEl.dataset.status = ''
+    try {
+      const res = await fetch(`/publication-status?md=${encodeURIComponent(filePath)}`)
+      if (!res.ok) { statusEl.textContent = ''; return }
+      const { status } = await res.json()
+      statusEl.textContent = statusLabels[status] ?? ''
+      statusEl.dataset.status = status
+    } catch {
+      statusEl.textContent = ''
+    }
+  }
+
   const publishWithFeedback = async (form) => {
     const feedback = document.querySelector('#publishFeedback')
     const btn = document.querySelector('#publishBtn')
@@ -147,6 +167,7 @@ const onloadFunction = async (e) => {
       const publishRes = await fetch('/publish', { method: 'POST', body: JSON.stringify({ filePath }) })
       const json = await publishRes.json()
       feedback.textContent = json.success ? '公開しました' : `公開失敗: ${json.error ?? '不明なエラー'}`
+      if (json.success) fetchPublicationStatus(filePath)
     } catch (e) {
       feedback.textContent = `公開失敗: ${e.message}`
     } finally {
