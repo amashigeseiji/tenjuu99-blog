@@ -130,14 +130,22 @@ const onloadFunction = async (e) => {
     const feedback = document.querySelector('#publishFeedback')
     const btn = document.querySelector('#publishBtn')
     const filePath = form.querySelector('#inputFileName').value || form.querySelector('#selectDataFile').value
-    feedback.textContent = '公開中...'
     btn.disabled = true
     try {
-      const res = await fetch('/publish', {
-        method: 'POST',
-        body: JSON.stringify({ filePath })
-      })
-      const json = await res.json()
+      feedback.textContent = '保存中...'
+      const formData = new FormData(form)
+      const obj = {}
+      formData.forEach((v, k) => { obj[k] = v })
+      const saveRes = await fetch('/editor', { method: 'POST', body: JSON.stringify(obj) })
+      if (!saveRes.ok) {
+        const json = await saveRes.json()
+        feedback.textContent = `保存失敗: ${json.message ?? '不明なエラー'}`
+        return
+      }
+
+      feedback.textContent = '公開中...'
+      const publishRes = await fetch('/publish', { method: 'POST', body: JSON.stringify({ filePath }) })
+      const json = await publishRes.json()
       feedback.textContent = json.success ? '公開しました' : `公開失敗: ${json.error ?? '不明なエラー'}`
     } catch (e) {
       feedback.textContent = `公開失敗: ${e.message}`
