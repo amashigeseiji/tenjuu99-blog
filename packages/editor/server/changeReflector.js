@@ -3,6 +3,7 @@
  * @test tests/editor/publish.test.js
  */
 export async function reflect(files, publishedState) {
-  await publishedState.commit(files)
+  const committed = await publishedState.commit(files)
+  if (!committed) return { success: true }
   return await publishedState.push()
 }

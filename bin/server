@@ -6,7 +6,9 @@ import generate from '../lib/generate.js'
 generate()
 const httpServer = server().listen(process.env.PORT || 8000)
 
-process.on('SIGINT', () => {
+const shutdown = () => {
   httpServer.close(() => process.exit(0))
   setTimeout(() => process.exit(0), 15000).unref()
-})
+}
+process.on('SIGINT', shutdown)
+process.on('SIGTERM', shutdown)

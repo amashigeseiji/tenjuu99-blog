@@ -8,6 +8,8 @@ export function collectTarget(filePath, fileContent, srcDir = 'src') {
   const imageUrls = extractImageReferences(fileContent)
   return {
     markdownFile: `${srcDir}/pages/${filePath}`,
-    imageFiles: imageUrls.map(url => `${srcDir}${url}`)
+    imageFiles: imageUrls
+      .filter(url => !url.includes('..'))
+      .map(url => url.startsWith('/') ? `${srcDir}${url}` : `${srcDir}/${url}`)
   }
 }

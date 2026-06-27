@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import nodePath from 'node:path'
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 import { styleText } from 'node:util'
@@ -31,8 +32,8 @@ export function createGitPublishedState(cwd) {
   }
   return {
     existsInRemote: async (filePath) => {
+      const ref = await getUpstreamRef()
       try {
-        const ref = await getUpstreamRef()
         await execFileAsync('git', ['cat-file', '-e', `${ref}:${filePath}`], { cwd })
         return true
       } catch {
@@ -52,8 +53,9 @@ function createGitPublishActions(cwd) {
     commit: async (files) => {
       await execFileAsync('git', ['add', '--', ...files], { cwd })
       const { stdout } = await execFileAsync('git', ['diff', '--cached', '--name-only'], { cwd })
-      if (!stdout.trim()) return
+      if (!stdout.trim()) return false
       await execFileAsync('git', ['commit', '-m', 'publish'], { cwd })
+      return true
     },
     push: async () => {
       try {
@@ -74,15 +76,22 @@ export const post = async (req, res) => {
     .on('data', chunk => chunks.push(chunk))
     .on('end', async () => {
       try {
-        const body = JSON.parse(chunks.join())
+        const body = JSON.parse(Buffer.concat(chunks).toString())
         const { filePath, fileContent } = body
         if (!filePath) {
           res.writeHead(400, { 'content-type': 'application/json' })
           res.end(JSON.stringify({ success: false, error: 'ファイル名がありません' }))
           return
         }
-        const content = fileContent ?? fs.readFileSync(`${srcDir}/pages/${filePath}`, 'utf-8')
-        if (fileContent) {
+        const pagesDir = nodePath.join(srcDir, 'pages')
+        const resolvedFilePath = nodePath.resolve(pagesDir, filePath)
+        if (!resolvedFilePath.startsWith(pagesDir + nodePath.sep)) {
+          res.writeHead(400, { 'content-type': 'application/json' })
+          res.end(JSON.stringify({ success: false, error: '不正なファイルパスです' }))
+          return
+        }
+        const content = fileContent != null ? fileContent : fs.readFileSync(`${srcDir}/pages/${filePath}`, 'utf-8')
+        if (fileContent != null) {
           const dir = `${srcDir}/pages/${filePath}`.split('/').slice(0, -1).join('/')
           if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
           fs.writeFileSync(`${srcDir}/pages/${filePath}`, fileContent)

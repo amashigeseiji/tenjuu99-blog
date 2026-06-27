@@ -4,11 +4,14 @@
  * @test tests/editor/publish.test.js
  */
 export function extractImageReferences(markdownContent) {
-  const regex = /!\[.*?\]\((.*?)\)/g
+  const regex = /!\[.*?\]\(([^\s)]+)/g
   const paths = []
   let match
   while ((match = regex.exec(markdownContent)) !== null) {
-    paths.push(match[1])
+    const url = match[1]
+    if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('//')) {
+      paths.push(url)
+    }
   }
   return paths
 }

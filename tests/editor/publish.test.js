@@ -11,7 +11,7 @@ describe('エディタは編集内容を公開・更新できる', () => {
     const { handlePublish } = await import('../../packages/editor/server/publish.js')
     const reflected = []
     const mockPublishActions = {
-      commit: async (files) => { reflected.push(...files) },
+      commit: async (files) => { reflected.push(...files); return true },
       push: async () => ({ success: true })
     }
     const result = await handlePublish(
@@ -31,7 +31,7 @@ describe('エディタは編集内容を公開・更新できる', () => {
       const { handlePublish } = await import('../../packages/editor/server/publish.js')
       const reflected = []
       const mockPublishActions = {
-        commit: async (files) => { reflected.push(...files) },
+        commit: async (files) => { reflected.push(...files); return true },
         push: async () => ({ success: true })
       }
       const result = await handlePublish(
@@ -73,7 +73,7 @@ describe('エディタは編集内容を公開・更新できる', () => {
       it('ファイル群をコミットしてpushし結果を返す', async () => {
         const committed = []
         const mockPublishActions = {
-          commit: async (files) => { committed.push(...files) },
+          commit: async (files) => { committed.push(...files); return true },
           push: async () => ({ success: true })
         }
         const result = await reflect(
@@ -85,7 +85,7 @@ describe('エディタは編集内容を公開・更新できる', () => {
       })
       it('push失敗時はエラー情報を返す', async () => {
         const mockPublishActions = {
-          commit: async () => {},
+          commit: async () => true,
           push: async () => ({ success: false, error: 'authentication failed' })
         }
         const result = await reflect(['post/hello.md'], mockPublishActions)
