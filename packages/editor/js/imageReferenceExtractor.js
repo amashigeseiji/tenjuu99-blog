@@ -1,7 +1,9 @@
 
 /**
- * @vocab ImageReferenceExtractor (plans/editor-publish/dictionary.md#画像参照抽出器)
+ * @vocab: 画像参照抽出器 (plans/editor-publish/dictionary.md#画像参照抽出器)
  * @test tests/editor/publish.test.js
+ * @param {string} markdownContent - Markdown テキスト
+ * @returns {string[]} http/https を除いたローカル画像パスの配列
  */
 export function extractImageReferences(markdownContent) {
   const regex = /!\[.*?\]\(([^\s)]+)/g

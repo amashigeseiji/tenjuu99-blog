@@ -2,43 +2,61 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert'
 import { extractImageReferences } from '../../packages/editor/js/imageReferenceExtractor.js'
 import { collectTarget } from '../../packages/editor/server/publishTargetCollector.js'
-import { reflect } from '../../packages/editor/server/changeReflector.js'
+import { publish, update } from '../../packages/editor/server/changeReflector.js'
 import { getPublicationStatus } from '../../packages/editor/server/publicationStatus.js'
 
-// ルートテスト
 describe('エディタは編集内容を公開・更新できる', () => {
-  it('公開リクエストを受けると公開対象をリモートに反映してフィードバックを返す', async () => {
-    const { handlePublish } = await import('../../packages/editor/server/publish.js')
-    const reflected = []
-    const mockPublishActions = {
-      commit: async (files) => { reflected.push(...files); return true },
-      push: async () => ({ success: true })
-    }
-    const result = await handlePublish(
-      { filePath: 'post/article.md', fileContent: '記事本文\n![図1](/image/post/fig1.png)', srcDir: 'src' },
-      mockPublishActions
-    )
-    assert.deepStrictEqual(reflected, ['src/pages/post/article.md', 'src/image/post/fig1.png'])
-    assert.deepStrictEqual(result, { success: true })
-  })
-
   describe('公開ボタンはリクエストを送信してフィードバックを表示できる', () => {
     it.skip('手動確認のみ: ブラウザAPI・DOM依存のためテスト不可')
   })
 
   describe('公開ハンドラーは保存と遷移を一括で処理できる', () => {
-    it('ファイルパスと本文から公開対象を収集してリモートに反映し結果を返す', async () => {
+    it('状態が未公開のとき「公開する」遷移を実行してリモートに反映する', async () => {
       const { handlePublish } = await import('../../packages/editor/server/publish.js')
       const reflected = []
+      const mockPublishedState = { existsInRemote: async () => false, diffFromRemote: async () => '' }
       const mockPublishActions = {
         commit: async (files) => { reflected.push(...files); return true },
         push: async () => ({ success: true })
       }
       const result = await handlePublish(
         { filePath: 'post/hello.md', fileContent: '本文\n![猫](/image/post/cat.jpg)', srcDir: 'src' },
+        mockPublishedState,
         mockPublishActions
       )
       assert.deepStrictEqual(reflected, ['src/pages/post/hello.md', 'src/image/post/cat.jpg'])
+      assert.deepStrictEqual(result, { success: true })
+    })
+    it('状態が更新ありのとき「更新する」遷移を実行してリモートに反映する', async () => {
+      const { handlePublish } = await import('../../packages/editor/server/publish.js')
+      const reflected = []
+      const mockPublishedState = { existsInRemote: async () => true, diffFromRemote: async () => 'diff --git ...' }
+      const mockPublishActions = {
+        commit: async (files) => { reflected.push(...files); return true },
+        push: async () => ({ success: true })
+      }
+      const result = await handlePublish(
+        { filePath: 'post/hello.md', fileContent: '本文', srcDir: 'src' },
+        mockPublishedState,
+        mockPublishActions
+      )
+      assert.deepStrictEqual(reflected, ['src/pages/post/hello.md'])
+      assert.deepStrictEqual(result, { success: true })
+    })
+    it('状態が公開済みのときはリモート操作なしで成功を返す', async () => {
+      const { handlePublish } = await import('../../packages/editor/server/publish.js')
+      const commits = []
+      const mockPublishedState = { existsInRemote: async () => true, diffFromRemote: async () => '' }
+      const mockPublishActions = {
+        commit: async (files) => { commits.push(...files); return true },
+        push: async () => ({ success: true })
+      }
+      const result = await handlePublish(
+        { filePath: 'post/hello.md', fileContent: '本文', srcDir: 'src' },
+        mockPublishedState,
+        mockPublishActions
+      )
+      assert.deepStrictEqual(commits, [])
       assert.deepStrictEqual(result, { success: true })
     })
 
@@ -70,13 +88,26 @@ describe('エディタは編集内容を公開・更新できる', () => {
     })
 
     describe('変更反映器は遷移実行体を介してリモートに反映できる', () => {
-      it('ファイル群をコミットしてpushし結果を返す', async () => {
+      it('「公開する」遷移はファイル群をコミットしてpushし結果を返す', async () => {
         const committed = []
         const mockPublishActions = {
           commit: async (files) => { committed.push(...files); return true },
           push: async () => ({ success: true })
         }
-        const result = await reflect(
+        const result = await publish(
+          ['post/hello.md', 'src/image/post/cat.jpg'],
+          mockPublishActions
+        )
+        assert.deepStrictEqual(committed, ['post/hello.md', 'src/image/post/cat.jpg'])
+        assert.deepStrictEqual(result, { success: true })
+      })
+      it('「更新する」遷移はファイル群をコミットしてpushし結果を返す', async () => {
+        const committed = []
+        const mockPublishActions = {
+          commit: async (files) => { committed.push(...files); return true },
+          push: async () => ({ success: true })
+        }
+        const result = await update(
           ['post/hello.md', 'src/image/post/cat.jpg'],
           mockPublishActions
         )
@@ -88,7 +119,7 @@ describe('エディタは編集内容を公開・更新できる', () => {
           commit: async () => true,
           push: async () => ({ success: false, error: 'authentication failed' })
         }
-        const result = await reflect(['post/hello.md'], mockPublishActions)
+        const result = await publish(['post/hello.md'], mockPublishActions)
         assert.deepStrictEqual(result, { success: false, error: 'authentication failed' })
       })
     })

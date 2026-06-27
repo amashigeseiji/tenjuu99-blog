@@ -6,22 +6,34 @@ import { styleText } from 'node:util'
 import config from '@tenjuu99/blog/lib/config.js'
 import { rootDir, srcDir } from '@tenjuu99/blog/lib/dir.js'
 import { collectTarget } from './publishTargetCollector.js'
-import { reflect } from './changeReflector.js'
+import { publish, update } from './changeReflector.js'
+import { getPublicationStatus } from './publicationStatus.js'
 
 const execFileAsync = promisify(execFile)
 
 /**
- * @vocab PublishHandler (plans/editor-publish/dictionary.md#公開ハンドラー)
+ * @vocab: 公開ハンドラー (plans/editor-publish/dictionary.md#公開ハンドラー)
  * @test tests/editor/publish.test.js
+ * @param {{ filePath: string, fileContent: string, srcDir?: string }} options
+ * @param {{ existsInRemote: Function, diffFromRemote: Function }} publishedState - リモート参照抽象
+ * @param {import('./changeReflector.js').PublishActions} publishActions
+ * @returns {Promise<{ success: boolean, error?: string }>}
  */
-export async function handlePublish({ filePath, fileContent, srcDir: srcDirParam = 'src' }, publishActions) {
+export async function handlePublish({ filePath, fileContent, srcDir: srcDirParam = 'src' }, publishedState, publishActions) {
   const target = collectTarget(filePath, fileContent, srcDirParam)
-  return await reflect([target.markdownFile, ...target.imageFiles], publishActions)
+  const files = [target.markdownFile, ...target.imageFiles]
+  const state = await getPublicationStatus(target.markdownFile, publishedState)
+  if (state === 'new') return await publish(files, publishActions)
+  if (state === 'modified') return await update(files, publishActions)
+  // published 状態はローカルとリモートが一致しているため操作不要
+  return { success: true }
 }
 
 /**
- * @vocab PublishedState (plans/editor-publish/dictionary.md#公開済み状態)
+ * @vocab: 公開済み状態 (plans/editor-publish/dictionary.md#公開済み状態)
  * リモートの現在の内容を参照する読み取り専用の抽象
+ * @param {string} cwd - git リポジトリのルートパス
+ * @returns {{ existsInRemote: (filePath: string) => Promise<boolean>, diffFromRemote: (filePath: string) => Promise<string> }}
  */
 export function createGitPublishedState(cwd) {
   const getUpstreamRef = async () => {
@@ -48,6 +60,10 @@ export function createGitPublishedState(cwd) {
   }
 }
 
+/**
+ * @param {string} cwd - git リポジトリのルートパス
+ * @returns {import('./changeReflector.js').PublishActions}
+ */
 function createGitPublishActions(cwd) {
   return {
     commit: async (files) => {
@@ -96,9 +112,11 @@ export const post = async (req, res) => {
           if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
           fs.writeFileSync(`${srcDir}/pages/${filePath}`, fileContent)
         }
+        const publishedState = createGitPublishedState(rootDir)
         const publishActions = createGitPublishActions(rootDir)
         const result = await handlePublish(
           { filePath, fileContent: content, srcDir: config.src_dir },
+          publishedState,
           publishActions
         )
         console.log(styleText(result.success ? 'green' : 'red', `[publish] ${filePath} ${result.success ? 'ok' : result.error}`))

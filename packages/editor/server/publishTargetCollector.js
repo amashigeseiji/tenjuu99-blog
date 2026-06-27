@@ -1,8 +1,12 @@
 import { extractImageReferences } from '../js/imageReferenceExtractor.js'
 
 /**
- * @vocab PublishTargetCollector (plans/editor-publish/dictionary.md#公開対象コレクター)
+ * @vocab: 公開対象コレクター (plans/editor-publish/dictionary.md#公開対象コレクター)
  * @test tests/editor/publish.test.js
+ * @param {string} filePath - pages ディレクトリからの相対パス（例: `post/hello.md`）
+ * @param {string} fileContent - Markdown 本文
+ * @param {string} [srcDir='src'] - ソースディレクトリ名
+ * @returns {{ markdownFile: string, imageFiles: string[] }}
  */
 export function collectTarget(filePath, fileContent, srcDir = 'src') {
   const imageUrls = extractImageReferences(fileContent)

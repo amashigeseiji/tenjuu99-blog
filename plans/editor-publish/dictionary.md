@@ -56,7 +56,7 @@ en: Publish
 - `references`: [公開対象](#公開対象) — 自動収集した公開対象セットを対象とする
 - `references`: [公開フィードバック](#公開フィードバック) — 操作結果を通知する
 - `references`: [デプロイ](#デプロイ) — 公開操作によって起動される
-**src:** （ウォークスルーで記入）
+**src:** `packages/editor/server/changeReflector.js`
 **発見:** tdd-run (editor-publish)
 **状態:** 新規
 
@@ -70,7 +70,7 @@ en: Update
 - `references`: [公開ステータス](#公開ステータス) — 遷移を起動する
 - `references`: [公開対象](#公開対象) — 自動収集した公開対象セットを対象とする
 - `references`: [公開フィードバック](#公開フィードバック) — 操作結果を通知する
-**src:** （ウォークスルーで記入）
+**src:** `packages/editor/server/changeReflector.js`
 **発見:** tdd-run (editor-publish)
 **状態:** 新規
 
@@ -174,7 +174,7 @@ en: PublicationStatusResolver
 **関係:**
 - `references`: [公開済み状態](#公開済み状態) — 注入されるリモート参照抽象
 - `references`: [公開ステータス](#公開ステータス) — 導出して返す
-**src:** `packages/editor/server/publicationStatus.js`（リファクタリング対象）
+**src:** `packages/editor/server/publicationStatus.js`
 
 ---
 
