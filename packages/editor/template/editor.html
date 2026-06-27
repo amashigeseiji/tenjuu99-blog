@@ -19,20 +19,12 @@
     <form action="/editor" class="editor" method="post" id="editor">
       <div class="editor-options">
         <div>
-          <input id="inputFileName" name="inputFileName" type="text" value="" placeholder="sample.md">
-          <select id="selectDataFile" name="selectDataFile">
-            <option value="">新規作成</option>
-            <script type="ssg">
-              return helper.readIndex().map(p => {
-        return `<option value="${p.name}.${p.__filetype}">${p.url}.${p.__filetype}</option>`
-      }).join("\n")
-            </script>
-          </select>
+          <button type="button" id="newFileBtn">新規作成</button>
+          <span id="currentFileName"></span>
+          <input type="hidden" id="inputFileName" name="inputFileName" value="">
         </div>
         <div>
           <span id="publicationStatus"></span>
-          <input type="submit" value="preview" data-url="/preview">
-          <input type="submit" value="save" data-url="/editor">
           <input type="submit" value="publish" data-url="/publish" id="publishBtn">
           <span id="publishFeedback"></span>
           <a href="/">戻る</a>
@@ -48,6 +40,20 @@
       </div>
       <input type="hidden" name="token" value="{{TOKEN}}">
     </form>
+    <dialog id="newFileDialog">
+      <form method="dialog">
+        <h3>新規ファイルを作成</h3>
+        <label>
+          ファイル名（例: book/my-book.md）
+          <input type="text" id="newFileName" placeholder="path/to/file.md" autocomplete="off">
+        </label>
+        <p id="newFileTemplate"></p>
+        <div>
+          <button type="button" id="confirmNewFile">作成</button>
+          <button type="button" id="cancelNewFile">キャンセル</button>
+        </div>
+      </form>
+    </dialog>
     <div class="hamburger-menu">
       <input type="checkbox" id="menu-btn-check">
       <label for="menu-btn-check" class="menu-btn"><span></span></label>
