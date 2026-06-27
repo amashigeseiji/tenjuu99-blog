@@ -128,7 +128,7 @@ const onloadFunction = async (e) => {
     }
   })
 
-  const statusLabels = { new: '新規', modified: '更新あり', published: '公開済み' }
+  const statusLabels = { new: '未公開', modified: '更新あり', published: '公開済み' }
   const fetchPublicationStatus = async (filePath) => {
     if (!filePath) return
     const statusEl = document.querySelector('#publicationStatus')
@@ -150,26 +150,24 @@ const onloadFunction = async (e) => {
     const feedback = document.querySelector('#publishFeedback')
     const btn = document.querySelector('#publishBtn')
     const filePath = form.querySelector('#inputFileName').value || form.querySelector('#selectDataFile').value
+    const fileContent = form.querySelector('textarea').value
     btn.disabled = true
     try {
-      feedback.textContent = '保存中...'
-      const formData = new FormData(form)
-      const obj = {}
-      formData.forEach((v, k) => { obj[k] = v })
-      const saveRes = await fetch('/editor', { method: 'POST', body: JSON.stringify(obj) })
-      if (!saveRes.ok) {
-        const json = await saveRes.json()
-        feedback.textContent = `保存失敗: ${json.message ?? '不明なエラー'}`
+      feedback.textContent = '公開中...'
+      const publishRes = await fetch('/publish', {
+        method: 'POST',
+        body: JSON.stringify({ filePath, fileContent })
+      })
+      if (!publishRes.ok) {
+        const json = await publishRes.json().catch(() => ({}))
+        feedback.textContent = `公開失敗: ${json.error ?? 'サーバーに接続できませんでした'}`
         return
       }
-
-      feedback.textContent = '公開中...'
-      const publishRes = await fetch('/publish', { method: 'POST', body: JSON.stringify({ filePath }) })
       const json = await publishRes.json()
       feedback.textContent = json.success ? '公開しました' : `公開失敗: ${json.error ?? '不明なエラー'}`
       if (json.success) fetchPublicationStatus(filePath)
     } catch (e) {
-      feedback.textContent = `公開失敗: ${e.message}`
+      feedback.textContent = 'サーバーに接続できませんでした。しばらくしてからお試しください。'
     } finally {
       btn.disabled = false
     }

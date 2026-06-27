@@ -1,25 +1,13 @@
-import { execFile } from 'node:child_process'
-import { promisify } from 'node:util'
-
-const execFileAsync = promisify(execFile)
-
 /**
- * @vocab PublicationStatus (plans/editor-publish/dictionary.md#公開ステータス)
- * @vocab PublishedState (plans/editor-publish/dictionary.md#公開済み状態)
+ * @vocab PublicationStatusResolver (plans/editor-publish/dictionary.md#公開ステータス判定器)
+ * @test tests/editor/publish.test.js
  */
-export async function getPublicationStatus(filePath, cwd) {
+export async function getPublicationStatus(filePath, publishedState) {
   try {
-    const { stdout: upstream } = await execFileAsync(
-      'git', ['rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}'], { cwd }
-    )
-    const ref = upstream.trim()
-    try {
-      await execFileAsync('git', ['cat-file', '-e', `${ref}:${filePath}`], { cwd })
-    } catch {
-      return 'new'
-    }
-    const { stdout: diff } = await execFileAsync('git', ['diff', ref, '--', filePath], { cwd })
-    return diff.trim() ? 'modified' : 'published'
+    const exists = await publishedState.existsInRemote(filePath)
+    if (!exists) return 'new'
+    const diff = await publishedState.diffFromRemote(filePath)
+    return diff ? 'modified' : 'published'
   } catch {
     return 'unknown'
   }
