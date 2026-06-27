@@ -76,7 +76,7 @@ export const post = async (req, res) => {
     .on('data', chunk => chunks.push(chunk))
     .on('end', async () => {
       try {
-        const body = JSON.parse(Buffer.concat(chunks).toString())
+        const body = JSON.parse(chunks.join(''))
         const { filePath, fileContent } = body
         if (!filePath) {
           res.writeHead(400, { 'content-type': 'application/json' })
