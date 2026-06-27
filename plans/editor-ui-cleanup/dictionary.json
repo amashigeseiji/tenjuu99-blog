@@ -1,0 +1,116 @@
+{
+  "version": "1",
+  "contexts": [
+    {
+      "dir": "editor",
+      "name": "エディタ",
+      "description": "ブラウザUIで非技術者がコンテンツを作成・編集・公開すること（既存コンテキストへの追加）",
+      "primary_users": "",
+      "in_scope": "",
+      "out_of_scope": ""
+    }
+  ],
+  "entries": [
+    {
+      "name": "新規作成",
+      "en": "NewFileCreation",
+      "context": "editor",
+      "domain": "application",
+      "definition": "ファイル名を指定して新しいページを作る操作。ファイル選択とは独立した操作として存在し、#フロントマターテンプレート を選択できる。作成されたファイルは #公開ステータス が「未公開」の状態でローカルに #保存 される。",
+      "relations": [
+        { "type": "references", "target": "フロントマターテンプレート", "note": "作成時にテンプレートを選択できる" },
+        { "type": "references", "target": "公開ステータス", "note": "作成直後は「未公開」ステート" },
+        { "type": "references", "target": "保存", "note": "作成と同時にローカル保存が行われる" }
+      ],
+      "src": null,
+      "wip": {
+        "status": "new",
+        "discovered": "migrate"
+      }
+    },
+    {
+      "name": "自動保存",
+      "en": "AutoSave",
+      "context": "editor",
+      "domain": "application",
+      "definition": "テキストエリアへの入力を契機に、saveボタンの操作なしにファイルがローカルに #保存 されること。#リアルタイムプレビュー更新 と同様に「書く」行為の流れを中断しない。saveボタンはこの機能の導入に伴い削除される。",
+      "relations": [
+        { "type": "references", "target": "保存", "note": "保存の自動化された形態" },
+        { "type": "references", "target": "リアルタイムプレビュー更新", "note": "同じトリガー（テキスト入力の停止）で発火する" },
+        { "type": "references", "target": "テキスト入力", "note": "テキスト入力の停止がトリガーとなる" }
+      ],
+      "src": null,
+      "wip": {
+        "status": "new",
+        "discovered": "migrate"
+      }
+    },
+    {
+      "name": "自動保存初期化器",
+      "en": "AutoSaveInitializer",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "テキストエリアへの入力イベントを受け取り、#デバウンサー を介して入力停止を検知し、保存コールバックを呼び出す装置。#プレビュー自動更新器 と同構造だが、保存を担う。",
+      "relations": [
+        { "type": "references", "target": "自動保存", "note": "自動保存の JS 側実現" },
+        { "type": "references", "target": "デバウンサー", "note": "入力停止の検知に使う" }
+      ],
+      "src": "packages/editor/js/autoSaveInitializer.js",
+      "wip": {
+        "status": "new",
+        "discovered": "migrate"
+      }
+    },
+    {
+      "name": "保存エンドポイント",
+      "en": "SaveEndpoint",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "ファイル名と内容を受け取り、ローカルファイルシステムに書き込む POST エンドポイント（`/save`）。保存後はリダイレクトせず `{success: true}` を返す。#自動保存 と #新規作成 の両方から利用される共有ノード。`server/editor.js` を置き換える。",
+      "relations": [
+        { "type": "references", "target": "自動保存", "note": "自動保存の保存先" },
+        { "type": "references", "target": "新規作成", "note": "新規ファイル作成時の保存先" }
+      ],
+      "src": "packages/editor/server/save.js",
+      "wip": {
+        "status": "new",
+        "discovered": "migrate"
+      }
+    },
+    {
+      "name": "新規作成UI",
+      "en": "NewFileCreationUI",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "「新規作成」ボタンとダイアログで構成されるブラウザUI。ファイル名の入力と #フロントマターテンプレート の表示・選択を担う。確定時に #保存エンドポイント を呼び出してファイルを作成し、エディタで開く。",
+      "relations": [
+        { "type": "references", "target": "新規作成", "note": "新規作成操作を UI として具現化する" },
+        { "type": "references", "target": "フロントマターテンプレート", "note": "ディレクトリに応じたテンプレートを表示する" },
+        { "type": "references", "target": "保存エンドポイント", "note": "確定時に呼び出す" }
+      ],
+      "src": "packages/editor/js/editor.js",
+      "wip": {
+        "status": "new",
+        "discovered": "migrate"
+      }
+    },
+    {
+      "name": "保存",
+      "en": null,
+      "context": "editor",
+      "domain": "application",
+      "definition": "テキストエリアの内容をローカルファイルシステムに書き込む操作。#自動保存 によって実行されるか、手動操作によって実行される。save ボタンが削除されるため、通常は自動保存が担う。",
+      "relations": [
+        { "type": "references", "target": "ページ", "context": "ssg-core" },
+        { "type": "references", "target": "公開する", "note": "保存はローカル変更のみ、公開は外部への反映" }
+      ],
+      "src": null,
+      "wip": {
+        "status": "redefine",
+        "previous_definition": "テキストエリアの内容をローカルファイルシステムに書き込む操作。エディタの save ボタンで実行され、成功すると対応するページへリダイレクトされる。",
+        "reason": "自動保存の導入により、save ボタンへの依存が解消される。保存の概念自体は変わらないが、「save ボタンで実行される」という手段記述を除去する。",
+        "impact": "docs/dictionary.json#保存 の定義文。実装の挙動変更は editor.js の submit / save フロー。"
+      }
+    }
+  ]
+}
