@@ -7,7 +7,7 @@
  */
 
 /**
- * @vocab: 公開ステータス判定器 (plans/editor-publish/dictionary.md#公開ステータス判定器)
+ * @vocab: 公開ステータス判定器 (docs/dictionary.md#公開ステータス判定器)
  * @test tests/editor/publish.test.js
  * @param {string} filePath - git ルートからの相対パス（例: `src/pages/post/hello.md`）
  * @param {PublishedState} publishedState
