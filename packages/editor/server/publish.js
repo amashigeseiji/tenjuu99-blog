@@ -25,6 +25,7 @@ export async function handlePublish({ filePath, fileContent, srcDir: srcDirParam
   const state = await getPublicationStatus(target.markdownFile, publishedState)
   if (state === 'new') return await publish(files, publishActions)
   if (state === 'modified') return await update(files, publishActions)
+  if (state === 'unknown') return { success: false, error: 'リモートへの接続に失敗しました（upstream branch が未設定の可能性があります）' }
   // published 状態はローカルとリモートが一致しているため操作不要
   return { success: true }
 }

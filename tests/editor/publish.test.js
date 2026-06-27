@@ -130,7 +130,7 @@ describe('エディタは編集内容を公開・更新できる', () => {
           existsInRemote: async () => false,
           diffFromRemote: async () => ''
         }
-        const result = await getPublicationStatus('post/hello.md', mockPublishedState)
+        const result = await getPublicationStatus('src/pages/post/hello.md', mockPublishedState)
         assert.strictEqual(result, 'new')
       })
       it('ファイルがリモートに存在して差分がある場合は「modified」を返す', async () => {
@@ -138,7 +138,7 @@ describe('エディタは編集内容を公開・更新できる', () => {
           existsInRemote: async () => true,
           diffFromRemote: async () => 'diff --git ...'
         }
-        const result = await getPublicationStatus('post/hello.md', mockPublishedState)
+        const result = await getPublicationStatus('src/pages/post/hello.md', mockPublishedState)
         assert.strictEqual(result, 'modified')
       })
       it('ファイルがリモートに存在して差分がない場合は「published」を返す', async () => {
@@ -146,7 +146,7 @@ describe('エディタは編集内容を公開・更新できる', () => {
           existsInRemote: async () => true,
           diffFromRemote: async () => ''
         }
-        const result = await getPublicationStatus('post/hello.md', mockPublishedState)
+        const result = await getPublicationStatus('src/pages/post/hello.md', mockPublishedState)
         assert.strictEqual(result, 'published')
       })
     })

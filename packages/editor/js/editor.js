@@ -156,6 +156,7 @@ const onloadFunction = async (e) => {
       feedback.textContent = '公開中...'
       const publishRes = await fetch('/publish', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ filePath, fileContent })
       })
       if (!publishRes.ok) {
