@@ -1,0 +1,15 @@
+# Observations: editor-publish
+
+**日時:** 2026-06-27
+
+## 実装中の気づき
+
+- 画像URLのフォーマットが `/image/...`（先頭スラッシュ、`src` なし）であることが実装中に判明し、`collectTarget` のインターフェースを修正した。当初のテストは `src/image/...` 形式を仮定していたが、`image_upload.js` の `resolveImagePath` を確認して修正。
+- `変更反映器` の `公開済み状態` を `{ commit, push }` オブジェクトとして注入する設計が、実際の git 操作なしにテストを書く上で有効に機能した。
+- `scaffold.sh` は `editor` コンテキストを `packages/editor/js/` にマップするが、`公開ハンドラー`・`公開対象コレクター`・`変更反映器` はいずれもサーバーサイド（`server/`）に属するため scaffold を使わず手動作成した。`画像参照抽出器` のみ純粋関数として `js/` に配置。
+- git hook `pre-push`（`ALLOW_PUSH=1` でバイパス）を実装前に設置したことで、実装中の誤 push リスクを排除できた。
+- `publicationStatus.js` の `getPublicationStatus` は `@{u}` (upstream tracking branch) を動的に取得して remote HEAD と比較する。追跡ブランチがない場合は `unknown` を返す。
+- `公開ステータス` のUIへの反映トリガーは3点: ページロード・ファイル選択変更・publish 成功後。`fetchPublicationStatus` は `onloadFunction` 内の `const` として定義しているが、すべてのトリガーは非同期コールバック内で呼ぶため、定義より前の行から参照していても実行時には問題なし。
+- tdd-feedback（次サイクル）での使用インタビューで F-04/F-05 が発覚。F-04（ファイル保存→サーバー再起動→publish 失敗）は `bin/dev-server` の watched paths から `src/pages/` を除外することで解消。F-05（"Failed to fetch" の生出し）はブラウザ側で catch して「サーバーに接続できませんでした」に変換。
+- `公開済み状態` と `遷移実行体（publishActions）` を設計上分離したことで、テストの mock 境界が明確になった。`変更反映器` は `commit` + `push` のみ受け取り、`公開ステータス判定器` は `existsInRemote` + `diffFromRemote` のみ受け取る。両者が同一オブジェクトだった旧設計では、read/write の責務が混在していた。
+- ツリーの組み換え: 「公開ハンドラーは公開対象をリモートに反映できる」→「公開ハンドラーは保存と遷移を一括で処理できる」（F-04 対応で save+publish を単一リクエストに統合したことによる述語の更新）。

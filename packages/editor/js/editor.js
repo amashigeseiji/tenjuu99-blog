@@ -50,6 +50,7 @@ const onloadFunction = async (e) => {
       inputFileName.value = json.filename
       inputFileName.setAttribute('disabled', true)
       submit('/preview', form)
+      fetchPublicationStatus(target)
     }).catch(e => {
       console.log('error!!!')
       console.log(e)
@@ -63,6 +64,7 @@ const onloadFunction = async (e) => {
       inputFileName.setAttribute('disabled', true)
       url.searchParams.set('md', select.value)
       submit('/preview', form)
+      fetchPublicationStatus(select.value)
     } else {
       inputFileName.value = ""
       inputFileName.removeAttribute('disabled')
@@ -119,8 +121,58 @@ const onloadFunction = async (e) => {
   form.addEventListener('submit', (event) => {
     event.preventDefault()
     const fetchUrl = event.submitter.dataset.url
-    submit(fetchUrl, event.target)
+    if (fetchUrl === '/publish') {
+      publishWithFeedback(form)
+    } else {
+      submit(fetchUrl, event.target)
+    }
   })
+
+  const statusLabels = { new: '未公開', modified: '更新あり', published: '公開済み' }
+  const fetchPublicationStatus = async (filePath) => {
+    if (!filePath) return
+    const statusEl = document.querySelector('#publicationStatus')
+    if (!statusEl) return
+    statusEl.textContent = '...'
+    statusEl.dataset.status = ''
+    try {
+      const res = await fetch(`/publication-status?md=${encodeURIComponent(filePath)}`)
+      if (!res.ok) { statusEl.textContent = ''; return }
+      const { status } = await res.json()
+      statusEl.textContent = statusLabels[status] ?? ''
+      statusEl.dataset.status = status
+    } catch {
+      statusEl.textContent = ''
+    }
+  }
+
+  const publishWithFeedback = async (form) => {
+    const feedback = document.querySelector('#publishFeedback')
+    const btn = document.querySelector('#publishBtn')
+    const filePath = form.querySelector('#inputFileName').value || form.querySelector('#selectDataFile').value
+    const fileContent = form.querySelector('textarea').value
+    btn.disabled = true
+    try {
+      feedback.textContent = '公開中...'
+      const publishRes = await fetch('/publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filePath, fileContent })
+      })
+      if (!publishRes.ok) {
+        const json = await publishRes.json().catch(() => ({}))
+        feedback.textContent = `公開失敗: ${json.error ?? 'サーバーに接続できませんでした'}`
+        return
+      }
+      const json = await publishRes.json()
+      feedback.textContent = json.success ? '公開しました' : `公開失敗: ${json.error ?? '不明なエラー'}`
+      if (json.success) fetchPublicationStatus(filePath)
+    } catch (e) {
+      feedback.textContent = 'サーバーに接続できませんでした。しばらくしてからお試しください。'
+    } finally {
+      btn.disabled = false
+    }
+  }
 
   // @vocab: プレビュー自動更新器 (plans/editor-realtime-preview/dictionary.md#プレビュー自動更新器)
   const debouncedUpdate = initAutoPreview(textarea, () => submit('/preview', form), 500)
