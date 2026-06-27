@@ -99,6 +99,36 @@ describe('エディタは整合した操作フローを提供できる', () => {
     // @vocab: 新規作成UI (plans/editor-ui-cleanup/dictionary.md#新規作成UI)
     describe('新規作成UIはファイル名とテンプレートを受け付けられる', () => {
       it('手動確認のみ（ブラウザUI）', { skip: true }, () => {})
+      it('Enterキーで作成を確定できる（手動確認のみ）', { skip: true }, () => {})
+      it('テンプレートをセレクトボックスで選択できる（手動確認のみ）', { skip: true }, () => {})
+      it('既存ファイル名のとき重複エラーを表示できる（手動確認のみ）', { skip: true }, () => {})
+      it('作成後にサイドバーを更新できる（手動確認のみ）', { skip: true }, () => {})
+    })
+
+    // @vocab: 新規作成エンドポイント (plans/editor-ui-cleanup/dictionary.md#新規作成エンドポイント)
+    describe('新規作成エンドポイントは既存ファイルへの上書きを拒否できる', () => {
+      it('createOnly オプション指定時、ファイルが存在しなければ作成して success を返す', async () => {
+        const dir = mkdtempSync(join(tmpdir(), 'create-test-'))
+        try {
+          const result = await saveFile('post/new.md', '# New', dir, { createOnly: true })
+          assert.deepStrictEqual(result, { success: true })
+          assert.ok(existsSync(join(dir, 'post/new.md')))
+        } finally {
+          rmSync(dir, { recursive: true, force: true })
+        }
+      })
+
+      it('createOnly オプション指定時、ファイルが既存なら success:false を返す', async () => {
+        const dir = mkdtempSync(join(tmpdir(), 'create-test-'))
+        try {
+          await saveFile('post/exists.md', '# Existing', dir)
+          const result = await saveFile('post/exists.md', '# New', dir, { createOnly: true })
+          assert.deepStrictEqual(result, { success: false, error: 'ファイルが既に存在します' })
+          assert.equal(readFileSync(join(dir, 'post/exists.md'), 'utf-8'), '# Existing', '既存ファイルが上書きされていない')
+        } finally {
+          rmSync(dir, { recursive: true, force: true })
+        }
+      })
     })
 
     // @vocab: 保存エンドポイント (plans/editor-ui-cleanup/dictionary.md#保存エンドポイント)

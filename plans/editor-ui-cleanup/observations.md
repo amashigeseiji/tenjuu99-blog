@@ -1,10 +1,30 @@
 # Observations: editor-ui-cleanup
 
 **日時:** 2026-06-28
+**更新:** 2026-06-28（findings F-01〜F-04, F-06, F-07 対応）
 
-## 実装中の気づき
+## 実装中の気づき（第1セッション）
 
 - ツリーの組み換えはなし。スタブ通りの実装で完了した。
+
+## 実装中の気づき（第2セッション: findings 対応）
+
+### ダイアログの `close` イベントを使わない設計に変更
+
+F-02（重複エラー表示）を実装する際、`close` イベント内から `dialog.showModal()` を呼ぶ（再オープン）は
+ブラウザによって動作が不定になる。`#confirmNewFile` の `click` ハンドラー内で直接ファイル作成処理を行い、
+成功時のみ `dialog.close()` を呼ぶ設計に変更した。Enter キー（F-01）も同ハンドラーの `click()` を呼ぶことで一元化。
+
+### `/get_sidebar` エンドポイントで直接ファイルスキャン
+
+サイドバー更新（F-04）は SSG の `allData`（in-memory）を使わず、`watch.pageDir` を直接 `readdirSync` で
+スキャンして HTML を生成する。こうすることで、新規ファイル作成後にインデックスの再構築を待たずに
+サイドバーを最新状態にできる。
+
+### テンプレート選択 `<select>` への変更と受け入れテストの互換性
+
+`#newFileTemplate` を `<p>` から `<select>` に変更しても、Playwright の `toContainText()` は
+`<select>` の textContent（全 option テキストの連結）を検索するため、既存の受け入れテストがそのまま通る。
 
 ## 受け入れテスト作成中の気づき
 

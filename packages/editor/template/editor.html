@@ -11,23 +11,18 @@
 <body>
   <main class="container">
     <div class="sidebar">
-      <script type="ssg">
-      return helper.renderSidebarTree(helper.readIndex())
-      </script>
       <div class="sidebar-toggle">&nbsp;</div>
     </div>
     <form action="/editor" class="editor" method="post" id="editor">
       <div class="editor-options">
-        <div>
+        <div class="editor-options-left">
+          <span id="fileStatus"><span id="currentFileName"></span><span id="publicationStatus"></span></span>
           <button type="button" id="newFileBtn">新規作成</button>
-          <span id="currentFileName"></span>
           <input type="hidden" id="inputFileName" name="inputFileName" value="">
         </div>
-        <div>
-          <span id="publicationStatus"></span>
+        <div class="editor-options-right">
           <input type="submit" value="publish" data-url="/publish" id="publishBtn">
           <span id="publishFeedback"></span>
-          <a href="/">戻る</a>
         </div>
       </div>
       <div class="textareaAndPreview">
@@ -47,7 +42,13 @@
           ファイル名（例: book/my-book.md）
           <input type="text" id="newFileName" placeholder="path/to/file.md" autocomplete="off">
         </label>
-        <p id="newFileTemplate"></p>
+        <label>
+          テンプレート
+          <select id="newFileTemplate">
+            <option value="">テンプレートなし</option>
+          </select>
+        </label>
+        <p id="newFileError"></p>
         <div>
           <button type="button" id="confirmNewFile">作成</button>
           <button type="button" id="cancelNewFile">キャンセル</button>

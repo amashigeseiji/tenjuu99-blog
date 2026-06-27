@@ -106,13 +106,14 @@ const onloadFunction = async (e) => {
     if (!filePath) return
     const statusEl = document.querySelector('#publicationStatus')
     if (!statusEl) return
-    statusEl.textContent = '...'
+    statusEl.textContent = ''
     statusEl.dataset.status = ''
     try {
       const res = await fetch(`/publication-status?md=${encodeURIComponent(filePath)}`)
       if (!res.ok) { statusEl.textContent = ''; return }
       const { status } = await res.json()
-      statusEl.textContent = statusLabels[status] ?? ''
+      const label = statusLabels[status]
+      statusEl.textContent = label ? `(${label})` : ''
       statusEl.dataset.status = status
     } catch {
       statusEl.textContent = ''
@@ -168,48 +169,81 @@ const onloadFunction = async (e) => {
   const newFileBtn = document.querySelector('#newFileBtn')
   const newFileDialog = document.querySelector('#newFileDialog')
   const newFileNameInput = document.querySelector('#newFileName')
-  const newFileTemplateInfo = document.querySelector('#newFileTemplate')
+  const newFileTemplateSelect = document.querySelector('#newFileTemplate')
+  const newFileError = document.querySelector('#newFileError')
+  const confirmNewFile = document.querySelector('#confirmNewFile')
   const cancelNewFile = document.querySelector('#cancelNewFile')
+
+  // @vocab: 作成後にサイドバーを更新できる (plans/editor-ui-cleanup/dictionary.md#サイドバー取得エンドポイント)
+  const refreshSidebar = () => initSidebarContent(inputFileName.value)
 
   newFileBtn.addEventListener('click', () => {
     newFileNameInput.value = ''
-    newFileTemplateInfo.textContent = ''
+    newFileError.textContent = ''
+    // テンプレート選択肢を再構築して auto-select をリセット
+    newFileTemplateSelect.innerHTML = '<option value="">テンプレートなし</option>'
+    for (const tmpl of _frontmatterTemplates) {
+      const option = document.createElement('option')
+      option.value = tmpl.path_prefix
+      option.textContent = `テンプレート: ${tmpl.path_prefix}`
+      newFileTemplateSelect.appendChild(option)
+    }
+    newFileTemplateSelect.value = ''
     newFileDialog.showModal()
   })
 
+  // ファイル名入力に応じてテンプレートを auto-select
   newFileNameInput.addEventListener('input', () => {
     const filename = newFileNameInput.value
     const template = matchTemplate(filename, _frontmatterTemplates)
-    newFileTemplateInfo.textContent = template
-      ? `テンプレート: ${template.path_prefix}`
-      : 'テンプレートなし（空のファイルを作成します）'
+    newFileTemplateSelect.value = template ? template.path_prefix : ''
   })
 
-  document.querySelector('#confirmNewFile').addEventListener('click', () => newFileDialog.close('confirm'))
-  cancelNewFile.addEventListener('click', () => newFileDialog.close())
+  // F-01: Enter キーで確定
+  newFileNameInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      confirmNewFile.click()
+    }
+  })
 
-  newFileDialog.addEventListener('close', async () => {
-    if (newFileDialog.returnValue !== 'confirm') return
+  // F-02: 重複チェック付き作成。エラー時はダイアログを閉じない
+  confirmNewFile.addEventListener('click', async () => {
     const filename = newFileNameInput.value.trim()
     if (!filename) return
 
-    const content = loadFrontmatterTemplate(filename, _frontmatterTemplates)
-      ?? `---\ntitle: ${filename.split('/').pop().replace(/\.[^.]+$/, '')}\n---\n`
+    const selectedPrefix = newFileTemplateSelect.value
+    const selectedTemplate = selectedPrefix
+      ? _frontmatterTemplates.find(t => t.path_prefix === selectedPrefix)
+      : null
+    const baseName = filename.split('/').pop().replace(/\.[^.]+$/, '')
+    const content = selectedTemplate
+      ? buildFrontmatterString(selectedTemplate, baseName)
+      : `---\ntitle: ${baseName}\n---\n`
 
     const res = await fetch('/save', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ filename, content })
+      body: JSON.stringify({ filename, content, createOnly: true })
     })
-    if (!res.ok) return
 
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}))
+      newFileError.textContent = json.error ?? 'ファイルの作成に失敗しました'
+      return
+    }
+
+    newFileDialog.close()
     textarea.value = content
     setCurrentFile(filename)
     url.searchParams.set('md', filename)
     history.pushState({}, '', url)
     submit('/preview', form)
     fetchPublicationStatus(filename)
+    refreshSidebar()
   })
+
+  cancelNewFile.addEventListener('click', () => newFileDialog.close())
 }
 
 const SIDEBAR_OPEN_KEY = 'sidebar-is-open'
@@ -267,6 +301,22 @@ const initSidebarTree = (activeFile) => {
     if (link) {
       link.classList.add('active')
     }
+  }
+}
+
+// @vocab: サイドバー取得エンドポイント (plans/editor-ui-cleanup/dictionary.md#サイドバー取得エンドポイント)
+const initSidebarContent = async (activeFile) => {
+  try {
+    const res = await fetch('/get_sidebar')
+    if (!res.ok) return
+    const { html } = await res.json()
+    const sidebar = document.querySelector('.sidebar')
+    const toggle = sidebar.querySelector('.sidebar-toggle')
+    sidebar.innerHTML = html
+    sidebar.appendChild(toggle)
+    initSidebarTree(activeFile)
+  } catch (e) {
+    console.log('[sidebar] init failed', e)
   }
 }
 
@@ -334,8 +384,8 @@ const initDropReceiver = (textarea, getMdFile, onUpdate, cancelPendingDebounce) 
 document.addEventListener('DOMContentLoaded', async (event) => {
   const url = new URL(location)
   const activeFile = url.searchParams.get('md') || ''
+  await initSidebarContent(activeFile)
   await initFrontmatterTemplate()
   onloadFunction(event)
   sidebarToggle(event)
-  initSidebarTree(activeFile)
 })
