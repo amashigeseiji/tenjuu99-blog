@@ -119,8 +119,32 @@ const onloadFunction = async (e) => {
   form.addEventListener('submit', (event) => {
     event.preventDefault()
     const fetchUrl = event.submitter.dataset.url
-    submit(fetchUrl, event.target)
+    if (fetchUrl === '/publish') {
+      publishWithFeedback(form)
+    } else {
+      submit(fetchUrl, event.target)
+    }
   })
+
+  const publishWithFeedback = async (form) => {
+    const feedback = document.querySelector('#publishFeedback')
+    const btn = document.querySelector('#publishBtn')
+    const filePath = form.querySelector('#inputFileName').value || form.querySelector('#selectDataFile').value
+    feedback.textContent = '公開中...'
+    btn.disabled = true
+    try {
+      const res = await fetch('/publish', {
+        method: 'POST',
+        body: JSON.stringify({ filePath })
+      })
+      const json = await res.json()
+      feedback.textContent = json.success ? '公開しました' : `公開失敗: ${json.error ?? '不明なエラー'}`
+    } catch (e) {
+      feedback.textContent = `公開失敗: ${e.message}`
+    } finally {
+      btn.disabled = false
+    }
+  }
 
   // @vocab: プレビュー自動更新器 (plans/editor-realtime-preview/dictionary.md#プレビュー自動更新器)
   const debouncedUpdate = initAutoPreview(textarea, () => submit('/preview', form), 500)
