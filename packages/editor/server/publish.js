@@ -15,7 +15,7 @@ const execFileAsync = promisify(execFile)
  * @vocab: 公開ハンドラー (plans/editor-publish/dictionary.md#公開ハンドラー)
  * @test tests/editor/publish.test.js
  * @param {{ filePath: string, fileContent: string, srcDir?: string }} options
- * @param {{ existsInRemote: Function, diffFromRemote: Function }} publishedState - リモート参照抽象
+ * @param {import('./publicationStatus.js').PublishedState} publishedState
  * @param {import('./changeReflector.js').PublishActions} publishActions
  * @returns {Promise<{ success: boolean, error?: string }>}
  */
@@ -33,7 +33,7 @@ export async function handlePublish({ filePath, fileContent, srcDir: srcDirParam
  * @vocab: 公開済み状態 (plans/editor-publish/dictionary.md#公開済み状態)
  * リモートの現在の内容を参照する読み取り専用の抽象
  * @param {string} cwd - git リポジトリのルートパス
- * @returns {{ existsInRemote: (filePath: string) => Promise<boolean>, diffFromRemote: (filePath: string) => Promise<string> }}
+ * @returns {import('./publicationStatus.js').PublishedState}
  */
 export function createGitPublishedState(cwd) {
   const getUpstreamRef = async () => {
