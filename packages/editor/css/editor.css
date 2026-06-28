@@ -131,12 +131,11 @@ form select {
   display: flex;
   justify-content: space-between;
   width: 300px;
-  overflow: hidden;
+  overflow: scroll;
   left: 0;
   background: var(--sidebar-bg);
   height: 100%;
   padding: 0;
-  overflow-y: auto;
   flex-basis: 300px;
   position: relative;
   z-index: 3;
@@ -162,6 +161,7 @@ form select {
   list-style: none;
   padding-left: 10px;
   white-space: nowrap;
+  text-overflow: ellipsis;
 }
 .sidebar li:has(a.active):not(:has(li)) {
   background: var(--sidebar-active-file-bg);
@@ -213,7 +213,7 @@ form select {
   width: 20px;
   height: 100%;
   position: absolute;
-  right: 0;
+  left: 0;
 }
 .sidebar-close .sidebar-toggle {
   position: fixed;
