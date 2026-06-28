@@ -36,7 +36,7 @@ function scanFiles(dir, prefix = '') {
  */
 export const get = async (req, res) => {
   const files = scanFiles(watch.pageDir)
-  const publishedState = createGitPublishedState(rootDir)
+  const publishedState = await createGitPublishedState(rootDir)
   const fileMappings = files.map(f => ({
     treePath: `${f.name}.${f.__filetype}`,
     gitPath: `${config.src_dir}/pages/${f.name}.${f.__filetype}`,
