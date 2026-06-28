@@ -3,6 +3,8 @@ body {
   height: 100vh;
   display: flex;
   flex-direction: column;
+  font-family: Helvetica, "Noto Sans JP", "Hiragino Sans", system-ui, sans-serif;
+  font-weight: 300;
 }
 header {
   text-align: center;
@@ -117,20 +119,28 @@ form select {
   border: none;
   border-radius: 0 5px 5px 0;
 }
+
 .sidebar {
+  --sidebar-bg: #313d64;
+  --sidebar-dir: #79afb4;
+  --sidebar-file: #cbcbcb;
+  --sidebar-active-file-fg: #333;
+  --sidebar-active-file-bg: rgba(165,218,246,0.8);
+  --sidebar-modified-fg: #ff7777;
+  --sidebar-hover-bg: rgba(104, 117, 154, .3);
   display: flex;
   justify-content: space-between;
   width: 300px;
   overflow: hidden;
   left: 0;
-  background: rgb(192, 198, 217);
+  background: var(--sidebar-bg);
   height: 100%;
   padding: 0;
   overflow-y: auto;
   flex-basis: 300px;
   position: relative;
   z-index: 3;
-  word-break: break-all;
+  font-size: 0.85em;
 }
 .sidebar-close .sidebar {
   left: -290px;
@@ -140,6 +150,9 @@ form select {
   padding: 0;
   margin: 0;
 }
+.sidebar > ul {
+  padding: 0 0 0 15px;
+}
 .sidebar-close .sidebar ul {
   position: absolute;
   left: -290px;
@@ -147,48 +160,53 @@ form select {
 }
 .sidebar li {
   list-style: none;
-  padding-left: 20px;
+  padding-left: 10px;
+  white-space: nowrap;
+}
+.sidebar li:has(a.active):not(:has(li)) {
+  background: var(--sidebar-active-file-bg);
 }
 .sidebar a {
-  color: #666;
+  color: var(--sidebar-file);
   text-decoration: none;
 }
 .sidebar a.active {
-  font-weight: bold;
-  color: #333;
-  background: rgba(104, 117, 154, .2);
+  color: var(--sidebar-active-file-fg);
   display: block;
 }
 .sidebar a[data-status="new"]::after {
   content: " ●";
   color: #e06c00;
-  font-size: 0.75em;
 }
 .sidebar a[data-status="modified"]::after {
   content: " ◆";
   color: #0070c0;
-  font-size: 0.75em;
 }
 .sidebar a[data-status="published"]::after {
   content: " ✓";
   color: #888;
-  font-size: 0.75em;
 }
-.sidebar li:hover {
-  background: rgba(104, 117, 154, .3);
+.sidebar a[data-status="new"],
+.sidebar a[data-status="modified"] {
+  color: var(--sidebar-modified-fg);
 }
+.sidebar li:not(:has(li)):hover,
+.sidebar li.dir-node summary:hover {
+  background: var(--sidebar-hover-bg);
+}
+
 .sidebar details > summary {
   cursor: pointer;
   padding: 2px 0;
-  color: #444;
-  font-size: 0.9em;
+  color: var(--sidebar-dir);
   list-style: disclosure-closed;
+}
+.sidebar li.dir-node details:not([open]):has(a[data-status="new"]) summary,
+.sidebar li.dir-node details:not([open]):has(a[data-status="modified"]) summary {
+  color: var(--sidebar-modified-fg);
 }
 .sidebar details[open] > summary {
   list-style: disclosure-open;
-}
-.sidebar details > ul {
-  padding-left: 8px;
 }
 .sidebar-toggle {
   cursor: pointer;
@@ -200,7 +218,7 @@ form select {
 .sidebar-close .sidebar-toggle {
   position: fixed;
   left: 0;
-  background: rgb(192, 198, 217);
+  background: var(--sidebar-bg);
 }
 .sidebar-toggle:hover:after {
   position: absolute;
