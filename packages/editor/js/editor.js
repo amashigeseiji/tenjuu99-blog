@@ -110,6 +110,9 @@ const onloadFunction = async (e) => {
       const label = statusLabels[status]
       statusEl.textContent = label ? `(${label})` : ''
       statusEl.dataset.status = status
+      // サイドバーリンクの data-status も同期する
+      const sidebarLink = document.querySelector(`.sidebar a[href="/editor?md=${encodeURIComponent(filePath)}"]`)
+      if (sidebarLink) sidebarLink.dataset.status = status || ''
     } catch {
       statusEl.textContent = ''
     }
@@ -156,7 +159,9 @@ const onloadFunction = async (e) => {
       })
       if (!res.ok) {
         console.log('[auto-save] 保存に失敗しました', res.status)
+        return
       }
+      fetchPublicationStatus(filename)
     } catch (e) {
       console.log('[auto-save] ネットワークエラー', e)
     }
@@ -245,6 +250,57 @@ const onloadFunction = async (e) => {
   })
 
   cancelNewFile.addEventListener('click', () => newFileDialog.close())
+
+  // インプレースファイル読み込み
+  // サイドバーリンクのクリックやブラウザ履歴移動で呼ばれる。
+  // turbolink によるページ全体の差し替えではなく、エディタ状態をその場で更新することでちらつきを防ぐ。
+  const loadFileInPlace = async (newTarget) => {
+    // サイドバーのアクティブ状態を更新
+    document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'))
+    const activeLink = document.querySelector(`.sidebar a[href="/editor?md=${encodeURIComponent(newTarget)}"]`)
+    if (activeLink) activeLink.classList.add('active')
+
+    try {
+      const json = await fetchData(newTarget)
+      textarea.value = json.content
+      setCurrentFile(json.filename)
+      submit('/preview', form)
+      fetchPublicationStatus(newTarget)
+    } catch (e) {
+      // ファイルが存在しない場合、fetchData 内でテキストエリアに初期内容を設定済み
+      setCurrentFile(newTarget)
+    }
+  }
+
+  // サイドバーのリンクをインターセプトしてインプレース読み込みに切り替える。
+  // サイドバーは動的に生成されるため、個別リンクへのバインドではなく .sidebar へのデリゲーションで処理する。
+  document.querySelector('.sidebar').addEventListener('click', async (e) => {
+    const link = e.target.closest('a')
+    if (!link) return
+    let linkUrl
+    try { linkUrl = new URL(link.href) } catch { return }
+    if (linkUrl.pathname !== '/editor') return
+    const newTarget = linkUrl.searchParams.get('md')
+    if (!newTarget) return
+    e.preventDefault()
+
+    const currentTarget = inputFileName.value || url.searchParams.get('md')
+    if (newTarget === currentTarget) return
+
+    const newUrl = new URL(location)
+    newUrl.searchParams.set('md', newTarget)
+    history.pushState({}, '', newUrl)
+
+    await loadFileInPlace(newTarget)
+  })
+
+  // ブラウザの戻る/進むに対応
+  window.addEventListener('popstate', async () => {
+    const newTarget = new URL(location).searchParams.get('md') || ''
+    if (newTarget) {
+      await loadFileInPlace(newTarget)
+    }
+  })
 }
 
 const SIDEBAR_OPEN_KEY = 'sidebar-is-open'
