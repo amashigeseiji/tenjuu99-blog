@@ -12,7 +12,8 @@
   },
   "bin": {
     "generate": "bin/generate",
-    "server": "bin/dev-server",
+    "server": "bin/server",
+    "dev-server": "bin/dev-server",
     "create-blog": "bin/new"
   },
   "author": "AmashigeSeiji",
