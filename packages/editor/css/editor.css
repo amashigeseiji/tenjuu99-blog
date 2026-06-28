@@ -159,6 +159,21 @@ form select {
   background: rgba(104, 117, 154, .2);
   display: block;
 }
+.sidebar a[data-status="new"]::after {
+  content: " ●";
+  color: #e06c00;
+  font-size: 0.75em;
+}
+.sidebar a[data-status="modified"]::after {
+  content: " ◆";
+  color: #0070c0;
+  font-size: 0.75em;
+}
+.sidebar a[data-status="published"]::after {
+  content: " ✓";
+  color: #888;
+  font-size: 0.75em;
+}
 .sidebar li:hover {
   background: rgba(104, 117, 154, .3);
 }
