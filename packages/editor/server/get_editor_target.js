@@ -1,7 +1,7 @@
 import { IncomingMessage, ServerResponse } from 'http'
 import fs from 'node:fs'
 import config from '@tenjuu99/blog/lib/config.js'
-import { pageDir } from '@tenjuu99/blog/lib/dir.js'
+import { watch } from '@tenjuu99/blog/lib/dir.js'
 
 export const path = '/get_editor_target'
 
@@ -15,7 +15,7 @@ export const get = async (req, res) => {
   if (!target) {
     return
   }
-  const file = `${pageDir}/${target}`
+  const file = `${watch.pageDir}/${target}`
   if (!fs.existsSync(`${file}`)) {
     return {
       status: 404,

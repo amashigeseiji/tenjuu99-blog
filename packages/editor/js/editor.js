@@ -1,7 +1,6 @@
 import { initAutoPreview } from './autoPreviewInitializer.js'
+import { initAutoSave } from './autoSaveInitializer.js'
 import { matchTemplate, buildFrontmatterString, loadFrontmatterTemplate } from './frontmatter_template.js'
-
-const sleep = waitTime => new Promise( resolve => setTimeout(resolve, waitTime) );
 
 // @vocab: テンプレートレゾルバー (docs/dictionary.md#テンプレートレゾルバー)
 // @test: tests/editor/editor-frontmatter-template.test.js
@@ -22,12 +21,10 @@ const fetchData = (target) => {
   return fetch(`/get_editor_target?md=${encodeURIComponent(target)}`)
     .then(async res => {
       if (!res.ok) {
-        document.querySelector('#inputFileName').value = target
         const baseName = target.split('/').pop().replace(/\.[^.]+$/, '')
         const initialContent = loadFrontmatterTemplate(target, _frontmatterTemplates)
           ?? `---\ntitle: ${baseName}\n---\n${baseName} についての記事を作成しましょう`
         document.querySelector('#editorTextArea').value = initialContent
-        // submit('/preview', form)
         throw new Error(`${target} does not exist.`)
       } else {
         const json = await res.json()
@@ -35,54 +32,33 @@ const fetchData = (target) => {
       }
     })
 }
+
 const onloadFunction = async (e) => {
   const form = document.querySelector('#editor')
   const textarea = form.querySelector('#editorTextArea')
-  const select = form.querySelector('#selectDataFile')
   const inputFileName = form.querySelector('#inputFileName')
+  const currentFileName = document.querySelector('#currentFileName')
   const preview = document.querySelector('#previewContent')
   const url = new URL(location)
   const target = url.searchParams.get('md')
+
+  const setCurrentFile = (filename) => {
+    inputFileName.value = filename
+    currentFileName.textContent = filename
+  }
+
   if (target) {
     fetchData(target).then(json => {
       textarea.value = json.content
-      select.value = json.filename
-      inputFileName.value = json.filename
-      inputFileName.setAttribute('disabled', true)
+      setCurrentFile(json.filename)
       submit('/preview', form)
       fetchPublicationStatus(target)
     }).catch(e => {
       console.log('error!!!')
       console.log(e)
+      setCurrentFile(target)
     })
   }
-  select.addEventListener('change', async (event) => {
-    if (select.value) {
-      const json = await fetchData(select.value)
-      textarea.value = json.content
-      inputFileName.value = json.filename
-      inputFileName.setAttribute('disabled', true)
-      url.searchParams.set('md', select.value)
-      submit('/preview', form)
-      fetchPublicationStatus(select.value)
-    } else {
-      inputFileName.value = ""
-      inputFileName.removeAttribute('disabled')
-      textarea.value = ''
-      url.searchParams.set('md', "")
-      const iframe = preview.querySelector('iframe')
-      if (iframe) {
-        iframe.srcdoc = ''
-      }
-    }
-    history.pushState({}, "", url)
-  })
-
-  inputFileName.addEventListener('blur', async () => {
-    if (inputFileName.value && !select.value) {
-      fetchData(inputFileName.value).catch(() => {})
-    }
-  })
 
   const submit = (fetchUrl, form) => {
     const formData = new FormData(form)
@@ -99,10 +75,6 @@ const onloadFunction = async (e) => {
         alert(json.message)
         return
       }
-      if (json.href) {
-        await sleep(300)
-        location.href = json.href
-      }
       if (json.preview) {
         const old = preview.querySelector('iframe')
         if (!old) {
@@ -118,14 +90,10 @@ const onloadFunction = async (e) => {
       console.log(e.message)
     })
   }
+
   form.addEventListener('submit', (event) => {
     event.preventDefault()
-    const fetchUrl = event.submitter.dataset.url
-    if (fetchUrl === '/publish') {
-      publishWithFeedback(form)
-    } else {
-      submit(fetchUrl, event.target)
-    }
+    publishWithFeedback(form)
   })
 
   const statusLabels = { new: '未公開', modified: '更新あり', published: '公開済み' }
@@ -133,13 +101,14 @@ const onloadFunction = async (e) => {
     if (!filePath) return
     const statusEl = document.querySelector('#publicationStatus')
     if (!statusEl) return
-    statusEl.textContent = '...'
+    statusEl.textContent = ''
     statusEl.dataset.status = ''
     try {
       const res = await fetch(`/publication-status?md=${encodeURIComponent(filePath)}`)
       if (!res.ok) { statusEl.textContent = ''; return }
       const { status } = await res.json()
-      statusEl.textContent = statusLabels[status] ?? ''
+      const label = statusLabels[status]
+      statusEl.textContent = label ? `(${label})` : ''
       statusEl.dataset.status = status
     } catch {
       statusEl.textContent = ''
@@ -149,7 +118,7 @@ const onloadFunction = async (e) => {
   const publishWithFeedback = async (form) => {
     const feedback = document.querySelector('#publishFeedback')
     const btn = document.querySelector('#publishBtn')
-    const filePath = form.querySelector('#inputFileName').value || form.querySelector('#selectDataFile').value
+    const filePath = form.querySelector('#inputFileName').value
     const fileContent = form.querySelector('textarea').value
     btn.disabled = true
     try {
@@ -174,9 +143,108 @@ const onloadFunction = async (e) => {
     }
   }
 
+  // @vocab: 自動保存
+  // @vocab: 自動保存初期化器
+  const autoSave = async () => {
+    const filename = inputFileName.value
+    if (!filename) return
+    try {
+      const res = await fetch('/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename, content: textarea.value })
+      })
+      if (!res.ok) {
+        console.log('[auto-save] 保存に失敗しました', res.status)
+      }
+    } catch (e) {
+      console.log('[auto-save] ネットワークエラー', e)
+    }
+  }
+
   // @vocab: プレビュー自動更新器 (plans/editor-realtime-preview/dictionary.md#プレビュー自動更新器)
   const debouncedUpdate = initAutoPreview(textarea, () => submit('/preview', form), 500)
+  initAutoSave(textarea, autoSave, 500)
   initDropReceiver(textarea, () => inputFileName.value, () => submit('/preview', form), () => debouncedUpdate.cancel())
+
+  // @vocab: 新規作成UI
+  const newFileBtn = document.querySelector('#newFileBtn')
+  const newFileDialog = document.querySelector('#newFileDialog')
+  const newFileNameInput = document.querySelector('#newFileName')
+  const newFileTemplateSelect = document.querySelector('#newFileTemplate')
+  const newFileError = document.querySelector('#newFileError')
+  const confirmNewFile = document.querySelector('#confirmNewFile')
+  const cancelNewFile = document.querySelector('#cancelNewFile')
+
+  const refreshSidebar = () => initSidebarContent(inputFileName.value)
+
+  newFileBtn.addEventListener('click', () => {
+    newFileNameInput.value = ''
+    newFileError.textContent = ''
+    // テンプレート選択肢を再構築して auto-select をリセット
+    newFileTemplateSelect.innerHTML = '<option value="">テンプレートなし</option>'
+    for (const tmpl of _frontmatterTemplates) {
+      const option = document.createElement('option')
+      option.value = tmpl.path_prefix
+      option.textContent = `テンプレート: ${tmpl.path_prefix}`
+      newFileTemplateSelect.appendChild(option)
+    }
+    newFileTemplateSelect.value = ''
+    newFileDialog.showModal()
+  })
+
+  // ファイル名入力に応じてテンプレートを auto-select
+  newFileNameInput.addEventListener('input', () => {
+    const filename = newFileNameInput.value
+    const template = matchTemplate(filename, _frontmatterTemplates)
+    newFileTemplateSelect.value = template ? template.path_prefix : ''
+  })
+
+  // F-01: Enter キーで確定
+  newFileNameInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      confirmNewFile.click()
+    }
+  })
+
+  // F-02: 重複チェック付き作成。エラー時はダイアログを閉じない
+  confirmNewFile.addEventListener('click', async () => {
+    const filename = newFileNameInput.value.trim()
+    if (!filename) return
+
+    const selectedPrefix = newFileTemplateSelect.value
+    const selectedTemplate = selectedPrefix
+      ? _frontmatterTemplates.find(t => t.path_prefix === selectedPrefix)
+      : null
+    const baseName = filename.split('/').pop().replace(/\.[^.]+$/, '')
+    const content = selectedTemplate
+      ? buildFrontmatterString(selectedTemplate, baseName)
+      : `---\ntitle: ${baseName}\n---\n`
+
+    const res = await fetch('/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename, content, createOnly: true })
+    })
+
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}))
+      newFileError.textContent = json.error ?? 'ファイルの作成に失敗しました'
+      return
+    }
+
+    newFileDialog.close()
+    textarea.value = content
+    setCurrentFile(filename)
+    url.searchParams.set('md', filename)
+    history.pushState({}, '', url)
+    submit('/preview', form)
+    fetchPublicationStatus(filename)
+    refreshSidebar()
+  })
+
+  cancelNewFile.addEventListener('click', () => newFileDialog.close())
 }
 
 const SIDEBAR_OPEN_KEY = 'sidebar-is-open'
@@ -230,10 +298,26 @@ const initSidebarTree = (activeFile) => {
 
   // アクティブファイルに class="active" を付与（SSG では静的に付与できないため JS で補完）
   if (activeFile) {
-    const link = document.querySelector(`.sidebar a[href="/editor?md=${CSS.escape(activeFile)}"]`)
+    const link = document.querySelector(`.sidebar a[href="/editor?md=${encodeURIComponent(activeFile)}"]`)
     if (link) {
       link.classList.add('active')
     }
+  }
+}
+
+// @vocab: サイドバー取得エンドポイント
+const initSidebarContent = async (activeFile) => {
+  try {
+    const res = await fetch('/get_sidebar')
+    if (!res.ok) return
+    const { html } = await res.json()
+    const sidebar = document.querySelector('.sidebar')
+    const toggle = sidebar.querySelector('.sidebar-toggle')
+    sidebar.innerHTML = html
+    sidebar.appendChild(toggle)
+    initSidebarTree(activeFile)
+  } catch (e) {
+    console.log('[sidebar] init failed', e)
   }
 }
 
@@ -258,6 +342,7 @@ const sidebarToggle = (e) => {
     main.classList.toggle('sidebar-close')
   })
 }
+
 // @vocab: 画像アップローダー (docs/dictionary.md#画像アップローダー)
 const uploadImage = async (file, mdFile) => {
   const buffer = await file.arrayBuffer()
@@ -300,8 +385,8 @@ const initDropReceiver = (textarea, getMdFile, onUpdate, cancelPendingDebounce) 
 document.addEventListener('DOMContentLoaded', async (event) => {
   const url = new URL(location)
   const activeFile = url.searchParams.get('md') || ''
+  await initSidebarContent(activeFile)
   await initFrontmatterTemplate()
   onloadFunction(event)
   sidebarToggle(event)
-  initSidebarTree(activeFile)
 })

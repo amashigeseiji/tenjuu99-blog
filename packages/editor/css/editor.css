@@ -49,6 +49,42 @@ main.container {
 .editor-options {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+.editor-options-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.editor-options-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#newFileDialog {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  padding: 24px;
+  min-width: 320px;
+}
+#newFileDialog form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+#newFileDialog label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+#newFileDialog #newFileError {
+  color: #c00;
+  font-size: 0.9em;
+  margin: 0;
+  min-height: 1.2em;
 }
 #editorTextArea {
   resize: none;

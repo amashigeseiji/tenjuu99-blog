@@ -34,6 +34,18 @@ export function buildTree(files) {
 }
 
 /**
+ * @param {string} str
+ * @returns {string}
+ */
+function escapeHtml(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
+/**
  * @param {TreeNode} tree
  * @param {string} [activeFile]
  * @param {string} [_dirPath]
@@ -50,7 +62,7 @@ export function renderTreeHtml(tree, activeFile = '', _dirPath = '') {
 
   for (const [dirName, subtree] of Object.entries(tree.dirs)) {
     const dirPath = _dirPath ? `${_dirPath}/${dirName}` : dirName
-    html += `<li class="dir-node"><details data-dir="${dirPath}"><summary>${dirName}</summary>`
+    html += `<li class="dir-node"><details data-dir="${escapeHtml(dirPath)}"><summary>${escapeHtml(dirName)}</summary>`
     html += renderTreeHtml(subtree, activeFile, dirPath)
     html += `</details></li>`
   }
@@ -58,7 +70,7 @@ export function renderTreeHtml(tree, activeFile = '', _dirPath = '') {
   for (const file of tree.files) {
     const isActive = file.path === activeFile
     const activeAttr = isActive ? ' class="active"' : ''
-    html += `<li><a href="/editor?md=${file.path}"${activeAttr}>${file.label}</a></li>`
+    html += `<li><a href="/editor?md=${encodeURIComponent(file.path)}"${activeAttr}>${escapeHtml(file.label)}</a></li>`
   }
 
   html += '</ul>'

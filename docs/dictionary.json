@@ -1,0 +1,1795 @@
+{
+  "version": "1",
+  "contexts": [
+    {
+      "dir": "ssg-core",
+      "name": "SSGコア",
+      "description": "Markdownソースファイルから静的HTMLサイトを生成すること",
+      "primary_users": "SSGエンジンを開発・保守する技術者",
+      "in_scope": "ページのフロントマター解析、テンプレート適用、Markdown→HTMLレンダリング、全ページのインデックス化、ビルド出力、パッケージシステム（キャッシュ機構）",
+      "out_of_scope": "誰がどうコンテンツを編集するか（エディタ）、ページをどのカテゴリーに分類するか（カテゴリー）、HTTPサーバーとしての動作（サーバー）、ファイル監視・ホットリロード（開発サーバー）"
+    },
+    {
+      "dir": "server",
+      "name": "サーバー",
+      "description": "HTTPリクエストをハンドラースクリプトに振り分ける拡張機構。`src/server/` にスクリプトを配置することでAPIエンドポイントを追加できる",
+      "primary_users": "エディタ等のパッケージ開発者、サーバーサイド機能を追加したいユーザー",
+      "in_scope": "ハンドラースクリプトの登録・ディスパッチ、サーバーディレクトリ規約",
+      "out_of_scope": "ページのHTMLレンダリング（SSGコア）、開発時のファイル監視・ホットリロード（開発サーバー）"
+    },
+    {
+      "dir": "dev-server",
+      "name": "開発サーバー",
+      "description": "ソースファイルの変更を検知して自動再ビルドし、ブラウザへホットリロードで反映する開発支援環境",
+      "primary_users": "ブログの開発者・コンテンツ作成者（`npx server` で起動）",
+      "in_scope": "ファイル監視、変更時の再ビルドトリガー、ホットリロード通知",
+      "out_of_scope": "ページのHTMLレンダリング（SSGコア）、HTTPリクエストのディスパッチ（サーバー）"
+    },
+    {
+      "dir": "editor",
+      "name": "エディタ",
+      "description": "ブラウザUIで非技術者がコンテンツを作成・編集・公開すること",
+      "primary_users": "ターミナルを使わないコンテンツ作成者",
+      "in_scope": "ファイルの選択と表示、テキスト編集、プレビュー、保存、公開（git push）、AIへの相談、画像アップロード、サイドバーナビゲーション",
+      "out_of_scope": "ファイルがHTMLにどう変換されるか（SSGコア）、カテゴリー階層の生成（カテゴリー）"
+    },
+    {
+      "dir": "category",
+      "name": "カテゴリー",
+      "description": "ページをディレクトリ階層に基づいて分類し、カテゴリーページとして一覧表示すること",
+      "primary_users": "サイト構造を設計する人（カテゴリーを設定し、閲覧者がナビゲートする）",
+      "in_scope": "カテゴリー定義、階層構造、カテゴリーページの自動生成、ページのカテゴリーへの割り当て、ページネーション",
+      "out_of_scope": "ページの内容をどう描画するか（SSGコア）、編集UI（エディタ）"
+    }
+  ],
+  "entries": [
+    {
+      "name": "ページ",
+      "en": null,
+      "context": "ssg-core",
+      "domain": "application",
+      "definition": "Markdownソースファイルを起点に生成されるコンテンツの単位。#フロントマター と本文から成り、#テンプレート を通じてHTMLとして出力される。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "フロントマター"
+        },
+        {
+          "type": "references",
+          "target": "テンプレート"
+        },
+        {
+          "type": "references",
+          "target": "ページインデックス"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "フロントマター",
+      "en": null,
+      "context": "ssg-core",
+      "domain": "application",
+      "definition": "ページ冒頭の `---` または `<!--` で囲んだメタデータ領域。タイトル・URL・公開日・テンプレート名など、#ページ の属性を定義する。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "ページ"
+        },
+        {
+          "type": "references",
+          "target": "テンプレート"
+        },
+        {
+          "type": "references",
+          "target": "ページインデックス"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "テンプレート",
+      "en": null,
+      "context": "ssg-core",
+      "domain": "application",
+      "definition": "#ページ のHTML構造を定義するファイル。変数展開・条件分岐・ #SSGスクリプト を記述でき、#フロントマター の値を参照してHTMLを生成する。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "ページ"
+        },
+        {
+          "type": "references",
+          "target": "フロントマター"
+        },
+        {
+          "type": "references",
+          "target": "ヘルパー関数"
+        },
+        {
+          "type": "references",
+          "target": "SSGスクリプト"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "ヘルパー関数",
+      "en": null,
+      "context": "ssg-core",
+      "domain": "application",
+      "definition": "#テンプレート や #SSGスクリプト から呼び出せる拡張関数。#ページインデックス へのアクセス・日付フォーマット・一覧生成など、テンプレートエンジンの組み込み機能を超えた処理を担う。#パッケージ が自動提供することがある。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "テンプレート"
+        },
+        {
+          "type": "references",
+          "target": "ページインデックス"
+        },
+        {
+          "type": "references",
+          "target": "パッケージ"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "ページインデックス",
+      "en": null,
+      "context": "ssg-core",
+      "domain": "application",
+      "definition": "全 #ページ の #フロントマター データを収めたコレクション（`allData`）。一覧ページや関連ページの生成、カテゴリー分類など、複数ページにまたがる処理の参照源となる。#ビルド 時に全ページをスキャンして生成される。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "ページ"
+        },
+        {
+          "type": "references",
+          "target": "フロントマター"
+        },
+        {
+          "type": "references",
+          "target": "ヘルパー関数"
+        },
+        {
+          "type": "references",
+          "target": "SSGスクリプト"
+        },
+        {
+          "type": "references",
+          "target": "ビルド"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "SSGスクリプト",
+      "en": null,
+      "context": "ssg-core",
+      "domain": "application",
+      "definition": "#テンプレート 内の `<script type=\"ssg\">` ブロックに記述し、#ビルド 時に実行されるJavaScriptコード。`return` で返した値がHTMLに展開される。#ページインデックス や #ヘルパー関数 を参照できる。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "テンプレート"
+        },
+        {
+          "type": "references",
+          "target": "ヘルパー関数"
+        },
+        {
+          "type": "references",
+          "target": "ページインデックス"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "パッケージ",
+      "en": null,
+      "context": "ssg-core",
+      "domain": "application",
+      "definition": "#ヘルパー関数 ・ #テンプレート ・CSSをひとまとめにした拡張モジュール。`blog.json` で有効化することでSSGの機能を拡張する。パッケージのファイルはユーザーコードで上書きできる。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "ヘルパー関数"
+        },
+        {
+          "type": "references",
+          "target": "テンプレート"
+        },
+        {
+          "type": "references",
+          "target": "ページインデックス"
+        },
+        {
+          "type": "references",
+          "target": "ビルド"
+        },
+        {
+          "type": "references",
+          "target": "キャッシュ"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "キャッシュ",
+      "en": "Cache",
+      "context": "ssg-core",
+      "domain": "application",
+      "definition": "#ビルド 前にソースファイルと #パッケージ のファイルを集積するステージングディレクトリ（`.cache/`）。#パッケージ のファイルが先に展開され、その後ユーザーの `src/` が上書きコピーされる。ビルドエンジンはこのディレクトリを実際の処理対象とする。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "パッケージ"
+        },
+        {
+          "type": "references",
+          "target": "ビルド"
+        },
+        {
+          "type": "references",
+          "target": "サーバーハンドラー",
+          "context": "server",
+          "note": "の配置先でもある"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "ビルド",
+      "en": null,
+      "context": "ssg-core",
+      "domain": "application",
+      "definition": "全ソースファイルをスキャンして #ページインデックス を構築し、各 #ページ に #テンプレート を適用してHTMLを出力するプロセス。`npx generate` または開発サーバーが担う。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "ページインデックス"
+        },
+        {
+          "type": "references",
+          "target": "テンプレート"
+        },
+        {
+          "type": "references",
+          "target": "ページ"
+        },
+        {
+          "type": "references",
+          "target": "パッケージ"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "フィルター",
+      "en": "Filter",
+      "context": "ssg-core",
+      "domain": "solution",
+      "definition": "#テンプレート テキストを処理する変換関数の総称。変数展開・条件分岐（`{if}`）・ #SSGスクリプト 実行の各処理が独立したフィルターとして実装され、パイプライン状に適用される。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "テンプレート"
+        },
+        {
+          "type": "references",
+          "target": "SSGスクリプト"
+        }
+      ],
+      "src": "lib/filter.js, lib/replaceVariablesFilter.js, lib/includeFilter.js"
+    },
+    {
+      "name": "ビルド画像配布器",
+      "en": "BuildImageDistributor",
+      "context": "ssg-core",
+      "domain": "solution",
+      "definition": "ビルドコマンド実行時に、変換設定に従い画像を dist ディレクトリに出力する装置。変換設定がある場合は各画像ファイルを #コンバーターファクトリー が解決した変換ドライバーに通し、ない場合はそのままコピーする。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "コンバーターファクトリー",
+          "context": "editor",
+          "note": "解決済みの変換関数 `{ fn, ext }` を受け取る"
+        },
+        {
+          "type": "references",
+          "target": "ビルド",
+          "note": "ビルドの一部として実行される"
+        }
+      ],
+      "src": "lib/imageDistributor.js"
+    },
+    {
+      "name": "サーバーハンドラー",
+      "en": "ServerHandler",
+      "context": "server",
+      "domain": "application",
+      "definition": "`path` とHTTPメソッド関数（`get`・`post` 等）をエクスポートするスクリプト。#サーバーディレクトリ に配置することで自動登録され、対応するURLへのリクエストを処理する。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "サーバーディレクトリ"
+        },
+        {
+          "type": "references",
+          "target": "ハンドラー登録"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "サーバーディレクトリ",
+      "en": "ServerDir",
+      "context": "server",
+      "domain": "application",
+      "definition": "#サーバーハンドラー スクリプトを配置するディレクトリ。#キャッシュ （SSGコア）の `.cache/server/` が実際の参照先で、`src/server/` の内容が #パッケージ （SSGコア）の仕組みで展開される。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "サーバーハンドラー"
+        },
+        {
+          "type": "references",
+          "target": "ハンドラー登録"
+        },
+        {
+          "type": "references",
+          "target": "キャッシュ",
+          "context": "ssg-core"
+        },
+        {
+          "type": "references",
+          "target": "パッケージ",
+          "context": "ssg-core"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "ハンドラー登録",
+      "en": "HandlerRegistration",
+      "context": "server",
+      "domain": "solution",
+      "definition": "#サーバーディレクトリ のスクリプトを動的ロードし、各スクリプトの `path` エクスポートをキーにして #サーバーハンドラー を登録する仕組み。初回リクエスト時に一度だけ実行される。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "サーバーディレクトリ"
+        },
+        {
+          "type": "references",
+          "target": "サーバーハンドラー"
+        }
+      ],
+      "src": "lib/tryServer.js"
+    },
+    {
+      "name": "ウォッチャー",
+      "en": "Watcher",
+      "context": "dev-server",
+      "domain": "application",
+      "definition": "ソースファイルの変更・追加・削除を監視し、登録されたコールバックをトリガーする機構。複数のウォッチャーを優先度付きで登録でき、優先ウォッチャーが先に実行される。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "ビルド",
+          "context": "ssg-core",
+          "note": "変更検知時に再実行をトリガーする"
+        }
+      ],
+      "src": "lib/watcher.js"
+    },
+    {
+      "name": "ホットリロード",
+      "en": "HotReload",
+      "context": "dev-server",
+      "domain": "application",
+      "definition": "ファイル変更検知後に自動再ビルドを実行し、ブラウザを更新する一連の動作。#ウォッチャー が変更を検知して #ビルド を再実行し、結果をブラウザに反映する。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "ウォッチャー"
+        },
+        {
+          "type": "references",
+          "target": "ビルド",
+          "context": "ssg-core"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "サイドバー",
+      "en": null,
+      "context": "editor",
+      "domain": "application",
+      "definition": "エディタ左部に表示されるナビゲーション領域。ファイルの一覧を表示し、目的のファイルへ移動する起点となる。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "ディレクトリツリー"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "ファイルリスト",
+      "en": null,
+      "context": "editor",
+      "domain": "application",
+      "definition": "ファイルパスを一次元配列として表現したファイルの一覧。ディレクトリ構造を無視してフラットに並べた形式。#ツリービルダー が #ネスト変換 する際の入力データとなる。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "ツリービルダー"
+        },
+        {
+          "type": "references",
+          "target": "ネスト変換"
+        },
+        {
+          "type": "references",
+          "target": "ディレクトリツリー"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "ディレクトリツリー",
+      "en": null,
+      "context": "editor",
+      "domain": "application",
+      "definition": "#ファイルリスト を置き換えて #サイドバー に表示される、ファイルをディレクトリ階層に従って整理した木構造の表示。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "サイドバー"
+        },
+        {
+          "type": "references",
+          "target": "ディレクトリノード"
+        },
+        {
+          "type": "references",
+          "target": "ファイルノード"
+        },
+        {
+          "type": "references",
+          "target": "ツリービルダー"
+        },
+        {
+          "type": "references",
+          "target": "ツリーレンダラー"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "ディレクトリノード",
+      "en": null,
+      "context": "editor",
+      "domain": "application",
+      "definition": "#ディレクトリツリー を構成する枝要素。配下の #ファイルノード や子 #ディレクトリノード を含み、#展開状態 を持つ。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "ディレクトリツリー"
+        },
+        {
+          "type": "references",
+          "target": "ファイルノード"
+        },
+        {
+          "type": "references",
+          "target": "展開状態"
+        },
+        {
+          "type": "references",
+          "target": "ツリーレンダラー"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "ファイルノード",
+      "en": null,
+      "context": "editor",
+      "domain": "application",
+      "definition": "#ディレクトリツリー の葉要素。エディタで開くファイルへのリンクを提供する。#アクティブファイル のファイルノードは他と区別して表示される。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "ディレクトリノード"
+        },
+        {
+          "type": "references",
+          "target": "アクティブファイル"
+        },
+        {
+          "type": "references",
+          "target": "ツリーレンダラー"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "アクティブファイル",
+      "en": null,
+      "context": "editor",
+      "domain": "application",
+      "definition": "現在エディタで開いているファイル。URLパラメータ `?md=` で識別される。#サイドバー 初期化時に参照され、対応する #ファイルノード をハイライトし、その親 #ディレクトリノード を自動展開する。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "ファイルノード"
+        },
+        {
+          "type": "references",
+          "target": "ディレクトリノード"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "展開状態",
+      "en": null,
+      "context": "editor",
+      "domain": "application",
+      "definition": "#ディレクトリノード が開いているか閉じているかの状態。localStorage を通じてセッション間で永続化される。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "ディレクトリノード"
+        },
+        {
+          "type": "references",
+          "target": "アクティブファイル"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "保存",
+      "en": null,
+      "context": "editor",
+      "domain": "application",
+      "definition": "テキストエリアの内容をローカルファイルシステムに書き込む操作。#自動保存 によって実行されるか、手動操作によって実行される。save ボタンが削除されるため、通常は自動保存が担う。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "ページ",
+          "context": "ssg-core"
+        },
+        {
+          "type": "references",
+          "target": "公開する",
+          "note": "保存はローカル変更のみ、公開は外部への反映"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "プレビュー",
+      "en": null,
+      "context": "editor",
+      "domain": "application",
+      "definition": "テキストエリアの Markdown を HTML レンダリングしてリアルタイムに表示する領域。開発サーバーが生成した HTML が `<iframe>` 内に埋め込まれる。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "ページ",
+          "context": "ssg-core"
+        },
+        {
+          "type": "references",
+          "target": "テンプレート",
+          "context": "ssg-core"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "インライン画像挿入",
+      "en": null,
+      "context": "editor",
+      "domain": "application",
+      "definition": "ドラッグ&ドロップで画像をアップロードし、本文カーソル位置に `![](url)` 形式の Markdown 画像構文を挿入する操作。フロントマターへのURL挿入など他の画像参照ユースケースとは区別される。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "保存",
+          "note": "テキスト保存とは別操作"
+        },
+        {
+          "type": "references",
+          "target": "ドロップレシーバー",
+          "note": "起点となる装置"
+        },
+        {
+          "type": "references",
+          "target": "画像アップローダー",
+          "note": "アップロードを担う装置"
+        },
+        {
+          "type": "references",
+          "target": "アップロードエンドポイント",
+          "note": "サーバー側の処理を担う装置"
+        },
+        {
+          "type": "references",
+          "target": "Markdown挿入器",
+          "note": "挿入を担う装置"
+        },
+        {
+          "type": "references",
+          "target": "画像保存先パス",
+          "note": "自動決定される"
+        },
+        {
+          "type": "references",
+          "target": "リアルタイムプレビュー更新",
+          "note": "挿入完了が即時更新のトリガーとなる"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "画像保存先パス",
+      "en": null,
+      "context": "editor",
+      "domain": "application",
+      "definition": "編集中のMarkdownファイルパスから自動決定される、画像の配置先。例: `book/painting/claude-monet.md` を編集中なら `src/image/book/painting/claude-monet/` 配下。",
+      "relations": [
+        {
+          "type": "belongs_to",
+          "target": "インライン画像挿入",
+          "note": "インライン画像挿入の際に自動決定される"
+        },
+        {
+          "type": "references",
+          "target": "パスリゾルバー",
+          "note": "パスリゾルバーが導出する"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "リアルタイムプレビュー更新",
+      "en": null,
+      "context": "editor",
+      "domain": "application",
+      "definition": "テキストエリアへの入力や画像挿入を契機に、ボタン操作なしにプレビューペインが自動更新される機能。「書く」行為の流れを中断せずに #プレビュー を確認できる状態を指す。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "プレビュー"
+        },
+        {
+          "type": "references",
+          "target": "テキスト入力",
+          "note": "テキスト入力の停止がトリガーとなる"
+        },
+        {
+          "type": "references",
+          "target": "インライン画像挿入",
+          "note": "挿入完了が即時トリガーとなる"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "テキスト入力",
+      "en": null,
+      "context": "editor",
+      "domain": "application",
+      "definition": "テキストエリアへのキーボード入力。連続入力の停止（入力が止まった状態）が #リアルタイムプレビュー更新 のトリガーとなる。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "リアルタイムプレビュー更新",
+          "note": "入力停止が更新トリガーとなる"
+        },
+        {
+          "type": "references",
+          "target": "デバウンサー",
+          "note": "「停止」を検知する装置"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "公開ステータス",
+      "en": "PublicationStatus",
+      "context": "editor",
+      "domain": "application",
+      "definition": "ファイルごとのリモート反映状態を表す状態機械。未公開（ローカルのみ存在）・更新あり（リモートと差分あり）・公開済み（ローカルとリモートが一致）の3ステートをとる。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "公開する",
+          "note": "未公開 → 公開済み の遷移アクション"
+        },
+        {
+          "type": "references",
+          "target": "更新する",
+          "note": "更新あり → 公開済み の遷移アクション"
+        },
+        {
+          "type": "references",
+          "target": "非公開にする",
+          "note": "公開済み/更新あり → 未公開 の遷移アクション（将来実装）"
+        },
+        {
+          "type": "references",
+          "target": "削除する",
+          "note": "任意 → 未存在 の遷移アクション（将来実装）"
+        },
+        {
+          "type": "references",
+          "target": "公開ステータス判定器",
+          "note": "現在のステートを導出する"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "公開する",
+      "en": "Publish",
+      "context": "editor",
+      "domain": "application",
+      "definition": "#公開ステータス の `未公開 → 公開済み` 遷移を起動するアクション。Publishボタンで実行される。#保存 とは別操作（保存はローカル書き込みのみ）。コミットメッセージの入力なしに完結する。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "公開ステータス"
+        },
+        {
+          "type": "references",
+          "target": "公開対象",
+          "note": "自動収集した公開対象セットを対象とする"
+        },
+        {
+          "type": "references",
+          "target": "公開フィードバック",
+          "note": "操作結果を通知する"
+        },
+        {
+          "type": "references",
+          "target": "デプロイ",
+          "note": "公開操作によって起動される"
+        }
+      ],
+      "src": "packages/editor/server/changeReflector.js"
+    },
+    {
+      "name": "更新する",
+      "en": "Update",
+      "context": "editor",
+      "domain": "application",
+      "definition": "#公開ステータス の `更新あり → 公開済み` 遷移を起動するアクション。公開済みのファイルに編集が加わった後に実行される。#公開する と同じボタンで実行されるが、意味的に異なる（既存コンテンツの改訂）。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "公開ステータス"
+        },
+        {
+          "type": "references",
+          "target": "公開対象",
+          "note": "自動収集した公開対象セットを対象とする"
+        },
+        {
+          "type": "references",
+          "target": "公開フィードバック",
+          "note": "操作結果を通知する"
+        }
+      ],
+      "src": "packages/editor/server/changeReflector.js"
+    },
+    {
+      "name": "公開済み状態",
+      "en": "PublishedState",
+      "context": "editor",
+      "domain": "application",
+      "definition": "リモートリポジトリの現在の内容を参照するための読み取り専用の抽象。この抽象を介して #公開ステータス判定器 がローカルとリモートを対比し、現在のステートを導出する。gitの場合はremote HEADへのアクセス（`existsInRemote`, `diffFromRemote`）にあたる。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "公開ステータス判定器",
+          "note": "に注入されて使われる"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "公開フィードバック",
+      "en": "PublishFeedback",
+      "context": "editor",
+      "domain": "application",
+      "definition": "#公開する ・ #更新する の実行中・完了・失敗をブラウザ上で知覚できる表示。ターミナルを一切操作せずに操作結果を把握できる状態を指す。ネットワーク到達不能とgit操作失敗を区別して表示する。",
+      "relations": [
+        {
+          "type": "belongs_to",
+          "target": "公開する",
+          "note": "操作結果を伝える"
+        },
+        {
+          "type": "belongs_to",
+          "target": "更新する",
+          "note": "操作結果を伝える"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "公開対象",
+      "en": "PublishTarget",
+      "context": "editor",
+      "domain": "application",
+      "definition": "#公開する ・ #更新する 操作で送信するファイルの集合。現在編集中のMarkdownファイルと、そのファイル内の画像リンク（`![](...)` 形式）を解析して収集した参照画像ファイルから構成される。ユーザーが明示的に選択するのではなく、編集内容から自動的に決定される。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "公開する",
+          "note": "送信対象となる"
+        },
+        {
+          "type": "references",
+          "target": "更新する",
+          "note": "送信対象となる"
+        },
+        {
+          "type": "references",
+          "target": "インライン画像挿入",
+          "note": "挿入済み画像が自動収集の対象になる"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "非公開にする",
+      "en": "Unpublish",
+      "context": "editor",
+      "domain": "application",
+      "definition": "#公開ステータス の `公開済み → 未公開` または `更新あり → 未公開` 遷移を起動するアクション。リモートからファイルを削除し、ローカルには残す。一度公開したファイルと一度も公開していないファイルは `未公開` として区別しない。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "公開ステータス",
+          "note": "遷移を起動する"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "削除する",
+      "en": "Delete",
+      "context": "editor",
+      "domain": "application",
+      "definition": "#公開ステータス の任意ステートから `未存在` への遷移を起動するアクション。ローカルおよびリモートからファイルを削除する。`未公開` 状態のファイルはローカルのみ削除。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "公開ステータス",
+          "note": "遷移を起動する"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "デプロイ",
+      "en": "Deploy",
+      "context": "editor",
+      "domain": "application",
+      "definition": "リモートリポジトリへの送信をトリガーにWebサイトへ変更が反映される一連の自動化フロー。#公開する ・ #更新する によって起動される。CI/CDパイプラインの設定・変更はエディタの範囲外。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "公開する",
+          "note": "によって起動される"
+        },
+        {
+          "type": "references",
+          "target": "更新する",
+          "note": "によって起動される"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "ツリービルダー",
+      "en": null,
+      "context": "editor",
+      "domain": "solution",
+      "definition": "フラットな #ファイルリスト を、ディレクトリ階層を反映したネストオブジェクト（ツリーデータ）に変換する装置。#ネスト変換 を核操作として持つ。実装は `buildTree(files)` 関数。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "ファイルリスト"
+        },
+        {
+          "type": "references",
+          "target": "ディレクトリツリー"
+        },
+        {
+          "type": "references",
+          "target": "ツリーレンダラー"
+        },
+        {
+          "type": "references",
+          "target": "ネスト変換"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "ツリーレンダラー",
+      "en": null,
+      "context": "editor",
+      "domain": "solution",
+      "definition": "#ツリービルダー が生成したツリーデータを HTML 文字列に変換する装置。#ディレクトリノード を `<details>/<summary>`、#ファイルノード をエディタリンク `<a>` として出力する。#アクティブファイル のノードには `class=\"active\"` を付与する。実装は `renderTreeHtml(tree, activeFile)` 関数。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "ツリービルダー"
+        },
+        {
+          "type": "references",
+          "target": "ディレクトリノード"
+        },
+        {
+          "type": "references",
+          "target": "ファイルノード"
+        },
+        {
+          "type": "references",
+          "target": "アクティブファイル"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "ネスト変換",
+      "en": null,
+      "context": "editor",
+      "domain": "solution",
+      "definition": "フラットな #ファイルリスト を、ディレクトリ階層を反映したネスト構造のオブジェクトに変換する操作。パスを `/` で分割し、各ディレクトリを `dirs` に、最終要素をファイルとして `files` に格納する。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "ツリービルダー",
+          "note": "が担う核操作"
+        },
+        {
+          "type": "references",
+          "target": "ファイルリスト"
+        },
+        {
+          "type": "references",
+          "target": "ディレクトリツリー"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "ディレクトリ",
+      "en": null,
+      "context": "editor",
+      "domain": "solution",
+      "definition": "コンテンツファイルを格納するファイルシステム上のフォルダ。#サイドバー の #ディレクトリツリー として表示される階層単位であり、#フロントマターテンプレート の適用単位にもなる。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "サイドバー"
+        },
+        {
+          "type": "references",
+          "target": "フロントマターテンプレート"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "フロントマターテンプレート",
+      "en": null,
+      "context": "editor",
+      "domain": "solution",
+      "definition": "特定の #ディレクトリ 配下に新規ページを作るとき、エディタのテキストエリアにあらかじめ挿入される #フロントマター の雛形。変数名とデフォルト値のペアで構成される。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "ディレクトリ"
+        },
+        {
+          "type": "references",
+          "target": "フロントマター",
+          "context": "ssg-core"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "テンプレート設定",
+      "en": null,
+      "context": "editor",
+      "domain": "solution",
+      "definition": "`blog.json` に記述される、#ディレクトリ と #フロントマターテンプレート の対応関係の定義。`frontmatter_templates` キーとして配列で保持される。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "ディレクトリ"
+        },
+        {
+          "type": "references",
+          "target": "フロントマターテンプレート"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "フロントマターテンプレートローダー",
+      "en": null,
+      "context": "editor",
+      "domain": "solution",
+      "definition": "ファイルパスと #テンプレート設定 一覧を受け取り、マッチする #フロントマターテンプレート を文字列に変換して返す装置。#テンプレートマッチャー と #テンプレートインジェクター を組み合わせた合成。マッチするテンプレートがない場合は null を返す。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "テンプレートマッチャー"
+        },
+        {
+          "type": "references",
+          "target": "テンプレートインジェクター"
+        }
+      ],
+      "src": "packages/editor/js/frontmatter_template.js loadFrontmatterTemplate(filePath, templates)"
+    },
+    {
+      "name": "テンプレートマッチャー",
+      "en": null,
+      "context": "editor",
+      "domain": "solution",
+      "definition": "入力された新規ファイル名のパスを検査して、#テンプレート設定 の中から最もマッチする #フロントマターテンプレート を選択する装置。複数マッチする場合は最も長いプレフィックスを優先する。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "テンプレート設定"
+        },
+        {
+          "type": "references",
+          "target": "フロントマターテンプレート"
+        }
+      ],
+      "src": "packages/editor/js/frontmatter_template.js matchTemplate(filePath, templates)"
+    },
+    {
+      "name": "テンプレートレゾルバー",
+      "en": null,
+      "context": "editor",
+      "domain": "solution",
+      "definition": "#テンプレート設定 をサーバーから取得し、#テンプレートマッチャー に渡す調停役。エディタ初期化時に一度だけ呼ばれる。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "テンプレート設定"
+        },
+        {
+          "type": "references",
+          "target": "テンプレートマッチャー"
+        }
+      ],
+      "src": "packages/editor/js/editor.js initFrontmatterTemplate() / packages/editor/server/get_frontmatter_templates.js"
+    },
+    {
+      "name": "テンプレートインジェクター",
+      "en": null,
+      "context": "editor",
+      "domain": "solution",
+      "definition": "選択された #フロントマターテンプレート をフロントマター文字列に変換して、エディタのテキストエリアに挿入する装置。ファイル名からタイトルを導出して `title` に埋め、`---` で囲んだ形式で出力する。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "フロントマターテンプレート"
+        }
+      ],
+      "src": "packages/editor/js/frontmatter_template.js buildFrontmatterString(template, baseName)"
+    },
+    {
+      "name": "ドロップレシーバー",
+      "en": null,
+      "context": "editor",
+      "domain": "solution",
+      "definition": "テキストエリア上のドロップ操作から画像ファイルを取り出す装置。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "インライン画像挿入",
+          "note": "インライン画像挿入の起点"
+        },
+        {
+          "type": "references",
+          "target": "画像アップローダー",
+          "note": "取り出した画像ファイルを渡す"
+        }
+      ],
+      "src": "packages/editor/js/editor.js"
+    },
+    {
+      "name": "画像アップローダー",
+      "en": null,
+      "context": "editor",
+      "domain": "solution",
+      "definition": "画像ファイルをサーバーに送信し、保存後の画像パスを受け取る装置。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "ドロップレシーバー",
+          "note": "画像を受け取る"
+        },
+        {
+          "type": "references",
+          "target": "アップロードエンドポイント",
+          "note": "通信する"
+        },
+        {
+          "type": "references",
+          "target": "Markdown挿入器",
+          "note": "受け取った画像パスを渡す"
+        }
+      ],
+      "src": "packages/editor/js/editor.js"
+    },
+    {
+      "name": "アップロードエンドポイント",
+      "en": null,
+      "context": "editor",
+      "domain": "solution",
+      "definition": "画像データを受け取り、保存先を決定して変換・保存し、画像パスを返すHTTPハンドラ。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "画像アップローダー",
+          "note": "リクエストを受け取る"
+        },
+        {
+          "type": "references",
+          "target": "パスリゾルバー",
+          "note": "呼び出す"
+        },
+        {
+          "type": "references",
+          "target": "画像コンバーター",
+          "note": "呼び出す"
+        },
+        {
+          "type": "references",
+          "target": "ファイルライター",
+          "note": "呼び出す"
+        },
+        {
+          "type": "references",
+          "target": "画像保存先パス",
+          "note": "レスポンスで返す"
+        }
+      ],
+      "src": "packages/editor/server/image_upload.js post / handleImageUpload"
+    },
+    {
+      "name": "パスリゾルバー",
+      "en": null,
+      "context": "editor",
+      "domain": "solution",
+      "definition": "編集中MarkdownファイルのパスとファイルURLから、画像の保存先パスとMarkdown埋め込みURLを導出する装置。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "アップロードエンドポイント",
+          "note": "呼び出される"
+        },
+        {
+          "type": "references",
+          "target": "画像保存先パス",
+          "note": "具現化する"
+        }
+      ],
+      "src": "packages/editor/server/image_upload.js resolveImagePath"
+    },
+    {
+      "name": "コンバーターファクトリー",
+      "en": null,
+      "context": "editor",
+      "domain": "solution",
+      "definition": "設定（blog.json）の `image_converter` を解釈し #画像コンバーター を生成する装置。ビルトイン名（例: `\"sharp\"`）はパッケージ内の `converters/` から解決し、パス（`.` または `/` で始まる）はプロジェクトルートを起点に #ユーザー提供コンバーターモジュール を解決する。コンバーターが利用不可の場合はパススルーにフォールバックする。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "アップロードエンドポイント",
+          "note": "初期化時に呼ばれる"
+        },
+        {
+          "type": "references",
+          "target": "変換ドライバー",
+          "note": "解決して画像コンバーターに注入する"
+        },
+        {
+          "type": "references",
+          "target": "画像コンバーター",
+          "note": "生成して返す"
+        },
+        {
+          "type": "references",
+          "target": "ユーザー提供コンバーターモジュール",
+          "note": "パス指定時に読み込む"
+        }
+      ],
+      "src": "packages/editor/server/createConverter.js createConverter"
+    },
+    {
+      "name": "画像コンバーター",
+      "en": null,
+      "context": "editor",
+      "domain": "solution",
+      "definition": "画像データをWeb向けフォーマットに変換する装置。#変換ドライバー が注入されている場合はそれを使って変換し、注入されていない場合は画像をそのまま通過させる。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "コンバーターファクトリー",
+          "note": "生成される"
+        },
+        {
+          "type": "references",
+          "target": "アップロードエンドポイント",
+          "note": "使用される"
+        },
+        {
+          "type": "references",
+          "target": "変換ドライバー",
+          "note": "注入される"
+        }
+      ],
+      "src": "packages/editor/server/createConverter.js createConverter の返り値 fn"
+    },
+    {
+      "name": "変換ドライバー",
+      "en": null,
+      "context": "editor",
+      "domain": "solution",
+      "definition": "#画像コンバーター に差し込む変換処理の実装。sharp 等の画像処理ライブラリをラップする形で提供される。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "コンバーターファクトリー",
+          "note": "生成され画像コンバーターに注入される"
+        },
+        {
+          "type": "references",
+          "target": "画像コンバーター",
+          "note": "注入される"
+        }
+      ],
+      "src": "packages/editor/server/converters/sharp.js"
+    },
+    {
+      "name": "ユーザー提供コンバーターモジュール",
+      "en": "UserProvidedConverterModule",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "ユーザーがプロジェクトに配置する JavaScript モジュール。変換関数をデフォルトエクスポートし、出力拡張子を `ext` としてエクスポートする。`blog.json` の `image_converter` にパスを指定することで #コンバーターファクトリー が解決する。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "コンバーターファクトリー",
+          "note": "読み込まれる"
+        },
+        {
+          "type": "references",
+          "target": "変換ドライバー",
+          "note": "の具体的な実装形態"
+        }
+      ],
+      "src": "src-sample/converters/webp.js（サンプル実装）"
+    },
+    {
+      "name": "ビルトインコンバーター",
+      "en": "BuiltinConverter",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "`@tenjuu99/blog` パッケージに同梱された #変換ドライバー 。`blog.json` の `image_converter` でビルトイン名（例: `\"sharp\"`）を指定することで #コンバーターファクトリー が解決する。ユーザーが別途ライブラリをインストールしなくても変換が動作することを保証する。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "コンバーターファクトリー",
+          "note": "ビルトイン名から解決される"
+        },
+        {
+          "type": "references",
+          "target": "変換ドライバー",
+          "note": "の一種"
+        }
+      ],
+      "src": "packages/editor/server/converters/sharp.js"
+    },
+    {
+      "name": "Markdown挿入器",
+      "en": null,
+      "context": "editor",
+      "domain": "solution",
+      "definition": "テキストエリアのカーソル位置に画像参照文字列を挿入する装置。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "画像アップローダー",
+          "note": "画像パスを受け取った後に呼び出す"
+        }
+      ],
+      "src": "packages/editor/js/image_upload.js insertImageMarkdown"
+    },
+    {
+      "name": "ファイルライター",
+      "en": null,
+      "context": "editor",
+      "domain": "solution",
+      "definition": "保存先パスを許可ディレクトリ内に限定して検証し、画像バッファをファイルに書き込む装置。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "アップロードエンドポイント",
+          "note": "呼び出される"
+        },
+        {
+          "type": "references",
+          "target": "画像保存先パス",
+          "note": "パスを受け取り書き込む"
+        }
+      ],
+      "src": "packages/editor/server/image_upload.js writeImageFile"
+    },
+    {
+      "name": "プレビュー自動更新器",
+      "en": "AutoPreviewInitializer",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "textareaの入力イベントを購読し、#デバウンサー を通じてプレビュー更新コールバックを起動する装置。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "デバウンサー",
+          "note": "デバウンサーを使用する"
+        },
+        {
+          "type": "references",
+          "target": "ドロップレシーバー拡張",
+          "note": "協調してプレビューの自動更新を実現する"
+        },
+        {
+          "type": "references",
+          "target": "リアルタイムプレビュー更新",
+          "note": "を実現する"
+        }
+      ],
+      "src": "packages/editor/js/autoPreviewInitializer.js initAutoPreview"
+    },
+    {
+      "name": "デバウンサー",
+      "en": "Debouncer",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "連続する呼び出しのうち最後の呼び出しから一定時間後のみコールバックを実行する装置。#テキスト入力 の「停止」を検知するために使われる。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "プレビュー自動更新器",
+          "note": "に組み込まれる"
+        },
+        {
+          "type": "references",
+          "target": "テキスト入力",
+          "note": "テキスト入力の停止を検知する"
+        }
+      ],
+      "src": "packages/editor/js/debouncer.js createDebounce"
+    },
+    {
+      "name": "ドロップレシーバー拡張",
+      "en": "DropReceiverExtension",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "既存の #ドロップレシーバー に追加される、画像挿入完了後に更新コールバックを呼び出す拡張。#インライン画像挿入 の即時プレビュー更新を実現する。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "ドロップレシーバー",
+          "note": "ドロップレシーバーの拡張"
+        },
+        {
+          "type": "references",
+          "target": "リアルタイムプレビュー更新",
+          "note": "即時トリガー経路を担う"
+        }
+      ],
+      "src": "packages/editor/js/editor.js initDropReceiver（修正）"
+    },
+    {
+      "name": "公開ハンドラー",
+      "en": "PublishHandler",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "HTTPリクエストを受け取り、#公開対象コレクター で対象を収集し、#変更反映器 で #公開する または #更新する 遷移を実行し、#公開フィードバック をレスポンスとして返す装置。ファイルの保存も一括して処理する。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "公開対象コレクター",
+          "note": "公開対象を収集させる"
+        },
+        {
+          "type": "references",
+          "target": "変更反映器",
+          "note": "遷移の実行を委譲する"
+        },
+        {
+          "type": "references",
+          "target": "公開フィードバック",
+          "note": "操作結果をレスポンスに変換する"
+        }
+      ],
+      "src": "packages/editor/server/publish.js"
+    },
+    {
+      "name": "公開ステータス判定器",
+      "en": "PublicationStatusResolver",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "#公開済み状態 を注入されて、ファイルパスから現在の #公開ステータス （未公開/更新あり/公開済み）を導出する装置。純粋関数として実装され、注入された抽象を介すことでgitなしにテストできる。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "公開済み状態",
+          "note": "注入されるリモート参照抽象"
+        },
+        {
+          "type": "references",
+          "target": "公開ステータス",
+          "note": "導出して返す"
+        }
+      ],
+      "src": "packages/editor/server/publicationStatus.js"
+    },
+    {
+      "name": "公開対象コレクター",
+      "en": "PublishTargetCollector",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "現在のファイルパスと本文から #公開対象 を収集する装置。#画像参照抽出器 を使って参照画像パスを取得し、Markdownファイルと合わせたファイルリストを返す。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "公開対象",
+          "note": "収集した結果が公開対象にあたる"
+        },
+        {
+          "type": "references",
+          "target": "画像参照抽出器",
+          "note": "参照画像の収集を委譲する"
+        }
+      ],
+      "src": "packages/editor/server/publishTargetCollector.js"
+    },
+    {
+      "name": "画像参照抽出器",
+      "en": "ImageReferenceExtractor",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "Markdown文字列から `![](...)` 形式の画像パスを抽出する装置。純粋関数として実装され、ファイルシステムへの依存を持たない。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "公開対象コレクター",
+          "note": "に組み込まれる"
+        }
+      ],
+      "src": "packages/editor/js/imageReferenceExtractor.js"
+    },
+    {
+      "name": "変更反映器",
+      "en": "ChangeReflector",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "#公開する または #更新する の遷移イベントを受けて、#公開対象 のファイル群をリモートに反映する装置。遷移の実行体（commit/push）を外部から注入できることで、実際のリモートリポジトリなしにテストが書ける。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "公開対象",
+          "note": "反映する対象を受け取る"
+        }
+      ],
+      "src": "packages/editor/server/changeReflector.js"
+    },
+    {
+      "name": "新規作成",
+      "en": "NewFileCreation",
+      "context": "editor",
+      "domain": "application",
+      "definition": "ファイル名を指定して新しいページを作る操作。ファイル選択とは独立した操作として存在し、#フロントマターテンプレート を選択できる。作成されたファイルは #公開ステータス が「未公開」の状態でローカルに #保存 される。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "フロントマターテンプレート",
+          "note": "作成時にテンプレートを選択できる"
+        },
+        {
+          "type": "references",
+          "target": "公開ステータス",
+          "note": "作成直後は「未公開」ステート"
+        },
+        {
+          "type": "references",
+          "target": "保存",
+          "note": "作成と同時にローカル保存が行われる"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "自動保存",
+      "en": "AutoSave",
+      "context": "editor",
+      "domain": "application",
+      "definition": "テキストエリアへの入力を契機に、saveボタンの操作なしにファイルがローカルに #保存 されること。#リアルタイムプレビュー更新 と同様に「書く」行為の流れを中断しない。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "保存",
+          "note": "保存の自動化された形態"
+        },
+        {
+          "type": "references",
+          "target": "リアルタイムプレビュー更新",
+          "note": "同じトリガー（テキスト入力の停止）で発火する"
+        },
+        {
+          "type": "references",
+          "target": "テキスト入力",
+          "note": "テキスト入力の停止がトリガーとなる"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "自動保存初期化器",
+      "en": "AutoSaveInitializer",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "テキストエリアへの入力イベントを受け取り、#デバウンサー を介して入力停止を検知し、保存コールバックを呼び出す装置。#プレビュー自動更新器 と同構造だが、保存を担う。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "自動保存",
+          "note": "自動保存の JS 側実現"
+        },
+        {
+          "type": "references",
+          "target": "デバウンサー",
+          "note": "入力停止の検知に使う"
+        }
+      ],
+      "src": "packages/editor/js/autoSaveInitializer.js"
+    },
+    {
+      "name": "保存エンドポイント",
+      "en": "SaveEndpoint",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "ファイル名と内容を受け取り、ローカルファイルシステムに書き込む POST エンドポイント（`/save`）。保存後はリダイレクトせず `{success: true}` を返す。#自動保存 と #新規作成 の両方から利用される共有ノード。`server/editor.js` を置き換える。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "自動保存",
+          "note": "自動保存の保存先"
+        },
+        {
+          "type": "references",
+          "target": "新規作成",
+          "note": "新規ファイル作成時の保存先"
+        }
+      ],
+      "src": "packages/editor/server/save.js"
+    },
+    {
+      "name": "新規作成UI",
+      "en": "NewFileCreationUI",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "「新規作成」ボタンとダイアログで構成されるブラウザUI。ファイル名の入力と #フロントマターテンプレート の表示・選択を担う。確定時に #保存エンドポイント を呼び出してファイルを作成し、エディタで開く。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "新規作成",
+          "note": "新規作成操作を UI として具現化する"
+        },
+        {
+          "type": "references",
+          "target": "フロントマターテンプレート",
+          "note": "ディレクトリに応じたテンプレートを表示する"
+        },
+        {
+          "type": "references",
+          "target": "保存エンドポイント",
+          "note": "確定時に呼び出す"
+        }
+      ],
+      "src": "packages/editor/js/editor.js"
+    },
+    {
+      "name": "カテゴリー",
+      "en": null,
+      "context": "category",
+      "domain": "application",
+      "definition": "#ページ に付与するラベル。階層を持てる（例: `[\"Tech\", \"Frontend\", \"React\"]`）。#ページ の #フロントマター で配列として指定する。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "ページ",
+          "context": "ssg-core"
+        },
+        {
+          "type": "references",
+          "target": "フロントマター",
+          "context": "ssg-core"
+        },
+        {
+          "type": "references",
+          "target": "カテゴリーパス"
+        },
+        {
+          "type": "references",
+          "target": "カテゴリーシステム"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "カテゴリーパス",
+      "en": null,
+      "context": "category",
+      "domain": "application",
+      "definition": "#カテゴリー の階層を表す文字列の配列（例: `[\"Tech\", \"Frontend\"]`）。先頭が最上位カテゴリー、末尾が最も具体的なカテゴリー。このパスから #カテゴリーページ のURLが導出される。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "カテゴリー"
+        },
+        {
+          "type": "references",
+          "target": "カテゴリーページ"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "カテゴリーシステム",
+      "en": null,
+      "context": "category",
+      "domain": "application",
+      "definition": "独立した分類の枠組み。`blog.json` の `categories` 配列の各要素として定義し、対象ページの範囲（`path_filter`）とURLプレフィックスを持つ。複数の #カテゴリーシステム は互いに独立して動作する。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "カテゴリーページ",
+          "note": "を生成する"
+        },
+        {
+          "type": "references",
+          "target": "ページ",
+          "context": "ssg-core",
+          "note": "の範囲を絞り込む"
+        },
+        {
+          "type": "references",
+          "target": "カテゴリー",
+          "note": "を分類する単位"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "サブカテゴリー",
+      "en": null,
+      "context": "category",
+      "domain": "application",
+      "definition": "ある #カテゴリーパス の直下に位置する子カテゴリー。#カテゴリーページ に `category_children` として列挙される。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "カテゴリーパス"
+        },
+        {
+          "type": "references",
+          "target": "カテゴリーページ"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "カテゴリーページ",
+      "en": null,
+      "context": "category",
+      "domain": "application",
+      "definition": "#カテゴリー に属する #ページ の一覧を表示する、#ビルド 時に自動生成されるページ。#カテゴリーパス に対応するURLに出力される。#ページネーション が有効な場合は複数ページに分割される。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "カテゴリーシステム",
+          "note": "によって自動生成される"
+        },
+        {
+          "type": "references",
+          "target": "カテゴリーパス",
+          "note": "と1対1で対応する"
+        },
+        {
+          "type": "references",
+          "target": "ページインデックス",
+          "context": "ssg-core",
+          "note": "に追加される"
+        },
+        {
+          "type": "references",
+          "target": "ページネーション",
+          "note": "によって分割されることがある"
+        },
+        {
+          "type": "references",
+          "target": "サブカテゴリー",
+          "note": "を表示できる"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "ページネーション",
+      "en": null,
+      "context": "category",
+      "domain": "application",
+      "definition": "#カテゴリーページ を複数の静的HTMLに分割する仕組み。`per_page` で1ページあたりの件数を指定する。1ページ目のURLはページネーション未設定時と同じで後方互換を保つ。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "カテゴリーページ",
+          "note": "を分割する"
+        },
+        {
+          "type": "references",
+          "target": "カテゴリーシステム",
+          "note": "に設定される"
+        }
+      ],
+      "src": null
+    },
+    {
+      "name": "サイドバー取得エンドポイント",
+      "en": "SidebarEndpoint",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "ページディレクトリを直接スキャンし、サイドバーツリーの HTML を返す GET エンドポイント（`/get_sidebar`）。#サイドバー の動的再描画（新規ファイル作成後など）に使われる。",
+      "relations": [
+        {
+          "type": "references",
+          "target": "サイドバー",
+          "note": "サイドバーの HTML を生成して返す"
+        },
+        {
+          "type": "references",
+          "target": "新規作成",
+          "note": "新規作成後のサイドバー更新に呼び出される"
+        }
+      ],
+      "src": "packages/editor/server/get_sidebar.js"
+    }
+  ]
+}

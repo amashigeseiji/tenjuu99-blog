@@ -3,6 +3,7 @@ import nodePath from 'node:path'
 import { styleText } from 'node:util'
 import config from '@tenjuu99/blog/lib/config.js'
 import { createConverter } from './createConverter.js'
+import { parseJsonBody } from '@tenjuu99/blog/lib/server/helper/parseRequestBody.js'
 
 const rootDir = process.cwd()
 const srcDir = nodePath.join(rootDir, config.src_dir)
@@ -18,42 +19,33 @@ const MAX_BODY_SIZE = 10 * 1024 * 1024 // 10MB
  * @test: tests/editor/editor-image-upload.test.js
  */
 export const post = async (req, res) => {
-  const chunks = []
-  let totalSize = 0
-  let aborted = false
-  req
-    .on('data', chunk => {
-      if (aborted) return
-      totalSize += chunk.length
-      if (totalSize > MAX_BODY_SIZE) {
-        aborted = true
-        res.writeHead(413, { 'content-type': 'application/json' })
-        res.end(JSON.stringify({ message: 'ファイルサイズが上限を超えています' }))
-        req.destroy()
-        return
-      }
-      chunks.push(chunk)
-    })
-    .on('end', async () => {
-      if (aborted) return
-      try {
-        const { imageData, imageFilename, mdFile } = JSON.parse(chunks.join(''))
-        if (!imageData || !imageFilename || !mdFile) {
-          res.writeHead(400, { 'content-type': 'application/json' })
-          res.end(JSON.stringify({ message: '必須パラメーターが不足しています' }))
-          return
-        }
-        const { fn, ext } = await converterPromise
-        const result = await handleImageUpload({ imageData, imageFilename, mdFile }, { converterFn: fn, outputExt: ext })
-        console.log(styleText('blue', '[upload-image] finished'))
-        res.writeHead(200, { 'content-type': 'application/json' })
-        res.end(JSON.stringify(result))
-      } catch (e) {
-        console.error(e)
-        res.writeHead(500, { 'content-type': 'application/json' })
-        res.end(JSON.stringify({ message: '画像のアップロードに失敗しました' }))
-      }
-    })
+  let json
+  try {
+    json = await parseJsonBody(req, { maxSize: MAX_BODY_SIZE })
+  } catch (e) {
+    const status = e.code === 'PAYLOAD_TOO_LARGE' ? 413 : 400
+    res.writeHead(status, { 'content-type': 'application/json' })
+    res.end(JSON.stringify({ message: e.message }))
+    return true
+  }
+
+  try {
+    const { imageData, imageFilename, mdFile } = json
+    if (!imageData || !imageFilename || !mdFile) {
+      res.writeHead(400, { 'content-type': 'application/json' })
+      res.end(JSON.stringify({ message: '必須パラメーターが不足しています' }))
+      return true
+    }
+    const { fn, ext } = await converterPromise
+    const result = await handleImageUpload({ imageData, imageFilename, mdFile }, { converterFn: fn, outputExt: ext })
+    console.log(styleText('blue', '[upload-image] finished'))
+    res.writeHead(200, { 'content-type': 'application/json' })
+    res.end(JSON.stringify(result))
+  } catch (e) {
+    console.error(e)
+    res.writeHead(500, { 'content-type': 'application/json' })
+    res.end(JSON.stringify({ message: '画像のアップロードに失敗しました' }))
+  }
   return true
 }
 
