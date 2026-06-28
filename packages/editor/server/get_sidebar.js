@@ -1,7 +1,9 @@
 import { readdirSync, existsSync } from 'node:fs'
-import { watch } from '@tenjuu99/blog/lib/dir.js'
+import { watch, rootDir } from '@tenjuu99/blog/lib/dir.js'
 import config from '@tenjuu99/blog/lib/config.js'
 import { renderSidebarTree } from '../helper/sidebarTree.js'
+import { collectStatuses } from './sidebarStatusCollector.js'
+import { createGitPublishedState } from './publish.js'
 
 export const path = '/get_sidebar'
 
@@ -34,7 +36,13 @@ function scanFiles(dir, prefix = '') {
  */
 export const get = async (req, res) => {
   const files = scanFiles(watch.pageDir)
-  const html = renderSidebarTree(files)
+  const publishedState = await createGitPublishedState(rootDir)
+  const fileMappings = files.map(f => ({
+    treePath: `${f.name}.${f.__filetype}`,
+    gitPath: `${config.src_dir}/pages/${f.name}.${f.__filetype}`,
+  }))
+  const statusMap = await collectStatuses(fileMappings, publishedState)
+  const html = renderSidebarTree(files, statusMap)
   return {
     status: 200,
     contentType: 'application/json',

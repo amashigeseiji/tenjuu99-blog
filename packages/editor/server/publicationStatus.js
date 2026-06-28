@@ -1,3 +1,4 @@
+import { styleText } from 'node:util'
 /**
  * リモートの現在の内容を参照する読み取り専用の抽象。
  * git 依存を外部から注入することで実際のリモートリポジトリなしにテストできる。
@@ -19,7 +20,8 @@ export async function getPublicationStatus(filePath, publishedState) {
     if (!exists) return 'new'
     const diff = await publishedState.diffFromRemote(filePath)
     return diff ? 'modified' : 'published'
-  } catch {
+  } catch (e) {
+    console.log(styleText('red', '[error]'), e)
     return 'unknown'
   }
 }

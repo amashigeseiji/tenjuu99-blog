@@ -48,6 +48,7 @@ function escapeHtml(str) {
 /**
  * @param {TreeNode} tree
  * @param {string} [activeFile]
+ * @param {Object.<string, 'new'|'modified'|'published'|'unknown'>} [statusMap]
  * @param {string} [_dirPath]
  * @returns {string}
  */
@@ -57,20 +58,22 @@ function escapeHtml(str) {
 // @vocab: ファイルノード
 // @vocab: アクティブファイル
 // @test: tests/editor/editor-sidebar.test.js
-export function renderTreeHtml(tree, activeFile = '', _dirPath = '') {
+export function renderTreeHtml(tree, activeFile = '', statusMap = {}, _dirPath = '') {
   let html = '<ul>'
 
   for (const [dirName, subtree] of Object.entries(tree.dirs)) {
     const dirPath = _dirPath ? `${_dirPath}/${dirName}` : dirName
     html += `<li class="dir-node"><details data-dir="${escapeHtml(dirPath)}"><summary>${escapeHtml(dirName)}</summary>`
-    html += renderTreeHtml(subtree, activeFile, dirPath)
+    html += renderTreeHtml(subtree, activeFile, statusMap, dirPath)
     html += `</details></li>`
   }
 
   for (const file of tree.files) {
     const isActive = file.path === activeFile
     const activeAttr = isActive ? ' class="active"' : ''
-    html += `<li><a href="/editor?md=${encodeURIComponent(file.path)}"${activeAttr}>${escapeHtml(file.label)}</a></li>`
+    const status = statusMap[file.path]
+    const statusAttr = status ? ` data-status="${escapeHtml(status)}"` : ''
+    html += `<li><a href="/editor?md=${encodeURIComponent(file.path)}"${activeAttr}${statusAttr}>${escapeHtml(file.label)}</a></li>`
   }
 
   html += '</ul>'

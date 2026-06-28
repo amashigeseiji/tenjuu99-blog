@@ -21,7 +21,7 @@ export const get = async (req, res) => {
     res.end(JSON.stringify({ error: '不正なファイルパスです' }))
     return true
   }
-  const publishedState = createGitPublishedState(rootDir)
+  const publishedState = await createGitPublishedState(rootDir)
   const status = await getPublicationStatus(filePath, publishedState)
   res.writeHead(200, { 'content-type': 'application/json' })
   res.end(JSON.stringify({ status }))

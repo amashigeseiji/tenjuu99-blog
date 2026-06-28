@@ -37,27 +37,27 @@ export async function handlePublish({ filePath, fileContent, srcDir: srcDirParam
  * @param {string} cwd - git リポジトリのルートパス
  * @returns {import('./publicationStatus.js').PublishedState}
  */
-export function createGitPublishedState(cwd) {
-  const getUpstreamRef = async () => {
-    const { stdout } = await execFileAsync(
+export async function createGitPublishedState(cwd) {
+  try {
+    const { stdout: refOut } = await execFileAsync(
       'git', ['rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}'], { cwd }
     )
-    return stdout.trim()
-  }
-  return {
-    existsInRemote: async (filePath) => {
-      const ref = await getUpstreamRef()
-      try {
-        await execFileAsync('git', ['cat-file', '-e', `${ref}:${filePath}`], { cwd })
-        return true
-      } catch {
-        return false
-      }
-    },
-    diffFromRemote: async (filePath) => {
-      const ref = await getUpstreamRef()
-      const { stdout } = await execFileAsync('git', ['diff', ref, '--', filePath], { cwd })
-      return stdout.trim()
+    const ref = refOut.trim()
+    const [{ stdout: treeOut }, { stdout: diffOut }] = await Promise.all([
+      execFileAsync('git', ['ls-tree', '-r', '--name-only', ref], { cwd }),
+      execFileAsync('git', ['diff', '--name-only', ref], { cwd }),
+    ])
+    const remoteFiles = new Set(treeOut.trim().split('\n').filter(Boolean))
+    const modifiedFiles = new Set(diffOut.trim().split('\n').filter(Boolean))
+    return {
+      existsInRemote: async (filePath) => remoteFiles.has(filePath),
+      diffFromRemote: async (filePath) => modifiedFiles.has(filePath) ? 'modified' : '',
+    }
+  } catch (e) {
+    // upstream 未設定など → getPublicationStatus が 'unknown' を返せるよう再スロー
+    return {
+      existsInRemote: async () => { throw e },
+      diffFromRemote: async () => { throw e },
     }
   }
 }
@@ -117,7 +117,7 @@ export const post = async (req, res) => {
       if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
       fs.writeFileSync(`${srcDir}/pages/${filePath}`, fileContent)
     }
-    const publishedState = createGitPublishedState(rootDir)
+    const publishedState = await createGitPublishedState(rootDir)
     const publishActions = createGitPublishActions(rootDir)
     const result = await handlePublish(
       { filePath, fileContent: content, srcDir: config.src_dir },
