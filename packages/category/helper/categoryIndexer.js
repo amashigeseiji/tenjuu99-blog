@@ -4,7 +4,7 @@ import { buildCategoryTree } from './category.js'
  * 記事名配列を perPage 件ずつのページ配列に分割する
  * 空の場合は [[]] を返す（ページ数ゼロを避けるため）
  */
-// @vocab: ページネーション (docs/dictionary.md#ページネーション)
+// @vocab: ページネーション
 // @test: tests/category/category-pagination.test.js
 function sliceIntoPages(items, perPage) {
   if (items.length === 0) return [[]]
@@ -39,8 +39,8 @@ function sliceIntoPages(items, perPage) {
  * @param {Object} categoryConfig - 単一カテゴリー設定オブジェクト
  * @param {Object} config - グローバル設定オブジェクト
  */
-// @vocab: カテゴリーページ (docs/dictionary.md#カテゴリーページ)
-// @vocab: ページネーション (docs/dictionary.md#ページネーション)
+// @vocab: カテゴリーページ
+// @vocab: ページネーション
 // @test: tests/category/category-pagination.test.js
 function buildVirtualPage(url, categoryData, children, currentPage, totalPages, categoryConfig, config) {
   const pageName = url.replace(/^\//, '') + '/index'
@@ -87,9 +87,9 @@ function buildVirtualPage(url, categoryData, children, currentPage, totalPages, 
  * @param {Object} categoryConfig - 単一カテゴリー設定オブジェクト
  * @param {Object} config - グローバル設定オブジェクト
  */
-// @vocab: カテゴリーページ (docs/dictionary.md#カテゴリーページ)
-// @vocab: カテゴリーシステム (docs/dictionary.md#カテゴリーシステム)
-// @vocab: ページネーション (docs/dictionary.md#ページネーション)
+// @vocab: カテゴリーページ
+// @vocab: カテゴリーシステム
+// @vocab: ページネーション
 // @test: tests/category/category-pagination.test.js
 function generateCategoryPages(allData, categoryConfig, config) {
   const pathFilter = categoryConfig.path_filter || ''
@@ -149,8 +149,8 @@ function generateCategoryPages(allData, categoryConfig, config) {
  * @param {Object} allData - 全ページデータ
  * @param {Object} config - 設定オブジェクト
  */
-// @vocab: カテゴリーシステム (docs/dictionary.md#カテゴリーシステム)
-// @vocab: ビルド (docs/dictionary.md#ビルド)
+// @vocab: カテゴリーシステム
+// @vocab: ビルド
 // @test: tests/category/category-indexer.test.js
 export async function afterIndexing(allData, config) {
   const categorySystems = config.categories

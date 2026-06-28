@@ -1,5 +1,5 @@
 /**
- * @vocab: Markdown挿入器 (docs/dictionary.md#Markdown挿入器)
+ * @vocab: Markdown挿入器
  * @test: tests/editor/editor-image-upload.test.js
  * @param {string} content
  * @param {number} cursorPos

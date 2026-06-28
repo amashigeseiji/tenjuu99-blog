@@ -6,7 +6,7 @@
  * ファイルパスにマッチするフロントマターテンプレート設定を選択する。
  * 複数マッチする場合は最も長いプレフィックスを優先する。
  *
- * @vocab: テンプレートマッチャー (docs/dictionary.md#テンプレートマッチャー)
+ * @vocab: テンプレートマッチャー
  * @test: tests/editor/editor-frontmatter-template.test.js
  *
  * @param {string} filePath - 新規ファイルのパス（例: "book/my-book.md"）
@@ -32,7 +32,7 @@ export function matchTemplate(filePath, templates) {
  * フロントマターテンプレート設定をフロントマター文字列に変換する。
  * title はファイル名から自動生成する（fields に title がある場合でもファイル名を優先）。
  *
- * @vocab: テンプレートインジェクター (docs/dictionary.md#テンプレートインジェクター)
+ * @vocab: テンプレートインジェクター
  * @test: tests/editor/editor-frontmatter-template.test.js
  *
  * @param {FrontmatterTemplateConfig} template - マッチしたテンプレート設定
@@ -52,7 +52,7 @@ export function buildFrontmatterString(template, baseName) {
  * ファイルパスとテンプレート設定一覧からフロントマター文字列を生成する。
  * マッチするテンプレートがない場合は null を返す。
  *
- * @vocab: フロントマターテンプレートローダー (docs/dictionary.md#フロントマターテンプレートローダー)
+ * @vocab: フロントマターテンプレートローダー
  * @test: tests/editor/editor-frontmatter-template.test.js
  *
  * @param {string} filePath - 新規ファイルのパス（例: "book/my-book.md"）

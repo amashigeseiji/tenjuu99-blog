@@ -2,7 +2,7 @@ import { initAutoPreview } from './autoPreviewInitializer.js'
 import { initAutoSave } from './autoSaveInitializer.js'
 import { matchTemplate, buildFrontmatterString, loadFrontmatterTemplate } from './frontmatter_template.js'
 
-// @vocab: テンプレートレゾルバー (docs/dictionary.md#テンプレートレゾルバー)
+// @vocab: テンプレートレゾルバー
 // @test: tests/editor/editor-frontmatter-template.test.js
 let _frontmatterTemplates = []
 const initFrontmatterTemplate = async () => {
@@ -162,7 +162,7 @@ const onloadFunction = async (e) => {
     }
   }
 
-  // @vocab: プレビュー自動更新器 (plans/editor-realtime-preview/dictionary.md#プレビュー自動更新器)
+  // @vocab: プレビュー自動更新器
   const debouncedUpdate = initAutoPreview(textarea, () => submit('/preview', form), 500)
   initAutoSave(textarea, autoSave, 500)
   initDropReceiver(textarea, () => inputFileName.value, () => submit('/preview', form), () => debouncedUpdate.cancel())
@@ -250,7 +250,7 @@ const onloadFunction = async (e) => {
 const SIDEBAR_OPEN_KEY = 'sidebar-is-open'
 const DIR_OPEN_KEY = 'sidebar-dir-open'
 
-// @vocab: 展開状態 (docs/dictionary.md#展開状態)
+// @vocab: 展開状態
 // @test: tests/editor/editor-sidebar.test.js
 const loadDirOpenState = () => {
   try {
@@ -260,15 +260,15 @@ const loadDirOpenState = () => {
   }
 }
 
-// @vocab: 展開状態 (docs/dictionary.md#展開状態)
+// @vocab: 展開状態
 // @test: tests/editor/editor-sidebar.test.js
 const saveDirOpenState = (state) => {
   localStorage.setItem(DIR_OPEN_KEY, JSON.stringify(state))
 }
 
-// @vocab: サイドバー (docs/dictionary.md#サイドバー)
-// @vocab: アクティブファイル (docs/dictionary.md#アクティブファイル)
-// @vocab: 展開状態 (docs/dictionary.md#展開状態)
+// @vocab: サイドバー
+// @vocab: アクティブファイル
+// @vocab: 展開状態
 // @test: tests/editor/editor-sidebar.test.js
 const initSidebarTree = (activeFile) => {
   const state = loadDirOpenState()
@@ -321,7 +321,7 @@ const initSidebarContent = async (activeFile) => {
   }
 }
 
-// @vocab: サイドバー (docs/dictionary.md#サイドバー)
+// @vocab: サイドバー
 // @test: tests/editor/editor-sidebar.test.js
 const sidebarToggle = (e) => {
   const sidebar = document.querySelector('.sidebar')
@@ -343,7 +343,7 @@ const sidebarToggle = (e) => {
   })
 }
 
-// @vocab: 画像アップローダー (docs/dictionary.md#画像アップローダー)
+// @vocab: 画像アップローダー
 const uploadImage = async (file, mdFile) => {
   const buffer = await file.arrayBuffer()
   const base64 = btoa(new Uint8Array(buffer).reduce((s, b) => s + String.fromCharCode(b), ''))
@@ -357,8 +357,8 @@ const uploadImage = async (file, mdFile) => {
   return json.markdownUrl
 }
 
-// @vocab: ドロップレシーバー (docs/dictionary.md#ドロップレシーバー)
-// @vocab: ドロップ後更新 (plans/editor-realtime-preview/dictionary.md#ドロップレシーバー拡張)
+// @vocab: ドロップレシーバー
+// @vocab: ドロップ後更新
 const initDropReceiver = (textarea, getMdFile, onUpdate, cancelPendingDebounce) => {
   textarea.addEventListener('dragover', (e) => {
     e.preventDefault()

@@ -1,5 +1,5 @@
 /**
- * @vocab: 変更反映器 (docs/dictionary.md#変更反映器)
+ * @vocab: 変更反映器
  * @test tests/editor/publish.test.js
  */
 
@@ -23,7 +23,7 @@ async function reflect(files, publishActions) {
 }
 
 /**
- * @vocab: 公開する (docs/dictionary.md#公開する)
+ * @vocab: 公開する
  * 未公開 → 公開済み 遷移。更新する と現在は同じ実装だが、
  * 将来「非公開にする」「削除する」などの遷移が加わったとき実装が分岐する。
  * @param {string[]} files - コミット対象ファイルパスの配列
@@ -35,7 +35,7 @@ export async function publish(files, publishActions) {
 }
 
 /**
- * @vocab: 更新する (docs/dictionary.md#更新する)
+ * @vocab: 更新する
  * 更新あり → 公開済み 遷移。公開する と現在は同じ実装だが、
  * 将来「非公開にする」「削除する」などの遷移が加わったとき実装が分岐する。
  * @param {string[]} files - コミット対象ファイルパスの配列

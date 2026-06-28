@@ -1,7 +1,7 @@
 import { allData, config } from '@tenjuu99/blog'
 
-// @vocab: ページインデックス (docs/dictionary.md#ページインデックス)
-// @vocab: ページ (docs/dictionary.md#ページ)
+// @vocab: ページインデックス
+// @vocab: ページ
 // @test: tests/ssg-core/indexer.test.js
 export function readIndex (filter = null) {
   const data = Object.entries(allData)
@@ -16,8 +16,8 @@ export function dateFormat(dateString) {
   return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`
 }
 
-// @vocab: ページ (docs/dictionary.md#ページ)
-// @vocab: ページインデックス (docs/dictionary.md#ページインデックス)
+// @vocab: ページ
+// @vocab: ページインデックス
 // @test: tests/ssg-core/pageData.test.js
 export function getPageData(name) {
   return allData[name]
@@ -47,8 +47,8 @@ export function arrayToList(arrayOrText) {
   return arrayOrText
 }
 
-// @vocab: ページインデックス (docs/dictionary.md#ページインデックス)
-// @vocab: ページ (docs/dictionary.md#ページ)
+// @vocab: ページインデックス
+// @vocab: ページ
 // @test: tests/ssg-core/indexer.test.js
 export function renderIndex(pages, nodate = 'nodate', headingTag = 'h3') {
   if (!pages) {

@@ -3,8 +3,8 @@ import nodePath from 'node:path'
 const rootDir = process.cwd()
 
 /**
- * @vocab: コンバーターファクトリー (docs/dictionary.md#コンバーターファクトリー)
- * @vocab: 画像コンバーター (docs/dictionary.md#画像コンバーター)
+ * @vocab: コンバーターファクトリー
+ * @vocab: 画像コンバーター
  * @test: tests/editor/editor-image-upload.test.js
  * @param {Function|string|null} converterOrName - 関数、ユーザーパス（./で始まる）、またはビルトイン名
  * @returns {Promise<{ fn: Function, ext: string|null }>}

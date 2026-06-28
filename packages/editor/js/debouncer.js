@@ -1,5 +1,5 @@
 /**
- * @vocab Debouncer (plans/editor-realtime-preview/dictionary.md#デバウンサー)
+ * @vocab デバウンサー
  * @test tests/editor/auto-preview.test.js
  */
 export function createDebounce(fn, delay) {

@@ -15,7 +15,7 @@ const converterPromise = createConverter(config.image_converter ?? null)
 const MAX_BODY_SIZE = 10 * 1024 * 1024 // 10MB
 
 /**
- * @vocab: アップロードエンドポイント (docs/dictionary.md#アップロードエンドポイント)
+ * @vocab: アップロードエンドポイント
  * @test: tests/editor/editor-image-upload.test.js
  */
 export const post = async (req, res) => {
@@ -52,7 +52,7 @@ export const post = async (req, res) => {
 export { createConverter }
 
 /**
- * @vocab: パスリゾルバー (docs/dictionary.md#パスリゾルバー)
+ * @vocab: パスリゾルバー
  * @test: tests/editor/editor-image-upload.test.js
  * @param {string} mdFilePath
  * @param {string} imageFilename
@@ -77,7 +77,7 @@ export function resolveImagePath(mdFilePath, imageFilename, outputExt = null) {
 }
 
 /**
- * @vocab: ファイルライター (docs/dictionary.md#ファイルライター)
+ * @vocab: ファイルライター
  * @test: tests/editor/editor-image-upload.test.js
  * @param {string} saveSubPath - src/ 以下の相対パス
  * @param {Buffer} data
@@ -94,7 +94,7 @@ export function writeImageFile(saveSubPath, data, baseDir = srcDir) {
 }
 
 /**
- * @vocab: アップロードエンドポイント (docs/dictionary.md#アップロードエンドポイント)
+ * @vocab: アップロードエンドポイント
  * @test: tests/editor/editor-image-upload.test.js
  * @param {{ imageData: string, imageFilename: string, mdFile: string }} payload
  * @param {{ converterFn?: Function, outputExt?: string|null, baseDir?: string }} [options]

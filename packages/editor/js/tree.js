@@ -6,9 +6,9 @@
  * @param {Array<{name: string, __filetype: string, url: string}>} files
  * @returns {TreeNode}
  */
-// @vocab: ツリービルダー (docs/dictionary.md#ツリービルダー)
-// @vocab: ファイルリスト (docs/dictionary.md#ファイルリスト)
-// @vocab: ディレクトリツリー (docs/dictionary.md#ディレクトリツリー)
+// @vocab: ツリービルダー
+// @vocab: ファイルリスト
+// @vocab: ディレクトリツリー
 // @test: tests/editor/editor-sidebar.test.js
 export function buildTree(files) {
   const root = { dirs: {}, files: [] }
@@ -51,11 +51,11 @@ function escapeHtml(str) {
  * @param {string} [_dirPath]
  * @returns {string}
  */
-// @vocab: ツリーレンダラー (docs/dictionary.md#ツリーレンダラー)
-// @vocab: ディレクトリツリー (docs/dictionary.md#ディレクトリツリー)
-// @vocab: ディレクトリノード (docs/dictionary.md#ディレクトリノード)
-// @vocab: ファイルノード (docs/dictionary.md#ファイルノード)
-// @vocab: アクティブファイル (docs/dictionary.md#アクティブファイル)
+// @vocab: ツリーレンダラー
+// @vocab: ディレクトリツリー
+// @vocab: ディレクトリノード
+// @vocab: ファイルノード
+// @vocab: アクティブファイル
 // @test: tests/editor/editor-sidebar.test.js
 export function renderTreeHtml(tree, activeFile = '', _dirPath = '') {
   let html = '<ul>'

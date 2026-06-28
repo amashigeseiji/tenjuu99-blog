@@ -1,7 +1,7 @@
 import { extractImageReferences } from '../js/imageReferenceExtractor.js'
 
 /**
- * @vocab: 公開対象コレクター (docs/dictionary.md#公開対象コレクター)
+ * @vocab: 公開対象コレクター
  * @test tests/editor/publish.test.js
  * @param {string} filePath - pages ディレクトリからの相対パス（例: `post/hello.md`）
  * @param {string} fileContent - Markdown 本文
