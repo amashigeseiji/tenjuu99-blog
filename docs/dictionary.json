@@ -933,7 +933,7 @@
       "en": null,
       "context": "editor",
       "domain": "solution",
-      "definition": "#ツリービルダー が生成したツリーデータを HTML 文字列に変換する装置。#ディレクトリノード を `<details>/<summary>`、#ファイルノード をエディタリンク `<a>` として出力する。#アクティブファイル のノードには `class=\"active\"` を付与する。実装は `renderTreeHtml(tree, activeFile)` 関数。",
+      "definition": "#ツリービルダー が生成したツリーデータを HTML 文字列に変換する装置。#ディレクトリノード を `<details>/<summary>`、#ファイルノード をエディタリンク `<a>` として出力する。#アクティブファイル のノードには `class=\"active\"` を付与する。#公開ステータス を受け取り、各 #ファイルノード に `data-status` 属性を付与する。",
       "relations": [
         {
           "type": "references",
@@ -1790,6 +1790,17 @@
         }
       ],
       "src": "packages/editor/server/get_sidebar.js"
+    },
+    {
+      "name": "ファイルステータスコレクター",
+      "en": "SidebarStatusCollector",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "ファイル群の #公開ステータス をまとめて取得できるもの。",
+      "relations": [
+        { "type": "references", "target": "公開ステータス判定器" }
+      ],
+      "src": "packages/editor/server/sidebarStatusCollector.js"
     }
   ]
 }
