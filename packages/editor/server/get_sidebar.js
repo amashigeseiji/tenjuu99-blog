@@ -30,7 +30,7 @@ function scanFiles(dir, prefix = '') {
 }
 
 /**
- * @vocab サイドバー取得エンドポイント (plans/editor-ui-cleanup/dictionary.md#サイドバー取得エンドポイント)
+ * @vocab サイドバー取得エンドポイント
  */
 export const get = async (req, res) => {
   const files = scanFiles(watch.pageDir)

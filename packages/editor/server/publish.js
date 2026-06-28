@@ -8,6 +8,7 @@ import { rootDir, srcDir } from '@tenjuu99/blog/lib/dir.js'
 import { collectTarget } from './publishTargetCollector.js'
 import { publish, update } from './changeReflector.js'
 import { getPublicationStatus } from './publicationStatus.js'
+import { parseJsonBody } from '@tenjuu99/blog/lib/server/helper/parseRequestBody.js'
 
 const execFileAsync = promisify(execFile)
 
@@ -88,45 +89,47 @@ function createGitPublishActions(cwd) {
 export const path = '/publish'
 
 export const post = async (req, res) => {
-  const chunks = []
-  req
-    .on('data', chunk => chunks.push(chunk))
-    .on('end', async () => {
-      try {
-        const body = JSON.parse(chunks.join(''))
-        const { filePath, fileContent } = body
-        if (!filePath) {
-          res.writeHead(400, { 'content-type': 'application/json' })
-          res.end(JSON.stringify({ success: false, error: 'ファイル名がありません' }))
-          return
-        }
-        const pagesDir = nodePath.join(srcDir, 'pages')
-        const resolvedFilePath = nodePath.resolve(pagesDir, filePath)
-        if (!resolvedFilePath.startsWith(pagesDir + nodePath.sep)) {
-          res.writeHead(400, { 'content-type': 'application/json' })
-          res.end(JSON.stringify({ success: false, error: '不正なファイルパスです' }))
-          return
-        }
-        const content = fileContent != null ? fileContent : fs.readFileSync(`${srcDir}/pages/${filePath}`, 'utf-8')
-        if (fileContent != null) {
-          const dir = `${srcDir}/pages/${filePath}`.split('/').slice(0, -1).join('/')
-          if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
-          fs.writeFileSync(`${srcDir}/pages/${filePath}`, fileContent)
-        }
-        const publishedState = createGitPublishedState(rootDir)
-        const publishActions = createGitPublishActions(rootDir)
-        const result = await handlePublish(
-          { filePath, fileContent: content, srcDir: config.src_dir },
-          publishedState,
-          publishActions
-        )
-        console.log(styleText(result.success ? 'green' : 'red', `[publish] ${filePath} ${result.success ? 'ok' : result.error}`))
-        res.writeHead(result.success ? 200 : 500, { 'content-type': 'application/json' })
-        res.end(JSON.stringify(result))
-      } catch (error) {
-        res.writeHead(500, { 'content-type': 'application/json' })
-        res.end(JSON.stringify({ success: false, error: error.message }))
-      }
-    })
+  let body
+  try {
+    body = await parseJsonBody(req)
+  } catch (e) {
+    res.writeHead(400, { 'content-type': 'application/json' })
+    res.end(JSON.stringify({ success: false, error: e.message }))
+    return true
+  }
+  try {
+    const { filePath, fileContent } = body
+    if (!filePath) {
+      res.writeHead(400, { 'content-type': 'application/json' })
+      res.end(JSON.stringify({ success: false, error: 'ファイル名がありません' }))
+      return true
+    }
+    const pagesDir = nodePath.join(srcDir, 'pages')
+    const resolvedFilePath = nodePath.resolve(pagesDir, filePath)
+    if (!resolvedFilePath.startsWith(pagesDir + nodePath.sep)) {
+      res.writeHead(400, { 'content-type': 'application/json' })
+      res.end(JSON.stringify({ success: false, error: '不正なファイルパスです' }))
+      return true
+    }
+    const content = fileContent != null ? fileContent : fs.readFileSync(`${srcDir}/pages/${filePath}`, 'utf-8')
+    if (fileContent != null) {
+      const dir = `${srcDir}/pages/${filePath}`.split('/').slice(0, -1).join('/')
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+      fs.writeFileSync(`${srcDir}/pages/${filePath}`, fileContent)
+    }
+    const publishedState = createGitPublishedState(rootDir)
+    const publishActions = createGitPublishActions(rootDir)
+    const result = await handlePublish(
+      { filePath, fileContent: content, srcDir: config.src_dir },
+      publishedState,
+      publishActions
+    )
+    console.log(styleText(result.success ? 'green' : 'red', `[publish] ${filePath} ${result.success ? 'ok' : result.error}`))
+    res.writeHead(result.success ? 200 : 500, { 'content-type': 'application/json' })
+    res.end(JSON.stringify(result))
+  } catch (error) {
+    res.writeHead(500, { 'content-type': 'application/json' })
+    res.end(JSON.stringify({ success: false, error: error.message }))
+  }
   return true
 }

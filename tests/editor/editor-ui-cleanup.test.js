@@ -7,7 +7,7 @@ import { initAutoSave } from '../../packages/editor/js/autoSaveInitializer.js'
 import { saveFile } from '../../packages/editor/server/save.js'
 
 // ルートテスト: ツリーが完成するまで green にしない
-// @vocab: エディタ (docs/dictionary.md#エディタ)
+// @vocab: エディタ
 describe('エディタは整合した操作フローを提供できる', () => {
   it('テキスト入力が止まった後に保存が実行され整合した操作フローを提供できる', async (t) => {
     t.mock.timers.enable({ apis: ['setTimeout'] })
@@ -31,9 +31,9 @@ describe('エディタは整合した操作フローを提供できる', () => {
 
   // ── 自動保存器 ──────────────────────────────────────────────────────────────
 
-  // @vocab: 自動保存 (plans/editor-ui-cleanup/dictionary.md#自動保存)
+  // @vocab: 自動保存
   describe('自動保存器は入力を契機に保存できる', () => {
-    // @vocab: 自動保存初期化器 (plans/editor-ui-cleanup/dictionary.md#自動保存初期化器)
+    // @vocab: 自動保存初期化器
     // @test: tests/editor/editor-ui-cleanup.test.js
     describe('自動保存初期化器は入力停止を検知して保存コールバックを呼べる', () => {
       it('textareaへの入力が止まった後、保存コールバックが呼ばれる', (t) => {
@@ -66,7 +66,7 @@ describe('エディタは整合した操作フローを提供できる', () => {
       })
     })
 
-    // @vocab: 保存エンドポイント (plans/editor-ui-cleanup/dictionary.md#保存エンドポイント)
+    // @vocab: 保存エンドポイント
     // @test: tests/editor/editor-ui-cleanup.test.js
     describe('保存エンドポイントはリダイレクトなしにファイルを保存できる', () => {
       it('ファイル名と内容を受け取ってファイルを保存し success を返す', async () => {
@@ -94,9 +94,9 @@ describe('エディタは整合した操作フローを提供できる', () => {
 
   // ── 新規作成器 ──────────────────────────────────────────────────────────────
 
-  // @vocab: 新規作成 (plans/editor-ui-cleanup/dictionary.md#新規作成)
+  // @vocab: 新規作成
   describe('新規作成器はファイルを新規作成できる', () => {
-    // @vocab: 新規作成UI (plans/editor-ui-cleanup/dictionary.md#新規作成UI)
+    // @vocab: 新規作成UI
     describe('新規作成UIはファイル名とテンプレートを受け付けられる', () => {
       it('手動確認のみ（ブラウザUI）', { skip: true }, () => {})
       it('Enterキーで作成を確定できる（手動確認のみ）', { skip: true }, () => {})
@@ -105,7 +105,7 @@ describe('エディタは整合した操作フローを提供できる', () => {
       it('作成後にサイドバーを更新できる（手動確認のみ）', { skip: true }, () => {})
     })
 
-    // @vocab: 新規作成エンドポイント (plans/editor-ui-cleanup/dictionary.md#新規作成エンドポイント)
+    // @vocab: 保存エンドポイント
     describe('新規作成エンドポイントは既存ファイルへの上書きを拒否できる', () => {
       it('createOnly オプション指定時、ファイルが存在しなければ作成して success を返す', async () => {
         const dir = mkdtempSync(join(tmpdir(), 'create-test-'))
@@ -131,7 +131,7 @@ describe('エディタは整合した操作フローを提供できる', () => {
       })
     })
 
-    // @vocab: 保存エンドポイント (plans/editor-ui-cleanup/dictionary.md#保存エンドポイント)
+    // @vocab: 保存エンドポイント
     // 共有ノード: 自動保存器と同じ saveFile を利用する（テストは自動保存器側に集約）
     describe('保存エンドポイントはリダイレクトなしにファイルを保存できる', () => {
       it('新規ファイルを作成して未公開状態で保存する（saveFile を利用）', async () => {

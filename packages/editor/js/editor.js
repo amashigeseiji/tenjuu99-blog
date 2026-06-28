@@ -2,8 +2,6 @@ import { initAutoPreview } from './autoPreviewInitializer.js'
 import { initAutoSave } from './autoSaveInitializer.js'
 import { matchTemplate, buildFrontmatterString, loadFrontmatterTemplate } from './frontmatter_template.js'
 
-const sleep = waitTime => new Promise( resolve => setTimeout(resolve, waitTime) );
-
 // @vocab: テンプレートレゾルバー (docs/dictionary.md#テンプレートレゾルバー)
 // @test: tests/editor/editor-frontmatter-template.test.js
 let _frontmatterTemplates = []
@@ -77,10 +75,6 @@ const onloadFunction = async (e) => {
         alert(json.message)
         return
       }
-      if (json.href) {
-        await sleep(300)
-        location.href = json.href
-      }
       if (json.preview) {
         const old = preview.querySelector('iframe')
         if (!old) {
@@ -149,8 +143,8 @@ const onloadFunction = async (e) => {
     }
   }
 
-  // @vocab: 自動保存 (plans/editor-ui-cleanup/dictionary.md#自動保存)
-  // @vocab: 自動保存初期化器 (plans/editor-ui-cleanup/dictionary.md#自動保存初期化器)
+  // @vocab: 自動保存
+  // @vocab: 自動保存初期化器
   const autoSave = async () => {
     const filename = inputFileName.value
     if (!filename) return
@@ -173,7 +167,7 @@ const onloadFunction = async (e) => {
   initAutoSave(textarea, autoSave, 500)
   initDropReceiver(textarea, () => inputFileName.value, () => submit('/preview', form), () => debouncedUpdate.cancel())
 
-  // @vocab: 新規作成UI (plans/editor-ui-cleanup/dictionary.md#新規作成UI)
+  // @vocab: 新規作成UI
   const newFileBtn = document.querySelector('#newFileBtn')
   const newFileDialog = document.querySelector('#newFileDialog')
   const newFileNameInput = document.querySelector('#newFileName')
@@ -182,7 +176,6 @@ const onloadFunction = async (e) => {
   const confirmNewFile = document.querySelector('#confirmNewFile')
   const cancelNewFile = document.querySelector('#cancelNewFile')
 
-  // @vocab: 作成後にサイドバーを更新できる (plans/editor-ui-cleanup/dictionary.md#サイドバー取得エンドポイント)
   const refreshSidebar = () => initSidebarContent(inputFileName.value)
 
   newFileBtn.addEventListener('click', () => {
@@ -312,7 +305,7 @@ const initSidebarTree = (activeFile) => {
   }
 }
 
-// @vocab: サイドバー取得エンドポイント (plans/editor-ui-cleanup/dictionary.md#サイドバー取得エンドポイント)
+// @vocab: サイドバー取得エンドポイント
 const initSidebarContent = async (activeFile) => {
   try {
     const res = await fetch('/get_sidebar')

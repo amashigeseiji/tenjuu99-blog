@@ -3,7 +3,7 @@ import nodePath from 'node:path'
 import { styleText } from 'node:util'
 import config from '@tenjuu99/blog/lib/config.js'
 import { createConverter } from './createConverter.js'
-import { parseJsonBody } from './helper/parseRequestBody.js'
+import { parseJsonBody } from '@tenjuu99/blog/lib/server/helper/parseRequestBody.js'
 
 const rootDir = process.cwd()
 const srcDir = nodePath.join(rootDir, config.src_dir)

@@ -1,7 +1,7 @@
 import { createDebounce } from './debouncer.js'
 
 /**
- * @vocab AutoSaveInitializer (plans/editor-ui-cleanup/dictionary.md#自動保存初期化器)
+ * @vocab 自動保存初期化器
  * @test tests/editor/editor-ui-cleanup.test.js
  * @param {EventTarget} textarea
  * @param {() => void} onSave

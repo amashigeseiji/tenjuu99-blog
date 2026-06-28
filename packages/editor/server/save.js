@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import { styleText } from 'node:util'
 import { watch, pageDir as cachePageDir } from '@tenjuu99/blog/lib/dir.js'
 import { indexing } from '@tenjuu99/blog/lib/indexer.js'
-import { parseJsonBody } from './helper/parseRequestBody.js'
+import { parseJsonBody } from '@tenjuu99/blog/lib/server/helper/parseRequestBody.js'
 
 export const path = '/save'
 
@@ -25,7 +25,7 @@ function validateFilename(filename) {
 }
 
 /**
- * @vocab SaveEndpoint (plans/editor-ui-cleanup/dictionary.md#保存エンドポイント)
+ * @vocab 保存エンドポイント
  * @test tests/editor/editor-ui-cleanup.test.js
  * @param {string} filename
  * @param {string} content
