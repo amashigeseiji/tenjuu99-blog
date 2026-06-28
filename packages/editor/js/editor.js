@@ -58,6 +58,7 @@ const onloadFunction = async (e) => {
     }).catch(e => {
       console.log('error!!!')
       console.log(e)
+      setCurrentFile(target)
     })
   }
 
@@ -153,11 +154,18 @@ const onloadFunction = async (e) => {
   const autoSave = async () => {
     const filename = inputFileName.value
     if (!filename) return
-    await fetch('/save', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ filename, content: textarea.value })
-    })
+    try {
+      const res = await fetch('/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename, content: textarea.value })
+      })
+      if (!res.ok) {
+        console.log('[auto-save] 保存に失敗しました', res.status)
+      }
+    } catch (e) {
+      console.log('[auto-save] ネットワークエラー', e)
+    }
   }
 
   // @vocab: プレビュー自動更新器 (plans/editor-realtime-preview/dictionary.md#プレビュー自動更新器)
@@ -297,7 +305,7 @@ const initSidebarTree = (activeFile) => {
 
   // アクティブファイルに class="active" を付与（SSG では静的に付与できないため JS で補完）
   if (activeFile) {
-    const link = document.querySelector(`.sidebar a[href="/editor?md=${CSS.escape(activeFile)}"]`)
+    const link = document.querySelector(`.sidebar a[href="/editor?md=${encodeURIComponent(activeFile)}"]`)
     if (link) {
       link.classList.add('active')
     }

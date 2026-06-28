@@ -123,7 +123,7 @@ describe('エディタは整合した操作フローを提供できる', () => {
         try {
           await saveFile('post/exists.md', '# Existing', dir)
           const result = await saveFile('post/exists.md', '# New', dir, { createOnly: true })
-          assert.deepStrictEqual(result, { success: false, error: 'ファイルが既に存在します' })
+          assert.deepStrictEqual(result, { success: false, error: 'ファイルが既に存在します', code: 'FILE_EXISTS' })
           assert.equal(readFileSync(join(dir, 'post/exists.md'), 'utf-8'), '# Existing', '既存ファイルが上書きされていない')
         } finally {
           rmSync(dir, { recursive: true, force: true })
