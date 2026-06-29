@@ -16,6 +16,8 @@
   <!-- layout shift 対策 -->
   <script>if(localStorage.getItem('sidebar-is-open')!=='true'){document.currentScript.closest('main').classList.add('sidebar-close')}</script>
     <div class="sidebar">
+      <div class="sidebar-header">hoge</div>
+      <div class="sidebar-files"></div>
       <div class="sidebar-toggle">&nbsp;</div>
     </div>
     <form action="/editor" class="editor" method="post" id="editor">
@@ -40,6 +42,7 @@
       </div>
       <input type="hidden" name="token" value="{{TOKEN}}">
     </form>
+    <footer class="footer"></footer>
     <dialog id="newFileDialog">
       <form method="dialog">
         <h3>新規ファイルを作成</h3>

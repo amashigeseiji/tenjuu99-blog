@@ -2,6 +2,8 @@
   --sidebar-width: 300px;
   --sidebar-close-width: 20px;
   --sidebar-transition-speed: 0.2s;
+  --header-height: 30px;
+  --footer-height: 20px;
 }
 body {
   background: #fafafa;
@@ -26,7 +28,6 @@ main.container {
   display: flex;
   margin: 0;
   border: 1px solid #666;
-  border-radius: 5px;
   height: 100%;
 }
 .textareaAndPreview>* {
@@ -35,9 +36,8 @@ main.container {
 .editor {
   display: flex;
   flex-direction: column;
-  padding: 5px;
   justify-content:center;
-  height: 100%;
+  height: calc(100% - var(--footer-height));
   /* width: 100%; */
   margin: 0;
   position: relative;
@@ -59,7 +59,7 @@ main:not(.sidebar-close) .editor {
   justify-content: space-between;
   align-items: center;
   gap: 8px;
-  margin-bottom: 5px;
+  height: var(--header-height);
 }
 .editor-options-left {
   display: flex;
@@ -99,7 +99,6 @@ main:not(.sidebar-close) .editor {
   background: #cccccc;
   color: #333;
   padding: 5px;
-  border-radius: 5px 0 0 5px;
   border: 0;
   transition: background 0.2s;
   box-shadow: inset -0.1em 0em 0.3em 0 rgba(0,0,0, 0.5);
@@ -127,7 +126,6 @@ form select {
   width: 100%;
   height: 100%;
   border: none;
-  border-radius: 0 5px 5px 0;
 }
 
 .sidebar {
@@ -138,8 +136,6 @@ form select {
   --sidebar-active-file-bg: rgba(165,218,246,0.8);
   --sidebar-modified-fg: #ff7777;
   --sidebar-hover-bg: rgba(104, 117, 154, .3);
-  display: flex;
-  justify-content: space-between;
   width: 300px;
   overflow: scroll;
   left: 0;
@@ -151,6 +147,13 @@ form select {
   z-index: 3;
   font-size: 0.85em;
   transition: left var(--sidebar-transition-speed);
+  display: flex;
+  justify-content: flex-start;
+  flex-direction: column;
+}
+.sidebar-header {
+  height: var(--header-height);
+  background: #3f4c69;
 }
 .sidebar-close .sidebar {
   left: calc(0px - var(--sidebar-width));
@@ -159,7 +162,7 @@ form select {
   padding: 0;
   margin: 0;
 }
-.sidebar > ul {
+.sidebar-files > ul {
   padding: 0 0 0 15px;
 }
 .sidebar-close .sidebar ul {
@@ -237,6 +240,17 @@ form select {
   height: 100%;
   width: var(--sidebar-close-width);
   background: rgba(255, 255,255, 0.3);
+}
+.footer {
+  height: var(--footer-height);
+  background: #333;
+  padding-left: var(--sidebar-width);
+  color: white;
+  transition: padding-left var(--sidebar-transition-speed);
+}
+.sidebar-close .footer {
+  padding-left: var(--sidebar-close-width);
+  transition: padding-left var(--sidebar-transition-speed);
 }
 @media screen and (max-width: 600px) {
   main {

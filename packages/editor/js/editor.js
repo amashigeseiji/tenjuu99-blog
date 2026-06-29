@@ -367,10 +367,8 @@ const initSidebarContent = async (activeFile) => {
     const res = await fetch('/get_sidebar')
     if (!res.ok) return
     const { html } = await res.json()
-    const sidebar = document.querySelector('.sidebar')
-    const toggle = sidebar.querySelector('.sidebar-toggle')
+    const sidebar = document.querySelector('.sidebar-files')
     sidebar.innerHTML = html
-    sidebar.appendChild(toggle)
     initSidebarTree(activeFile)
   } catch (e) {
     console.log('[sidebar] init failed', e)
