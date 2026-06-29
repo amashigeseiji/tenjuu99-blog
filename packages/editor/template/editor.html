@@ -13,6 +13,8 @@
 </head>
 <body>
   <main class="container">
+  <!-- layout shift 対策 -->
+  <script>if(localStorage.getItem('sidebar-is-open')!=='true'){document.currentScript.closest('main').classList.add('sidebar-close')}</script>
     <div class="sidebar">
       <div class="sidebar-toggle">&nbsp;</div>
     </div>
