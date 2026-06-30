@@ -4,6 +4,9 @@
   --sidebar-transition-speed: 0.2s;
   --header-height: 30px;
   --footer-height: 20px;
+  --light-green: #79afb4;
+  --deep-blue: #313d64;
+  --hover-bg: rgba(104, 117, 154, .3);
 }
 body {
   background: #fafafa;
@@ -64,13 +67,24 @@ main:not(.sidebar-close) .editor {
 .editor-options-left {
   display: flex;
   align-items: center;
-  gap: 8px;
 }
 .editor-options-right {
   display: flex;
   align-items: center;
-  gap: 8px;
 }
+#publishBtn {
+  height: var(--header-height);
+  width: 100px;
+  background: var(--deep-blue);
+  color: #ddd;
+  border-radius: 0;
+  border: none;
+  cursor: pointer;
+}
+#publishBtn:hover {
+  background: var(--light-green);
+}
+
 #newFileDialog {
   border: 1px solid #ccc;
   border-radius: 8px;
@@ -129,13 +143,13 @@ form select {
 }
 
 .sidebar {
-  --sidebar-bg: #313d64;
-  --sidebar-dir: #79afb4;
+  --sidebar-bg: var(--deep-blue);
+  --sidebar-dir: var(--light-green);
   --sidebar-file: #cbcbcb;
   --sidebar-active-file-fg: #333;
   --sidebar-active-file-bg: rgba(165,218,246,0.8);
   --sidebar-modified-fg: #ff7777;
-  --sidebar-hover-bg: rgba(104, 117, 154, .3);
+  --sidebar-hover-bg: var(--hover-bg);
   width: 300px;
   overflow: scroll;
   left: 0;
@@ -170,7 +184,7 @@ form select {
 }
 .sidebar-tab.active {
   color: #cbcbcb;
-  border-bottom-color: #79afb4;
+  border-bottom-color: var(--light-green);
 }
 .sidebar-tab:hover:not(.active) {
   color: rgba(203, 203, 203, 0.8);
