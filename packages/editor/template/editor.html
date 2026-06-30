@@ -16,15 +16,35 @@
   <!-- layout shift 対策 -->
   <script>if(localStorage.getItem('sidebar-is-open')!=='true'){document.currentScript.closest('main').classList.add('sidebar-close')}</script>
     <div class="sidebar">
-      <div class="sidebar-header">hoge</div>
-      <div class="sidebar-files"></div>
+      <div class="sidebar-tabs">
+        <button class="sidebar-tab active" data-tab="files">Files</button>
+        <button class="sidebar-tab" data-tab="new-file">新規作成</button>
+      </div>
+      <div class="sidebar-tab-content active" data-tab="files">
+        <div class="sidebar-files"></div>
+      </div>
+      <div class="sidebar-tab-content" data-tab="new-file">
+        <div class="sidebar-new-file">
+          <label>
+            ファイル名
+            <input type="text" id="newFileName" placeholder="path/to/file.md" autocomplete="off">
+          </label>
+          <label>
+            テンプレート
+            <select id="newFileTemplate">
+              <option value="">テンプレートなし</option>
+            </select>
+          </label>
+          <p id="newFileError" role="alert" aria-live="assertive"></p>
+          <button type="button" id="confirmNewFile">作成</button>
+        </div>
+      </div>
       <div class="sidebar-toggle">&nbsp;</div>
     </div>
     <form action="/editor" class="editor" method="post" id="editor">
       <div class="editor-options">
         <div class="editor-options-left">
           <span id="fileStatus"><span id="currentFileName"></span><span id="publicationStatus"></span></span>
-          <button type="button" id="newFileBtn">新規作成</button>
           <input type="hidden" id="inputFileName" name="inputFileName" value="">
         </div>
         <div class="editor-options-right">
@@ -43,26 +63,6 @@
       <input type="hidden" name="token" value="{{TOKEN}}">
     </form>
     <footer class="footer"></footer>
-    <dialog id="newFileDialog">
-      <form method="dialog">
-        <h3>新規ファイルを作成</h3>
-        <label>
-          ファイル名（例: book/my-book.md）
-          <input type="text" id="newFileName" placeholder="path/to/file.md" autocomplete="off">
-        </label>
-        <label>
-          テンプレート
-          <select id="newFileTemplate">
-            <option value="">テンプレートなし</option>
-          </select>
-        </label>
-        <p id="newFileError" role="alert" aria-live="assertive"></p>
-        <div>
-          <button type="button" id="confirmNewFile">作成</button>
-          <button type="button" id="cancelNewFile">キャンセル</button>
-        </div>
-      </form>
-    </dialog>
     <div class="hamburger-menu">
       <input type="checkbox" id="menu-btn-check">
       <label for="menu-btn-check" class="menu-btn"><span></span></label>

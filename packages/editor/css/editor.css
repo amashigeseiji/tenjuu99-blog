@@ -151,9 +151,88 @@ form select {
   justify-content: flex-start;
   flex-direction: column;
 }
-.sidebar-header {
+.sidebar-tabs {
+  display: flex;
   height: var(--header-height);
-  background: #3f4c69;
+  background: #2a3557;
+  flex-shrink: 0;
+}
+.sidebar-tab {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: rgba(203, 203, 203, 0.5);
+  cursor: pointer;
+  font-size: 0.8em;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+  padding: 0 8px;
+}
+.sidebar-tab.active {
+  color: #cbcbcb;
+  border-bottom-color: #79afb4;
+}
+.sidebar-tab:hover:not(.active) {
+  color: rgba(203, 203, 203, 0.8);
+  background: rgba(255, 255, 255, 0.05);
+}
+.sidebar-tab-content {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+}
+.sidebar-tab-content.active {
+  display: flex;
+}
+.sidebar-new-file {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 12px;
+  color: var(--sidebar-file);
+  font-size: 0.9em;
+}
+.sidebar-new-file label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sidebar-new-file input[type="text"],
+.sidebar-new-file select {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  color: var(--sidebar-file);
+  padding: 5px 8px;
+  font-size: 0.95em;
+}
+.sidebar-new-file input[type="text"]:focus,
+.sidebar-new-file select:focus {
+  outline: none;
+  border-color: var(--sidebar-dir);
+}
+.sidebar-new-file select option {
+  background: var(--sidebar-bg);
+}
+.sidebar-new-file #newFileError {
+  color: var(--sidebar-modified-fg);
+  font-size: 0.9em;
+  min-height: 1.2em;
+}
+.sidebar-new-file button {
+  background: var(--sidebar-dir);
+  border: none;
+  border-radius: 4px;
+  color: #1a2540;
+  cursor: pointer;
+  font-weight: bold;
+  padding: 6px 12px;
+  align-self: flex-start;
+}
+.sidebar-new-file button:hover {
+  filter: brightness(1.1);
 }
 .sidebar-close .sidebar {
   left: calc(0px - var(--sidebar-width));
