@@ -173,30 +173,12 @@ const onloadFunction = async (e) => {
   initDropReceiver(textarea, () => inputFileName.value, () => submit('/preview', form), () => debouncedUpdate.cancel())
 
   // @vocab: 新規作成UI
-  const newFileBtn = document.querySelector('#newFileBtn')
-  const newFileDialog = document.querySelector('#newFileDialog')
   const newFileNameInput = document.querySelector('#newFileName')
   const newFileTemplateSelect = document.querySelector('#newFileTemplate')
   const newFileError = document.querySelector('#newFileError')
   const confirmNewFile = document.querySelector('#confirmNewFile')
-  const cancelNewFile = document.querySelector('#cancelNewFile')
 
   const refreshSidebar = () => initSidebarContent(inputFileName.value)
-
-  newFileBtn.addEventListener('click', () => {
-    newFileNameInput.value = ''
-    newFileError.textContent = ''
-    // テンプレート選択肢を再構築して auto-select をリセット
-    newFileTemplateSelect.innerHTML = '<option value="">テンプレートなし</option>'
-    for (const tmpl of _frontmatterTemplates) {
-      const option = document.createElement('option')
-      option.value = tmpl.path_prefix
-      option.textContent = `テンプレート: ${tmpl.path_prefix}`
-      newFileTemplateSelect.appendChild(option)
-    }
-    newFileTemplateSelect.value = ''
-    newFileDialog.showModal()
-  })
 
   // ファイル名入力に応じてテンプレートを auto-select
   newFileNameInput.addEventListener('input', () => {
@@ -213,7 +195,7 @@ const onloadFunction = async (e) => {
     }
   })
 
-  // F-02: 重複チェック付き作成。エラー時はダイアログを閉じない
+  // F-02: 重複チェック付き作成。エラー時はタブを閉じない
   confirmNewFile.addEventListener('click', async () => {
     const filename = newFileNameInput.value.trim()
     if (!filename) return
@@ -239,7 +221,7 @@ const onloadFunction = async (e) => {
       return
     }
 
-    newFileDialog.close()
+    switchSidebarTab('files')
     textarea.value = content
     setCurrentFile(filename)
     url.searchParams.set('md', filename)
@@ -248,8 +230,6 @@ const onloadFunction = async (e) => {
     fetchPublicationStatus(filename)
     refreshSidebar()
   })
-
-  cancelNewFile.addEventListener('click', () => newFileDialog.close())
 
   // インプレースファイル読み込み
   // サイドバーリンクのクリックやブラウザ履歴移動で呼ばれる。
@@ -367,14 +347,50 @@ const initSidebarContent = async (activeFile) => {
     const res = await fetch('/get_sidebar')
     if (!res.ok) return
     const { html } = await res.json()
-    const sidebar = document.querySelector('.sidebar')
-    const toggle = sidebar.querySelector('.sidebar-toggle')
+    const sidebar = document.querySelector('.sidebar-files')
     sidebar.innerHTML = html
-    sidebar.appendChild(toggle)
     initSidebarTree(activeFile)
   } catch (e) {
     console.log('[sidebar] init failed', e)
   }
+}
+
+// @vocab: サイドバータブ
+let switchSidebarTab = () => {}
+const initSidebarTabs = () => {
+  const tabs = document.querySelectorAll('.sidebar-tab')
+  const contents = document.querySelectorAll('.sidebar-tab-content')
+  switchSidebarTab = (tabName) => {
+    tabs.forEach(t => {
+      const selected = t.dataset.tab === tabName
+      t.classList.toggle('active', selected)
+      t.setAttribute('aria-selected', String(selected))
+      t.tabIndex = selected ? 0 : -1
+    })
+    contents.forEach(c => {
+      const selected = c.dataset.tab === tabName
+      c.classList.toggle('active', selected)
+      c.toggleAttribute('hidden', !selected)
+    })
+  }
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      switchSidebarTab(tab.dataset.tab)
+      if (tab.dataset.tab === 'new-file') {
+        const select = document.querySelector('#newFileTemplate')
+        select.innerHTML = '<option value="">テンプレートなし</option>'
+        for (const tmpl of _frontmatterTemplates) {
+          const option = document.createElement('option')
+          option.value = tmpl.path_prefix
+          option.textContent = `テンプレート: ${tmpl.path_prefix}`
+          select.appendChild(option)
+        }
+        document.querySelector('#newFileName').value = ''
+        document.querySelector('#newFileError').textContent = ''
+        document.querySelector('#newFileName').focus()
+      }
+    })
+  })
 }
 
 // @vocab: サイドバー
@@ -441,6 +457,7 @@ const initDropReceiver = (textarea, getMdFile, onUpdate, cancelPendingDebounce) 
 document.addEventListener('DOMContentLoaded', async (event) => {
   const url = new URL(location)
   const activeFile = url.searchParams.get('md') || ''
+  initSidebarTabs()
   await initSidebarContent(activeFile)
   await initFrontmatterTemplate()
   onloadFunction(event)

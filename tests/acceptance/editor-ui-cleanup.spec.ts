@@ -32,14 +32,22 @@ test.afterAll(async () => {
   }
 })
 
+// サイドバーが閉じていれば開いてから「新規作成」タブをクリックし、フォームが表示されるまで待つ
+async function openNewFileTab(page: Page) {
+  const isClosed = await page.locator('main').evaluate(el => el.classList.contains('sidebar-close'))
+  if (isClosed) {
+    await page.locator('.sidebar-toggle').click()
+  }
+  await page.locator('.sidebar-tab[data-tab="new-file"]').click()
+  await expect(page.locator('#newFileName')).toBeVisible()
+}
+
 // ─── US-01: 新規ファイルの作成 ────────────────────────────────────────────────
 
 test.describe('US-01: 新規ファイルの作成', () => {
 
-  test('シナリオ 1: 新規作成ボタンからファイル名を入力できる状態になる', async ({ page }) => {
+  test('シナリオ 1: 新規作成タブからファイル名を入力できる状態になる', async ({ page }) => {
     // Given: エディタ画面が開いている
-    // editor.js は initFrontmatterTemplate() (GET /get_frontmatter_templates) 完了後に
-    // newFileBtn のイベントリスナーを設定するため、そのレスポンスを待つ
     const initDonePromise = page.waitForResponse(
       res => res.url().includes('/get_frontmatter_templates'),
       { timeout: 10000 }
@@ -47,11 +55,10 @@ test.describe('US-01: 新規ファイルの作成', () => {
     await gotoWithRetry(page, '/editor')
     await initDonePromise
 
-    // When: 「新規作成」ボタンを押す
-    await page.locator('#newFileBtn').click()
+    // When: 「新規作成」タブを押す
+    await openNewFileTab(page)
 
-    // Then: ファイル名を入力できる状態になる（ダイアログが開く）
-    await expect(page.locator('#newFileDialog')).toBeVisible()
+    // Then: ファイル名を入力できる状態になる
     await expect(page.locator('#newFileName')).toBeEditable()
   })
 
@@ -67,8 +74,7 @@ test.describe('US-01: 新規ファイルの作成', () => {
     )
     await gotoWithRetry(page, '/editor')
     await initDonePromise2
-    await page.locator('#newFileBtn').click()
-    await expect(page.locator('#newFileDialog')).toBeVisible()
+    await openNewFileTab(page)
 
     // Given: そのディレクトリ（book/）にはテンプレートが設定されている
     await page.locator('#newFileName').fill(filename)
@@ -99,8 +105,7 @@ test.describe('US-01: 新規ファイルの作成', () => {
     )
     await gotoWithRetry(page, '/editor')
     await initDonePromise3
-    await page.locator('#newFileBtn').click()
-    await expect(page.locator('#newFileDialog')).toBeVisible()
+    await openNewFileTab(page)
 
     // Given: そのディレクトリにはテンプレートが設定されていない
     await page.locator('#newFileName').fill(filename)
@@ -171,7 +176,7 @@ test.describe('US-02: 書いた内容の自動保存', () => {
     )
     await gotoWithRetry(page, '/editor')
     await initDonePromise4
-    await page.locator('#newFileBtn').click()
+    await openNewFileTab(page)
     await page.locator('#newFileName').fill(filename)
     await page.locator('#confirmNewFile').click()
     await expect(page.locator('#editorTextArea')).toHaveValue(/title:/, { timeout: 10000 })
@@ -256,7 +261,7 @@ test.describe('US-04: ファイルのナビゲーション', () => {
     // When: サイドバーの post/ ディレクトリを展開してファイルをクリックする
     // post ディレクトリはビューポート外にあることがあるため JS で直接クリックする
     await page.locator('.sidebar details[data-dir="post"] summary').evaluate(el => (el as HTMLElement).click())
-    const fileLink = page.locator('.sidebar a[href="/editor?md=post/1.md"]')
+    const fileLink = page.locator(`.sidebar a[href="/editor?md=${encodeURIComponent('post/1.md')}"]`)
     await expect(fileLink).toBeAttached({ timeout: 3000 })
 
     // リンクをクリックするとナビゲーションが起きるため先に /preview を待機登録する
@@ -267,7 +272,8 @@ test.describe('US-04: ファイルのナビゲーション', () => {
     await fileLink.evaluate(el => (el as HTMLElement).click())
 
     // Then: そのファイルがエディタに開かれる
-    await expect(page).toHaveURL(/md=post\/1\.md/)
+    const expectedUrl = 'md=' + encodeURIComponent('post/1.md')
+    await expect(page).toHaveURL(new RegExp(expectedUrl))
     await previewLoadPromise
     await expect(page.locator('#editorTextArea')).toHaveValue(/.+/)
   })
