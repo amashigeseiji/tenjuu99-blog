@@ -16,14 +16,14 @@
   <!-- layout shift 対策 -->
   <script>if(localStorage.getItem('sidebar-is-open')!=='true'){document.currentScript.closest('main').classList.add('sidebar-close')}</script>
     <div class="sidebar">
-      <div class="sidebar-tabs">
-        <button class="sidebar-tab active" data-tab="files">Files</button>
-        <button class="sidebar-tab" data-tab="new-file">新規作成</button>
+      <div class="sidebar-tabs" role="tablist">
+        <button class="sidebar-tab active" data-tab="files" role="tab" id="sidebar-tab-files" aria-selected="true" aria-controls="sidebar-tabpanel-files" tabindex="0">Files</button>
+        <button class="sidebar-tab" data-tab="new-file" role="tab" id="sidebar-tab-new-file" aria-selected="false" aria-controls="sidebar-tabpanel-new-file" tabindex="-1">新規作成</button>
       </div>
-      <div class="sidebar-tab-content active" data-tab="files">
+      <div class="sidebar-tab-content active" data-tab="files" role="tabpanel" id="sidebar-tabpanel-files" aria-labelledby="sidebar-tab-files">
         <div class="sidebar-files"></div>
       </div>
-      <div class="sidebar-tab-content" data-tab="new-file">
+      <div class="sidebar-tab-content" data-tab="new-file" role="tabpanel" id="sidebar-tabpanel-new-file" aria-labelledby="sidebar-tab-new-file" hidden>
         <div class="sidebar-new-file">
           <label>
             ファイル名

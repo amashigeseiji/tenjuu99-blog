@@ -361,8 +361,17 @@ const initSidebarTabs = () => {
   const tabs = document.querySelectorAll('.sidebar-tab')
   const contents = document.querySelectorAll('.sidebar-tab-content')
   switchSidebarTab = (tabName) => {
-    tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === tabName))
-    contents.forEach(c => c.classList.toggle('active', c.dataset.tab === tabName))
+    tabs.forEach(t => {
+      const selected = t.dataset.tab === tabName
+      t.classList.toggle('active', selected)
+      t.setAttribute('aria-selected', String(selected))
+      t.tabIndex = selected ? 0 : -1
+    })
+    contents.forEach(c => {
+      const selected = c.dataset.tab === tabName
+      c.classList.toggle('active', selected)
+      c.toggleAttribute('hidden', !selected)
+    })
   }
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
