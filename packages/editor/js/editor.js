@@ -365,7 +365,22 @@ const initSidebarTabs = () => {
     contents.forEach(c => c.classList.toggle('active', c.dataset.tab === tabName))
   }
   tabs.forEach(tab => {
-    tab.addEventListener('click', () => switchSidebarTab(tab.dataset.tab))
+    tab.addEventListener('click', () => {
+      switchSidebarTab(tab.dataset.tab)
+      if (tab.dataset.tab === 'new-file') {
+        const select = document.querySelector('#newFileTemplate')
+        select.innerHTML = '<option value="">テンプレートなし</option>'
+        for (const tmpl of _frontmatterTemplates) {
+          const option = document.createElement('option')
+          option.value = tmpl.path_prefix
+          option.textContent = `テンプレート: ${tmpl.path_prefix}`
+          select.appendChild(option)
+        }
+        document.querySelector('#newFileName').value = ''
+        document.querySelector('#newFileError').textContent = ''
+        document.querySelector('#newFileName').focus()
+      }
+    })
   })
 }
 
