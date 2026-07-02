@@ -23,6 +23,10 @@ case "$CONTEXT" in
   category)
     SRC_FILE="packages/category/${SUBJECT_FILE}.js"
     ;;
+  app-bundle)
+    SRC_FILE="scripts/app-bundle/${SUBJECT_FILE}.js"
+    mkdir -p "scripts/app-bundle"
+    ;;
   *)
     SRC_FILE="lib/${CONTEXT}/${SUBJECT_FILE}.js"
     mkdir -p "lib/${CONTEXT}"

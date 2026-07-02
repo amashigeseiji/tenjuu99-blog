@@ -1,0 +1,139 @@
+{
+  "contexts": [
+    {
+      "dir": "app-bundle",
+      "name": "アプリバンドル配布",
+      "description": "@tenjuu99/blog を .app として自己完結的に配布するための構成・成果物を扱う関心領域",
+      "primary_users": "配布物を作成する開発者（自分）、配布物を受け取るNode未インストールのMacを使うノンエンジニアユーザー",
+      "in_scope": "Node本体・sharpのネイティブバイナリ・ソースコード一式（lib/, packages/ 等）の同梱、.app からのそれらの解決方法、配布物の自己完結性（外部インストール不要であること）",
+      "out_of_scope": "コード署名・notarization、ビルド・配布パイプライン（GitHub Actions等でのビルド・zip化・Releases公開）、編集操作自体（native-shellコンテキストのeditor範囲）、公開する操作（Publish/git操作）"
+    }
+  ],
+  "entries": [
+    {
+      "name": "配布物",
+      "en": "DistributionBundle",
+      "context": "app-bundle",
+      "domain": "application",
+      "definition": "@tenjuu99/blog を .app 単体として配布可能にした成果物。#ネイティブアプリシェル [native-shell] を内包し、起動に必要なNode本体・sharpのネイティブバイナリ・ソースコード一式（`lib/`, `packages/` 等）を同梱することで、配布先環境への追加インストールを不要にする。",
+      "relations": [
+        {
+          "type": "contains",
+          "target": "ネイティブアプリシェル",
+          "context": "native-shell",
+          "note": "配布物が内包し、起動時に動作させる対象"
+        },
+        { "type": "contains", "target": "バンドルレイアウト解決器", "note": "起動時に同梱リソースの場所を導出する" },
+        { "type": "contains", "target": "コンテンツルート解決器", "note": "起動時にコンテンツの場所を確定する" },
+        { "type": "contains", "target": "配布物組み立て器", "note": "ビルド時に配布物自体を組み立てる" },
+        { "type": "contains", "target": "コンテンツルートモジュール解決リンク", "note": "起動時にコンテンツルートから同梱アプリコードを解決可能にする" }
+      ],
+      "src": null,
+      "wip": { "status": "new", "discovered": "tdd-vocab plan" }
+    },
+    {
+      "name": "バンドルレイアウト解決器",
+      "en": "BundleLayoutResolver",
+      "context": "app-bundle",
+      "domain": "solution",
+      "definition": "実行中の`.app`自体の場所から、`.app`に同梱された読み取り専用リソース（Node実行ファイル・アプリコードのエントリーパス・アプリコードのnode_modules）の場所を導出する装置。#配布物 の一部として保証されている同梱物のみを扱い、存在しないケースを考慮しない。",
+      "relations": [
+        { "type": "belongs_to", "target": "配布物", "note": "配布物の起動を成立させる構成要素" },
+        { "type": "references", "target": "コンテンツルートモジュール解決リンク", "note": "導出したnode_modulesの場所がリンク先になる" }
+      ],
+      "src": "native/Sources/NativeShellCore/BundleLayoutResolver.swift",
+      "wip": { "status": "new", "discovered": "tdd-run" }
+    },
+    {
+      "name": "コンテンツルートモジュール解決リンク",
+      "en": "ContentRootModuleLink",
+      "context": "app-bundle",
+      "domain": "solution",
+      "definition": "コンテンツルート直下に、同梱アプリコードの`node_modules`へのシンボリックリンクを作る配線。Node のESM解決はコンテンツルートの祖先を遡っても`.app`内のnode_modulesへは辿り着けない（別系統のディレクトリツリーのため）ため、`@tenjuu99/blog`等のbare specifier importを解決可能にするために実装中に発見された必要な処理。#バンドルレイアウト解決器 が導出したnode_modulesの場所と#コンテンツルート解決器 が確定したコンテンツルートを結びつける。AppKit直結の配線のため単体テストなし。",
+      "relations": [
+        { "type": "belongs_to", "target": "配布物", "note": "配布物の起動を成立させる構成要素" },
+        { "type": "references", "target": "バンドルレイアウト解決器", "note": "リンク先の場所を提供する" },
+        { "type": "references", "target": "コンテンツルート解決器", "note": "リンクを作る場所を提供する" }
+      ],
+      "src": "native/Sources/App/AppDelegate.swift",
+      "wip": { "status": "new", "discovered": "tdd-run" }
+    },
+    {
+      "name": "コンテンツルート解決器",
+      "en": "ContentRootResolver",
+      "context": "app-bundle",
+      "domain": "solution",
+      "definition": "サーバー起動時のカレントディレクトリ（`blog.json`を含むフォルダ）を確定する装置。記憶済みのパスがあればそれを使い、無ければユーザーに#コンテンツルート選択ダイアログ で選ばせる。選ばれたフォルダに`blog.json`が存在しない場合はエラーとして扱う（新規作成はこの装置の責務に含めない）。永続化ストアと選択ダイアログは関数として注入し、コアロジック自体はAppKit非依存に保つ。",
+      "relations": [
+        { "type": "belongs_to", "target": "配布物", "note": "配布物の起動を成立させる構成要素" },
+        { "type": "contains", "target": "コンテンツルート選択ダイアログ", "note": "記憶済みパスが無い場合に呼び出す" }
+      ],
+      "src": "native/Sources/NativeShellCore/ContentRootResolver.swift",
+      "wip": { "status": "new", "discovered": "tdd-run" }
+    },
+    {
+      "name": "コンテンツルート選択ダイアログ",
+      "en": "ContentRootPicker",
+      "context": "app-bundle",
+      "domain": "solution",
+      "definition": "ユーザーにフォルダ選択UIを提示し、選択結果を#コンテンツルート解決器 に返すAppKit実装。手動検証のみ（単体テストなし）。",
+      "relations": [
+        { "type": "belongs_to", "target": "コンテンツルート解決器", "note": "記憶済みパスが無い場合の入力源" }
+      ],
+      "src": "native/Sources/App/AppDelegate.swift",
+      "wip": { "status": "new", "discovered": "tdd-run" }
+    },
+    {
+      "name": "配布物組み立て器",
+      "en": "DistributionBundleAssembler",
+      "context": "app-bundle",
+      "domain": "solution",
+      "definition": "Node本体・sharpのネイティブバイナリ・ソースコード一式（`lib/`, `packages/` 等）を`.app`構造に配置し#配布物 を組み立てるビルド時装置。#配置マッピング解決器 と #バンドル書き出し器 を合成し、さらに#バンドルマニフェスト の`symlinks`宣言に従ってnpmのfile:self-reference（自己参照シンボリックリンク）をビルド機の一時パスではなく`.app`内で完結する相対リンクに張り替える（実装中に発見された責務。素朴にdereferenceコピーすると自己参照が無限ループするため）。",
+      "relations": [
+        { "type": "belongs_to", "target": "配布物", "note": "配布物を生成する側の装置" },
+        { "type": "contains", "target": "配置マッピング解決器", "note": "何をどこに置くかを解決する" },
+        { "type": "contains", "target": "バンドル書き出し器", "note": "実際のファイルコピーを実行する" }
+      ],
+      "src": "scripts/app-bundle/distributionBundleAssembler.js",
+      "wip": { "status": "new", "discovered": "tdd-run" }
+    },
+    {
+      "name": "配置マッピング解決器",
+      "en": "BundleManifestResolver",
+      "context": "app-bundle",
+      "domain": "solution",
+      "definition": "#バンドルマニフェスト の`entries`に宣言された相対パスの対応関係を、実際のビルド成果物（vendored Nodeバイナリ・`npm ci --omit=dev`済みの`node_modules`・`lib/`・`packages/`等）の絶対パスに解決する純粋関数。",
+      "relations": [
+        { "type": "belongs_to", "target": "配布物組み立て器", "note": "組み立て処理の前段" },
+        { "type": "references", "target": "バンドルマニフェスト", "note": "入力として読み込む" }
+      ],
+      "src": "scripts/app-bundle/bundleManifestResolver.js",
+      "wip": { "status": "new", "discovered": "tdd-run" }
+    },
+    {
+      "name": "バンドル書き出し器",
+      "en": "BundleWriter",
+      "context": "app-bundle",
+      "domain": "solution",
+      "definition": "#配置マッピング解決器 が解決した対応表に従って、実際にファイルをコピーし`.app`を組み立てる装置。シンボリックリンクは実体化せずそのままコピーする（npmのself-reference依存を実体化すると自己参照が無限ループするため）。",
+      "relations": [
+        { "type": "belongs_to", "target": "配布物組み立て器", "note": "組み立て処理の後段" },
+        { "type": "references", "target": "配置マッピング解決器", "note": "解決済みの対応表を入力として受け取る" }
+      ],
+      "src": "scripts/app-bundle/bundleWriter.js",
+      "wip": { "status": "new", "discovered": "tdd-run" }
+    },
+    {
+      "name": "バンドルマニフェスト",
+      "en": "BundleManifest",
+      "context": "app-bundle",
+      "domain": "solution",
+      "definition": "`.app`に同梱する対象とその配置先の対応関係（`entries`）、および配布先で意味を持つように張り替えるシンボリックリンク（`symlinks`）を、コード外に宣言的に保持する設定ファイル（JSON）。同梱対象やディレクトリ構造の変更が、コードの変更なしに追跡・修正できることを目的とする。",
+      "relations": [
+        { "type": "belongs_to", "target": "配置マッピング解決器", "note": "この装置が読み込む入力" }
+      ],
+      "src": "scripts/app-bundle/manifest.json",
+      "wip": { "status": "new", "discovered": "tdd-run" }
+    }
+  ]
+}

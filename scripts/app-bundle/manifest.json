@@ -1,0 +1,20 @@
+{
+  "entries": [
+    { "src": "swiftBuild/App", "dest": "Contents/MacOS/App" },
+    { "src": "appShell/Info.plist", "dest": "Contents/Info.plist" },
+    { "src": "vendoredNode/bin/node", "dest": "Contents/Resources/node/bin/node" },
+    { "src": "repo/index.js", "dest": "Contents/Resources/app/index.js" },
+    { "src": "repo/lib", "dest": "Contents/Resources/app/lib" },
+    { "src": "repo/packages", "dest": "Contents/Resources/app/packages" },
+    { "src": "repo/package.json", "dest": "Contents/Resources/app/package.json" },
+    { "src": "repo/node_modules", "dest": "Contents/Resources/app/node_modules" },
+    { "src": "repo/bin/server", "dest": "Contents/Resources/app/bin/server" }
+  ],
+  "symlinks": [
+    {
+      "_comment": "npmのfile:self-reference（@tenjuu99/blog自身への依存）はentriesのコピーだとビルド機の一時パスを指す壊れたリンクになる。app自身（Contents/Resources/app）を指す相対リンクに張り替える。",
+      "at": "Contents/Resources/app/node_modules/@tenjuu99/blog",
+      "target": "../.."
+    }
+  ]
+}

@@ -6,29 +6,32 @@ import WebKit
 /// AppKit/WKWebView に直結するため単体テストは行わず、実アプリの起動で手動検証する（test-tree.md 参照）
 final class AppDelegate: NSObject, NSApplicationDelegate {
   private static let serverPort = 8000
-
-  /// native/Sources/App/AppDelegate.swift からリポジトリルートへ遡る（このリポジトリ自体をコンテンツディレクトリとして使う）
-  private static let repoRootURL = URL(fileURLWithPath: #filePath)
-    .deletingLastPathComponent() // App/
-    .deletingLastPathComponent() // Sources/
-    .deletingLastPathComponent() // native/
-    .deletingLastPathComponent() // repo root
+  private static let contentRootDefaultsKey = "ContentRootURL"
 
   private var window: NSWindow!
   private var webView: WKWebView!
   private var startupLabel: NSTextField!
   private var readinessTimer: Timer?
-  private let serverLifecycle = ServerLifecycleBinding(
-    executableURL: URL(fileURLWithPath: "/usr/bin/env"),
-    arguments: ["node", "bin/server"],
-    currentDirectoryURL: repoRootURL
-  )
+  private var serverLifecycle: ServerLifecycleBinding!
 
   func applicationDidFinishLaunching(_ notification: Notification) {
     setUpWindow()
-    startServerAndWait()
-    // `swift run` はターミナルから起動するため、明示的に前面へ出さないとTerminalの裏に隠れる
+    // フォルダ選択ダイアログ（モーダル）を表示する前にアプリを前面化する。
+    // `swift run`/`open` はターミナルから起動するため、先に活性化しないとダイアログが裏に隠れる。
     NSApp.activate(ignoringOtherApps: true)
+
+    guard let contentRootURL = resolveContentRootOrTerminate() else { return }
+
+    // scripts/app-bundle/manifest.json の dest と対応する配置契約（BundleLayoutResolver参照）
+    let layout = BundleLayoutResolver.resolve(bundleURL: Bundle.main.bundleURL)
+    linkAppNodeModulesIntoContentRoot(contentRootURL: contentRootURL, layout: layout)
+    serverLifecycle = ServerLifecycleBinding(
+      executableURL: layout.nodeExecutableURL,
+      arguments: [layout.serverEntryURL.path],
+      currentDirectoryURL: contentRootURL
+    )
+
+    startServerAndWait()
   }
 
   func applicationWillTerminate(_ notification: Notification) {
@@ -39,7 +42,71 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   /// サーバープロセスを残さないよう、main.swift のシグナルハンドラからも呼び出す。
   func stopServer() {
     readinessTimer?.invalidate()
-    serverLifecycle.stop()
+    serverLifecycle?.stop()
+  }
+
+  /// コンテンツルート直下に、同梱アプリコードの node_modules へのシンボリックリンクを作る。
+  /// Node の ESM 解決はコンテンツルートの祖先を遡っても `.app` 内の node_modules へは
+  /// 辿り着けない（別系統のディレクトリツリーのため）ので、`@tenjuu99/blog` 等の
+  /// bare specifier import を解決可能にするために必要な配線。
+  private func linkAppNodeModulesIntoContentRoot(contentRootURL: URL, layout: BundleLayout) {
+    let linkURL = contentRootURL.appendingPathComponent("node_modules")
+    let fm = FileManager.default
+    if let existingTarget = try? fm.destinationOfSymbolicLink(atPath: linkURL.path),
+       existingTarget == layout.nodeModulesURL.path {
+      return
+    }
+    try? fm.removeItem(at: linkURL)
+    try? fm.createSymbolicLink(at: linkURL, withDestinationURL: layout.nodeModulesURL)
+  }
+
+  /// コンテンツルート解決器のコアロジックに、永続化ストア（UserDefaults）と
+  /// フォルダ選択ダイアログ（NSOpenPanel）を関数として注入する配線部分。
+  /// 解決に失敗した場合はエラーダイアログを表示してアプリを終了する。
+  private func resolveContentRootOrTerminate() -> URL? {
+    let defaults = UserDefaults.standard
+    let rememberedURL = defaults.string(forKey: Self.contentRootDefaultsKey).map(URL.init(fileURLWithPath:))
+
+    let result = ContentRootResolver.resolve(
+      rememberedURL: rememberedURL,
+      blogJsonExists: { url in
+        FileManager.default.fileExists(atPath: url.appendingPathComponent("blog.json").path)
+      },
+      pickFolder: Self.presentContentRootPicker
+    )
+
+    switch result {
+    case .success(let url):
+      defaults.set(url.path, forKey: Self.contentRootDefaultsKey)
+      return url
+    case .failure(let error):
+      presentContentRootErrorAndTerminate(error)
+      return nil
+    }
+  }
+
+  /// コンテンツルート選択ダイアログ（手動検証のみ。単体テスト対象外）
+  private static func presentContentRootPicker() -> URL? {
+    let panel = NSOpenPanel()
+    panel.canChooseDirectories = true
+    panel.canChooseFiles = false
+    panel.allowsMultipleSelection = false
+    panel.message = "blog.json を含むフォルダを選択してください"
+    return panel.runModal() == .OK ? panel.url : nil
+  }
+
+  private func presentContentRootErrorAndTerminate(_ error: ContentRootResolutionError) {
+    let alert = NSAlert()
+    switch error {
+    case .blogJsonNotFound(let url):
+      alert.messageText = "blog.json が見つかりません"
+      alert.informativeText = "選択されたフォルダ（\(url.path)）に blog.json がありません。"
+    case .userCancelled:
+      alert.messageText = "コンテンツフォルダが選択されませんでした"
+      alert.informativeText = "起動するには blog.json を含むフォルダの選択が必要です。"
+    }
+    alert.runModal()
+    NSApp.terminate(nil)
   }
 
   func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
