@@ -1,0 +1,7 @@
+{
+  "depgraph": {
+    "regen": ".claude/tdd/depgraph-regen.sh",
+    "graph": ".claude/tdd/dependency-graph.json",
+    "entry_points": ["bin/*", "lib/server/**"]
+  }
+}

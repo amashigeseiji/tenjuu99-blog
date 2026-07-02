@@ -8,7 +8,7 @@ data/index.json
 .env
 .cache/
 not_include/
-.claude/tdd/config.json
+.claude/tdd/dependency-graph.json
 
 # Playwright
 /test-results/
