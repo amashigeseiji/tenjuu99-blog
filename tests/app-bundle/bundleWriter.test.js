@@ -86,4 +86,26 @@ describe('バンドル書き出し器は 解決済みの対応表に従って実
     const destStat = await lstat(dest)
     assert.ok(destStat.isSymbolicLink(), 'destはシンボリックリンクのままコピーされる')
   })
+
+  test('自己参照リンクを含むディレクトリを、既存の書き出し先に再コピーできる（再ビルド）', async () => {
+    // 一度組み立てた .app に再度書き出す（再ビルド）と、書き出し先には前回のリンクが既に存在する。
+    // このときコピー元リンクの解決先（パッケージルート）が書き出し先リンクの解決先を包含していると、
+    // cp のリンク解決チェックが「自分自身の内側へのコピー」とみなして失敗する。
+    // 書き出し器はリンクを解決せずそのまま書き出し、再ビルドを成立させられること。
+    const projectRoot = path.join(workDir, 'project')
+    const linkedSrc = path.join(projectRoot, 'node_modules', '@scope', 'self')
+    await mkdir(path.dirname(linkedSrc), { recursive: true })
+    await symlink(path.join('..', '..'), linkedSrc, 'dir')
+
+    const dest = path.join(projectRoot, 'out', 'node_modules')
+    // 前回ビルドの残骸: 同じ場所に絶対パスでプロジェクトルートを指すリンクが既に居る
+    const existingLink = path.join(dest, '@scope', 'self')
+    await mkdir(path.dirname(existingLink), { recursive: true })
+    await symlink(projectRoot, existingLink, 'dir')
+
+    await write([{ src: path.join(projectRoot, 'node_modules'), dest }])
+
+    const destStat = await lstat(existingLink)
+    assert.ok(destStat.isSymbolicLink(), 'リンク先がdestの祖先でもリンクのまま書き出される')
+  })
 })

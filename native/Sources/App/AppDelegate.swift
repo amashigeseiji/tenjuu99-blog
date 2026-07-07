@@ -15,6 +15,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private var serverLifecycle: ServerLifecycleBinding!
 
   func applicationDidFinishLaunching(_ notification: Notification) {
+    setUpMainMenu()
     setUpWindow()
     // フォルダ選択ダイアログ（モーダル）を表示する前にアプリを前面化する。
     // `swift run`/`open` はターミナルから起動するため、先に活性化しないとダイアログが裏に隠れる。
@@ -111,6 +112,82 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
   func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
     true
+  }
+
+  /// @vocab コンテンツルート切り替えメニュー (plans/content-root-switching/dictionary.json)
+  /// コンテンツルート切り替えの入口をアプリの通常操作（メニューバー）として提示する（手動検証のみ）
+  private func setUpMainMenu() {
+    let mainMenu = NSMenu()
+
+    let appMenuItem = NSMenuItem()
+    mainMenu.addItem(appMenuItem)
+    let appMenu = NSMenu()
+    appMenu.addItem(
+      withTitle: "tenjuu99-blog を終了",
+      action: #selector(NSApplication.terminate(_:)),
+      keyEquivalent: "q"
+    )
+    appMenuItem.submenu = appMenu
+
+    let fileMenuItem = NSMenuItem()
+    mainMenu.addItem(fileMenuItem)
+    let fileMenu = NSMenu(title: "ファイル")
+    let switchItem = NSMenuItem(
+      title: "コンテンツフォルダを変更…",
+      action: #selector(changeContentRoot(_:)),
+      keyEquivalent: "O"
+    )
+    switchItem.target = self
+    fileMenu.addItem(switchItem)
+    fileMenuItem.submenu = fileMenu
+
+    NSApp.mainMenu = mainMenu
+  }
+
+  /// コンテンツルート切り替え: 選びなおしの切り替え結果に応じて、コンテンツルート記憶を書き換え
+  /// サーバーと表示を新しいプロジェクトで入れ替える配線（手動検証のみ）。
+  /// 初回解決と異なり、取りやめ・拒否はアプリ終了ではなく現在のプロジェクトの継続になる。
+  @objc private func changeContentRoot(_ sender: Any?) {
+    let outcome = ContentRootResolver.reselect(
+      blogJsonExists: { url in
+        FileManager.default.fileExists(atPath: url.appendingPathComponent("blog.json").path)
+      },
+      pickFolder: Self.presentContentRootPicker
+    )
+
+    switch outcome {
+    case .cancelled:
+      return
+    case .rejected(let url):
+      let alert = NSAlert()
+      alert.messageText = "blog.json が見つかりません"
+      alert.informativeText =
+        "選択されたフォルダ（\(url.path)）に blog.json がありません。現在のプロジェクトを使い続けます。"
+      alert.runModal()
+    case .switched(let url):
+      UserDefaults.standard.set(url.path, forKey: Self.contentRootDefaultsKey)
+      switchProject(to: url)
+    }
+  }
+
+  /// 確定した新しいコンテンツルートでサーバーと表示を入れ替える。
+  /// 旧サーバーの停止（stop は終了を同期的に待つ）→ モジュール解決リンクの張り替え →
+  /// 新しい作業場所でのサーバー起動 → 起動待ち表示から編集画面へ、の順で initial 起動と同じ流れを辿る。
+  private func switchProject(to contentRootURL: URL) {
+    readinessTimer?.invalidate()
+    serverLifecycle?.stop()
+
+    let layout = BundleLayoutResolver.resolve(bundleURL: Bundle.main.bundleURL)
+    linkAppNodeModulesIntoContentRoot(contentRootURL: contentRootURL, layout: layout)
+    serverLifecycle = ServerLifecycleBinding(
+      executableURL: layout.nodeExecutableURL,
+      arguments: [layout.serverEntryURL.path],
+      currentDirectoryURL: contentRootURL
+    )
+
+    startupLabel.stringValue = "サーバーを起動しています…"
+    window.contentView = startupLabel
+    startServerAndWait()
   }
 
   private func setUpWindow() {

@@ -4,4 +4,5 @@ runTests([
   ("ServerLifecycleBinding", testServerLifecycleBinding),
   ("BundleLayoutResolver", testBundleLayoutResolver),
   ("ContentRootResolver", testContentRootResolver),
+  ("ContentRootReselect", testContentRootReselect),
 ])

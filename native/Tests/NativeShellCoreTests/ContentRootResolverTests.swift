@@ -64,3 +64,35 @@ func testContentRootResolver(_ t: TestCase) {
     t.expect(result == .failure(.userCancelled), "選択をキャンセルするとエラーになる")
   }
 }
+
+// コンテンツルート解決器は 記憶済みのコンテンツルートがあっても、利用者の選びなおしに応じて切り替え結果を確定できる
+func testContentRootReselect(_ t: TestCase) {
+  let pickedURL = URL(fileURLWithPath: "/Users/someone/another-project")
+
+  // blog.json を持つフォルダが選ばれたら新しいコンテンツルートへの切り替えを確定する
+  do {
+    let outcome = ContentRootResolver.reselect(
+      blogJsonExists: { $0 == pickedURL },
+      pickFolder: { pickedURL }
+    )
+    t.expect(outcome == .switched(pickedURL), "選ばれたフォルダへの切り替えが確定される")
+  }
+
+  // 選択が取りやめられたら現在のコンテンツルートの継続を確定する
+  do {
+    let outcome = ContentRootResolver.reselect(
+      blogJsonExists: { _ in true },
+      pickFolder: { nil }
+    )
+    t.expect(outcome == .cancelled, "取りやめは現状維持（エラーではない）として確定される")
+  }
+
+  // blog.json の無いフォルダが選ばれたら切り替えを退けて現在のコンテンツルートの継続を確定する
+  do {
+    let outcome = ContentRootResolver.reselect(
+      blogJsonExists: { _ in false },
+      pickFolder: { pickedURL }
+    )
+    t.expect(outcome == .rejected(pickedURL), "blog.json の無いフォルダは退けられ現状維持となる")
+  }
+}
