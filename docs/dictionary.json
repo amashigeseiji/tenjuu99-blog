@@ -61,7 +61,7 @@
   "entries": [
     {
       "name": "ページ",
-      "en": null,
+      "en": "Page",
       "context": "ssg-core",
       "domain": "application",
       "definition": "Markdownソースファイルを起点に生成されるコンテンツの単位。#フロントマター と本文から成り、#テンプレート を通じてHTMLとして出力される。",
@@ -74,7 +74,7 @@
     },
     {
       "name": "フロントマター",
-      "en": null,
+      "en": "Frontmatter",
       "context": "ssg-core",
       "domain": "application",
       "definition": "ページ冒頭の `---` または `<!--` で囲んだメタデータ領域。タイトル・URL・公開日・テンプレート名など、#ページ の属性を定義する。",
@@ -87,7 +87,7 @@
     },
     {
       "name": "テンプレート",
-      "en": null,
+      "en": "Template",
       "context": "ssg-core",
       "domain": "application",
       "definition": "#ページ のHTML構造を定義するファイル。変数展開・条件分岐・ #SSGスクリプト を記述でき、#フロントマター の値を参照してHTMLを生成する。",
@@ -101,7 +101,7 @@
     },
     {
       "name": "ヘルパー関数",
-      "en": null,
+      "en": "HelperFunction",
       "context": "ssg-core",
       "domain": "application",
       "definition": "#テンプレート や #SSGスクリプト から呼び出せる拡張関数。#ページインデックス へのアクセス・日付フォーマット・一覧生成など、テンプレートエンジンの組み込み機能を超えた処理を担う。#パッケージ が自動提供することがある。",
@@ -114,7 +114,7 @@
     },
     {
       "name": "ページインデックス",
-      "en": null,
+      "en": "PageIndex",
       "context": "ssg-core",
       "domain": "application",
       "definition": "全 #ページ の #フロントマター データを収めたコレクション（`allData`）。一覧ページや関連ページの生成、カテゴリー分類など、複数ページにまたがる処理の参照源となる。#ビルド 時に全ページをスキャンして生成される。",
@@ -129,7 +129,7 @@
     },
     {
       "name": "SSGスクリプト",
-      "en": null,
+      "en": "SsgScript",
       "context": "ssg-core",
       "domain": "application",
       "definition": "#テンプレート 内の `<script type=\"ssg\">` ブロックに記述し、#ビルド 時に実行されるJavaScriptコード。`return` で返した値がHTMLに展開される。#ページインデックス や #ヘルパー関数 を参照できる。",
@@ -142,7 +142,7 @@
     },
     {
       "name": "パッケージ",
-      "en": null,
+      "en": "Package",
       "context": "ssg-core",
       "domain": "application",
       "definition": "#ヘルパー関数 ・ #テンプレート ・CSSをひとまとめにした拡張モジュール。`blog.json` で有効化することでSSGの機能を拡張する。パッケージのファイルはユーザーコードで上書きできる。",
@@ -170,7 +170,7 @@
     },
     {
       "name": "ビルド",
-      "en": null,
+      "en": "Build",
       "context": "ssg-core",
       "domain": "application",
       "definition": "全ソースファイルをスキャンして #ページインデックス を構築し、各 #ページ に #テンプレート を適用してHTMLを出力するプロセス。`npx generate` または開発サーバーが担う。",
@@ -269,7 +269,7 @@
     },
     {
       "name": "サイドバー",
-      "en": null,
+      "en": "Sidebar",
       "context": "editor",
       "domain": "application",
       "definition": "エディタ左部に表示されるナビゲーション領域。ファイルの一覧を表示し、目的のファイルへ移動する起点となる。",
@@ -280,7 +280,7 @@
     },
     {
       "name": "ファイルリスト",
-      "en": null,
+      "en": "FileList",
       "context": "editor",
       "domain": "application",
       "definition": "ファイルパスを一次元配列として表現したファイルの一覧。ディレクトリ構造を無視してフラットに並べた形式。#ツリービルダー が #ネスト変換 する際の入力データとなる。",
@@ -293,7 +293,7 @@
     },
     {
       "name": "ディレクトリツリー",
-      "en": null,
+      "en": "DirectoryTree",
       "context": "editor",
       "domain": "application",
       "definition": "#ファイルリスト を置き換えて #サイドバー に表示される、ファイルをディレクトリ階層に従って整理した木構造の表示。",
@@ -308,7 +308,7 @@
     },
     {
       "name": "ディレクトリノード",
-      "en": null,
+      "en": "DirectoryNode",
       "context": "editor",
       "domain": "application",
       "definition": "#ディレクトリツリー を構成する枝要素。配下の #ファイルノード や子 #ディレクトリノード を含み、#展開状態 を持つ。",
@@ -322,7 +322,7 @@
     },
     {
       "name": "ファイルノード",
-      "en": null,
+      "en": "FileNode",
       "context": "editor",
       "domain": "application",
       "definition": "#ディレクトリツリー の葉要素。エディタで開くファイルへのリンクを提供する。#アクティブファイル のファイルノードは他と区別して表示される。",
@@ -335,7 +335,7 @@
     },
     {
       "name": "アクティブファイル",
-      "en": null,
+      "en": "ActiveFile",
       "context": "editor",
       "domain": "application",
       "definition": "現在エディタで開いているファイル。URLパラメータ `?md=` で識別される。#サイドバー 初期化時に参照され、対応する #ファイルノード をハイライトし、その親 #ディレクトリノード を自動展開する。",
@@ -347,7 +347,7 @@
     },
     {
       "name": "展開状態",
-      "en": null,
+      "en": "ExpansionState",
       "context": "editor",
       "domain": "application",
       "definition": "#ディレクトリノード が開いているか閉じているかの状態。localStorage を通じてセッション間で永続化される。",
@@ -359,7 +359,7 @@
     },
     {
       "name": "保存",
-      "en": null,
+      "en": "Save",
       "context": "editor",
       "domain": "application",
       "definition": "テキストエリアの内容をローカルファイルシステムに書き込む操作。#自動保存 によって実行されるか、手動操作によって実行される。save ボタンが削除されるため、通常は自動保存が担う。",
@@ -371,7 +371,7 @@
     },
     {
       "name": "プレビュー",
-      "en": null,
+      "en": "Preview",
       "context": "editor",
       "domain": "application",
       "definition": "テキストエリアの Markdown を HTML レンダリングしてリアルタイムに表示する領域。開発サーバーが生成した HTML が `<iframe>` 内に埋め込まれる。",
@@ -383,7 +383,7 @@
     },
     {
       "name": "インライン画像挿入",
-      "en": null,
+      "en": "InlineImageInsertion",
       "context": "editor",
       "domain": "application",
       "definition": "ドラッグ&ドロップで画像をアップロードし、本文カーソル位置に `![](url)` 形式の Markdown 画像構文を挿入する操作。フロントマターへのURL挿入など他の画像参照ユースケースとは区別される。",
@@ -400,7 +400,7 @@
     },
     {
       "name": "画像保存先パス",
-      "en": null,
+      "en": "ImageDestinationPath",
       "context": "editor",
       "domain": "application",
       "definition": "編集中のMarkdownファイルパスから自動決定される、画像の配置先。例: `book/painting/claude-monet.md` を編集中なら `src/image/book/painting/claude-monet/` 配下。",
@@ -412,7 +412,7 @@
     },
     {
       "name": "リアルタイムプレビュー更新",
-      "en": null,
+      "en": "RealtimePreviewUpdate",
       "context": "editor",
       "domain": "application",
       "definition": "テキストエリアへの入力や画像挿入を契機に、ボタン操作なしにプレビューペインが自動更新される機能。「書く」行為の流れを中断せずに #プレビュー を確認できる状態を指す。",
@@ -425,7 +425,7 @@
     },
     {
       "name": "テキスト入力",
-      "en": null,
+      "en": "TextInput",
       "context": "editor",
       "domain": "application",
       "definition": "テキストエリアへのキーボード入力。連続入力の停止（入力が止まった状態）が #リアルタイムプレビュー更新 のトリガーとなる。",
@@ -549,7 +549,7 @@
     },
     {
       "name": "ツリービルダー",
-      "en": null,
+      "en": "TreeBuilder",
       "context": "editor",
       "domain": "solution",
       "definition": "フラットな #ファイルリスト を、ディレクトリ階層を反映したネストオブジェクト（ツリーデータ）に変換する装置。#ネスト変換 を核操作として持つ。実装は `buildTree(files)` 関数。",
@@ -563,7 +563,7 @@
     },
     {
       "name": "ツリーレンダラー",
-      "en": null,
+      "en": "TreeRenderer",
       "context": "editor",
       "domain": "solution",
       "definition": "#ツリービルダー が生成したツリーデータを HTML 文字列に変換する装置。#ディレクトリノード を `<details>/<summary>`、#ファイルノード をエディタリンク `<a>` として出力する。#アクティブファイル のノードには `class=\"active\"` を付与する。#公開ステータス を受け取り、各 #ファイルノード に `data-status` 属性を付与する。",
@@ -577,7 +577,7 @@
     },
     {
       "name": "ネスト変換",
-      "en": null,
+      "en": "NestTransformation",
       "context": "editor",
       "domain": "solution",
       "definition": "フラットな #ファイルリスト を、ディレクトリ階層を反映したネスト構造のオブジェクトに変換する操作。パスを `/` で分割し、各ディレクトリを `dirs` に、最終要素をファイルとして `files` に格納する。",
@@ -590,7 +590,7 @@
     },
     {
       "name": "ディレクトリ",
-      "en": null,
+      "en": "Directory",
       "context": "editor",
       "domain": "solution",
       "definition": "コンテンツファイルを格納するファイルシステム上のフォルダ。#サイドバー の #ディレクトリツリー として表示される階層単位であり、#フロントマターテンプレート の適用単位にもなる。",
@@ -602,7 +602,7 @@
     },
     {
       "name": "フロントマターテンプレート",
-      "en": null,
+      "en": "FrontmatterTemplate",
       "context": "editor",
       "domain": "solution",
       "definition": "特定の #ディレクトリ 配下に新規ページを作るとき、エディタのテキストエリアにあらかじめ挿入される #フロントマター の雛形。変数名とデフォルト値のペアで構成される。",
@@ -614,7 +614,7 @@
     },
     {
       "name": "テンプレート設定",
-      "en": null,
+      "en": "TemplateConfig",
       "context": "editor",
       "domain": "solution",
       "definition": "`blog.json` に記述される、#ディレクトリ と #フロントマターテンプレート の対応関係の定義。`frontmatter_templates` キーとして配列で保持される。",
@@ -626,7 +626,7 @@
     },
     {
       "name": "フロントマターテンプレートローダー",
-      "en": null,
+      "en": "FrontmatterTemplateLoader",
       "context": "editor",
       "domain": "solution",
       "definition": "ファイルパスと #テンプレート設定 一覧を受け取り、マッチする #フロントマターテンプレート を文字列に変換して返す装置。#テンプレートマッチャー と #テンプレートインジェクター を組み合わせた合成。マッチするテンプレートがない場合は null を返す。",
@@ -638,7 +638,7 @@
     },
     {
       "name": "テンプレートマッチャー",
-      "en": null,
+      "en": "TemplateMatcher",
       "context": "editor",
       "domain": "solution",
       "definition": "入力された新規ファイル名のパスを検査して、#テンプレート設定 の中から最もマッチする #フロントマターテンプレート を選択する装置。複数マッチする場合は最も長いプレフィックスを優先する。",
@@ -650,7 +650,7 @@
     },
     {
       "name": "テンプレートレゾルバー",
-      "en": null,
+      "en": "TemplateResolver",
       "context": "editor",
       "domain": "solution",
       "definition": "#テンプレート設定 をサーバーから取得し、#テンプレートマッチャー に渡す調停役。エディタ初期化時に一度だけ呼ばれる。",
@@ -662,7 +662,7 @@
     },
     {
       "name": "テンプレートインジェクター",
-      "en": null,
+      "en": "TemplateInjector",
       "context": "editor",
       "domain": "solution",
       "definition": "選択された #フロントマターテンプレート をフロントマター文字列に変換して、エディタのテキストエリアに挿入する装置。ファイル名からタイトルを導出して `title` に埋め、`---` で囲んだ形式で出力する。",
@@ -673,7 +673,7 @@
     },
     {
       "name": "ドロップレシーバー",
-      "en": null,
+      "en": "DropReceiver",
       "context": "editor",
       "domain": "solution",
       "definition": "テキストエリア上のドロップ操作から画像ファイルを取り出す装置。",
@@ -685,7 +685,7 @@
     },
     {
       "name": "画像アップローダー",
-      "en": null,
+      "en": "ImageUploader",
       "context": "editor",
       "domain": "solution",
       "definition": "画像ファイルをサーバーに送信し、保存後の画像パスを受け取る装置。",
@@ -698,7 +698,7 @@
     },
     {
       "name": "アップロードエンドポイント",
-      "en": null,
+      "en": "UploadEndpoint",
       "context": "editor",
       "domain": "solution",
       "definition": "画像データを受け取り、保存先を決定して変換・保存し、画像パスを返すHTTPハンドラ。",
@@ -713,7 +713,7 @@
     },
     {
       "name": "パスリゾルバー",
-      "en": null,
+      "en": "PathResolver",
       "context": "editor",
       "domain": "solution",
       "definition": "編集中MarkdownファイルのパスとファイルURLから、画像の保存先パスとMarkdown埋め込みURLを導出する装置。",
@@ -725,7 +725,7 @@
     },
     {
       "name": "コンバーターファクトリー",
-      "en": null,
+      "en": "ConverterFactory",
       "context": "editor",
       "domain": "solution",
       "definition": "設定（blog.json）の `image_converter` を解釈し #画像コンバーター を生成する装置。ビルトイン名（例: `\"sharp\"`）はパッケージ内の `converters/` から解決し、パス（`.` または `/` で始まる）はプロジェクトルートを起点に #ユーザー提供コンバーターモジュール を解決する。コンバーターが利用不可の場合はパススルーにフォールバックする。",
@@ -739,7 +739,7 @@
     },
     {
       "name": "画像コンバーター",
-      "en": null,
+      "en": "ImageConverter",
       "context": "editor",
       "domain": "solution",
       "definition": "画像データをWeb向けフォーマットに変換する装置。#変換ドライバー が注入されている場合はそれを使って変換し、注入されていない場合は画像をそのまま通過させる。",
@@ -752,7 +752,7 @@
     },
     {
       "name": "変換ドライバー",
-      "en": null,
+      "en": "ConversionDriver",
       "context": "editor",
       "domain": "solution",
       "definition": "#画像コンバーター に差し込む変換処理の実装。sharp 等の画像処理ライブラリをラップする形で提供される。",
@@ -788,7 +788,7 @@
     },
     {
       "name": "Markdown挿入器",
-      "en": null,
+      "en": "MarkdownInserter",
       "context": "editor",
       "domain": "solution",
       "definition": "テキストエリアのカーソル位置に画像参照文字列を挿入する装置。",
@@ -799,7 +799,7 @@
     },
     {
       "name": "ファイルライター",
-      "en": null,
+      "en": "FileWriter",
       "context": "editor",
       "domain": "solution",
       "definition": "保存先パスを許可ディレクトリ内に限定して検証し、画像バッファをファイルに書き込む装置。",
@@ -970,7 +970,7 @@
     },
     {
       "name": "カテゴリー",
-      "en": null,
+      "en": "Category",
       "context": "category",
       "domain": "application",
       "definition": "#ページ に付与するラベル。階層を持てる（例: `[\"Tech\", \"Frontend\", \"React\"]`）。#ページ の #フロントマター で配列として指定する。",
@@ -984,7 +984,7 @@
     },
     {
       "name": "カテゴリーパス",
-      "en": null,
+      "en": "CategoryPath",
       "context": "category",
       "domain": "application",
       "definition": "#カテゴリー の階層を表す文字列の配列（例: `[\"Tech\", \"Frontend\"]`）。先頭が最上位カテゴリー、末尾が最も具体的なカテゴリー。このパスから #カテゴリーページ のURLが導出される。",
@@ -996,7 +996,7 @@
     },
     {
       "name": "カテゴリーシステム",
-      "en": null,
+      "en": "CategorySystem",
       "context": "category",
       "domain": "application",
       "definition": "独立した分類の枠組み。`blog.json` の `categories` 配列の各要素として定義し、対象ページの範囲（`path_filter`）とURLプレフィックスを持つ。複数の #カテゴリーシステム は互いに独立して動作する。",
@@ -1009,7 +1009,7 @@
     },
     {
       "name": "サブカテゴリー",
-      "en": null,
+      "en": "Subcategory",
       "context": "category",
       "domain": "application",
       "definition": "ある #カテゴリーパス の直下に位置する子カテゴリー。#カテゴリーページ に `category_children` として列挙される。",
@@ -1021,7 +1021,7 @@
     },
     {
       "name": "カテゴリーページ",
-      "en": null,
+      "en": "CategoryPage",
       "context": "category",
       "domain": "application",
       "definition": "#カテゴリー に属する #ページ の一覧を表示する、#ビルド 時に自動生成されるページ。#カテゴリーパス に対応するURLに出力される。#ページネーション が有効な場合は複数ページに分割される。",
@@ -1036,7 +1036,7 @@
     },
     {
       "name": "ページネーション",
-      "en": null,
+      "en": "Pagination",
       "context": "category",
       "domain": "application",
       "definition": "#カテゴリーページ を複数の静的HTMLに分割する仕組み。`per_page` で1ページあたりの件数を指定する。1ページ目のURLはページネーション未設定時と同じで後方互換を保つ。",
