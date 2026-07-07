@@ -1,5 +1,6 @@
 node_modules/
 dist/*
+dist-app/
 !.gitignore
 !favicon.ico
 data/index.json

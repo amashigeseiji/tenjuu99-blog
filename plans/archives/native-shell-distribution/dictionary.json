@@ -1,0 +1,13 @@
+{
+  "contexts": [
+    {
+      "dir": "app-bundle",
+      "name": "アプリバンドル配布",
+      "description": "@tenjuu99/blog を .app として自己完結的に配布するための構成・成果物を扱う関心領域",
+      "primary_users": "配布物を作成する開発者（自分）、配布物を受け取るNode未インストールのMacを使うノンエンジニアユーザー",
+      "in_scope": "Node本体・sharpのネイティブバイナリ・ソースコード一式（lib/, packages/ 等）の同梱、.app からのそれらの解決方法、配布物の自己完結性（外部インストール不要であること）",
+      "out_of_scope": "コード署名・notarization、ビルド・配布パイプライン（GitHub Actions等でのビルド・zip化・Releases公開）、編集操作自体（native-shellコンテキストのeditor範囲）、公開する操作（Publish/git操作）"
+    }
+  ],
+  "entries": []
+}
