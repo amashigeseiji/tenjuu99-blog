@@ -6,6 +6,7 @@ import Foundation
 public enum ServerReadinessDetector {
   /// - Returns: `127.0.0.1:port` へ接続できれば true
   public static func isReady(port: Int, timeout: TimeInterval = 0.2) -> Bool {
+    guard let portValue = UInt16(exactly: port) else { return false }
     let fd = socket(AF_INET, SOCK_STREAM, 0)
     guard fd >= 0 else { return false }
     defer { Darwin.close(fd) }
@@ -15,7 +16,7 @@ public enum ServerReadinessDetector {
 
     var addr = sockaddr_in()
     addr.sin_family = sa_family_t(AF_INET)
-    addr.sin_port = UInt16(port).bigEndian
+    addr.sin_port = portValue.bigEndian
     addr.sin_addr.s_addr = inet_addr("127.0.0.1")
 
     let connectResult = withUnsafePointer(to: &addr) { pointer -> Int32 in

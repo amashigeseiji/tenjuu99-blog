@@ -17,8 +17,17 @@ export function resolve(manifest, roots, appOutputPath) {
     }
     const rest = restParts.join('/')
     return {
-      src: rest ? path.join(root, rest) : root,
-      dest: path.join(appOutputPath, dest),
+      src: ensureWithin(root, rest ? path.join(root, rest) : root, `src "${src}"`),
+      dest: ensureWithin(appOutputPath, path.join(appOutputPath, dest), `dest "${dest}"`),
     }
   })
+}
+
+// マニフェストの記述ミス（`../` によるルート外への脱出）をビルド時に検出する
+function ensureWithin(base, resolved, label) {
+  const relative = path.relative(base, resolved)
+  if (relative.startsWith('..') || path.isAbsolute(relative)) {
+    throw new Error(`manifest ${label} escapes its root: resolved to "${resolved}"`)
+  }
+  return resolved
 }

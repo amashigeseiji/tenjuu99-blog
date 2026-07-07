@@ -36,6 +36,18 @@ describe('配置マッピング解決器は バンドルマニフェストをビ
     assert.throws(() => resolve(manifest, {}, '/build/output/tenjuu99-blog.app'), /unknownRoot/)
   })
 
+  test('src の相対パス部分に ../ が含まれてルート外へ脱出するエントリはエラーになる', () => {
+    const manifest = { entries: [{ src: 'repo/../outside', dest: 'Contents/foo' }] }
+    const roots = { repo: '/build/tenjuu99-blog' }
+    assert.throws(() => resolve(manifest, roots, '/build/output/tenjuu99-blog.app'), /escapes/)
+  })
+
+  test('dest に ../ が含まれて appOutputPath 外へ脱出するエントリはエラーになる', () => {
+    const manifest = { entries: [{ src: 'repo/lib', dest: '../outside' }] }
+    const roots = { repo: '/build/tenjuu99-blog' }
+    assert.throws(() => resolve(manifest, roots, '/build/output/tenjuu99-blog.app'), /escapes/)
+  })
+
   test('ルートキー自体がdestになるエントリ（相対パス部分が無い）も解決できる', () => {
     const manifest = { entries: [{ src: 'swiftBuild', dest: 'Contents/MacOS/App' }] }
     const roots = { swiftBuild: '/build/native/.build/release/App' }

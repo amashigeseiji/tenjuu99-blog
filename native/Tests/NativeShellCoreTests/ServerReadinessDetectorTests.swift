@@ -15,4 +15,13 @@ func testServerReadinessDetector(_ t: TestCase) {
     ServerReadinessDetector.isReady(port: Int(listeningPort)) == true,
     "listen 中のポートには true を返す"
   )
+
+  t.expect(
+    ServerReadinessDetector.isReady(port: -1) == false,
+    "負のポート番号にはクラッシュせず false を返す"
+  )
+  t.expect(
+    ServerReadinessDetector.isReady(port: 65536) == false,
+    "65535 を超えるポート番号にはクラッシュせず false を返す"
+  )
 }
