@@ -55,6 +55,11 @@ async function waitForServer(port: number): Promise<void> {
 
 function stopServer(server: ChildProcess): Promise<void> {
   return new Promise((resolve) => {
+    // 起動失敗などで既に exit 済みの場合、exit イベントは二度と発火しない
+    if (server.exitCode !== null || server.signalCode !== null) {
+      resolve()
+      return
+    }
     server.once('exit', () => resolve())
     server.kill('SIGTERM')
   })

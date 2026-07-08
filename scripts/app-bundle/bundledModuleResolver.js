@@ -27,7 +27,13 @@ export function redirect(specifier, rootURL = appRootURL) {
     return new URL('index.js', rootURL).href
   }
   if (specifier.startsWith(`${PACKAGE_NAME}/`)) {
-    return new URL(specifier.slice(PACKAGE_NAME.length + 1), rootURL).href
+    const resolved = new URL(specifier.slice(PACKAGE_NAME.length + 1), rootURL)
+    // 空サブパス（同梱ルート自身を指す）や、".."・絶対パス風の指定子で同梱ルートの
+    // 外へ出るものは対象外。通常の Node 解決に委ね、不正なサブパスとしてエラーにさせる
+    if (resolved.href === rootURL.href || !resolved.href.startsWith(rootURL.href)) {
+      return null
+    }
+    return resolved.href
   }
   return null
 }
