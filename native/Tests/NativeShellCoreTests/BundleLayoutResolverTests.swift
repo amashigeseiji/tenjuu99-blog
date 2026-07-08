@@ -15,7 +15,8 @@ func testBundleLayoutResolver(_ t: TestCase) {
     "アプリコードエントリーパスは Contents/Resources/app/bin/server を指す"
   )
   t.expect(
-    layout.nodeModulesURL.path == "/Applications/tenjuu99-blog.app/Contents/Resources/app/node_modules",
-    "node_modulesパスは Contents/Resources/app/node_modules を指す"
+    layout.moduleResolverRegistrationURL.path
+      == "/Applications/tenjuu99-blog.app/Contents/Resources/app/scripts/app-bundle/registerBundledModuleResolver.js",
+    "同梱モジュール解決器の登録スクリプトパスは Contents/Resources/app/scripts/app-bundle 配下を指す"
   )
 }

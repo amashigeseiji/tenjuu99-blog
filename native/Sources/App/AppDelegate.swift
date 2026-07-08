@@ -25,10 +25,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     // scripts/app-bundle/manifest.json の dest と対応する配置契約（BundleLayoutResolver参照）
     let layout = BundleLayoutResolver.resolve(bundleURL: Bundle.main.bundleURL)
-    linkAppNodeModulesIntoContentRoot(contentRootURL: contentRootURL, layout: layout)
     serverLifecycle = ServerLifecycleBinding(
       executableURL: layout.nodeExecutableURL,
-      arguments: [layout.serverEntryURL.path],
+      arguments: serverArguments(layout: layout),
       currentDirectoryURL: contentRootURL
     )
 
@@ -46,19 +45,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     serverLifecycle?.stop()
   }
 
-  /// コンテンツルート直下に、同梱アプリコードの node_modules へのシンボリックリンクを作る。
-  /// Node の ESM 解決はコンテンツルートの祖先を遡っても `.app` 内の node_modules へは
-  /// 辿り着けない（別系統のディレクトリツリーのため）ので、`@tenjuu99/blog` 等の
-  /// bare specifier import を解決可能にするために必要な配線。
-  private func linkAppNodeModulesIntoContentRoot(contentRootURL: URL, layout: BundleLayout) {
-    let linkURL = contentRootURL.appendingPathComponent("node_modules")
-    let fm = FileManager.default
-    if let existingTarget = try? fm.destinationOfSymbolicLink(atPath: linkURL.path),
-       existingTarget == layout.nodeModulesURL.path {
-      return
-    }
-    try? fm.removeItem(at: linkURL)
-    try? fm.createSymbolicLink(at: linkURL, withDestinationURL: layout.nodeModulesURL)
+  /// @vocab 同梱モジュール解決器 (plans/node-modules-destruction/dictionary.json)
+  /// コンテンツルートのコードからの `@tenjuu99/blog` への参照は、`--import` で差し込む
+  /// 同梱モジュール解決器が同梱コードへ解決する。コンテンツルートには一切書き込まない
+  /// （既存物保護）。実体の node_modules を持つ開発中プロジェクトを選んでも既存物は壊れない。
+  private func serverArguments(layout: BundleLayout) -> [String] {
+    [
+      "--import", layout.moduleResolverRegistrationURL.path,
+      layout.serverEntryURL.path,
+    ]
   }
 
   /// コンテンツルート解決器のコアロジックに、永続化ストア（UserDefaults）と
@@ -171,17 +166,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   /// 確定した新しいコンテンツルートでサーバーと表示を入れ替える。
-  /// 旧サーバーの停止（stop は終了を同期的に待つ）→ モジュール解決リンクの張り替え →
-  /// 新しい作業場所でのサーバー起動 → 起動待ち表示から編集画面へ、の順で initial 起動と同じ流れを辿る。
+  /// 旧サーバーの停止（stop は終了を同期的に待つ）→ 新しい作業場所でのサーバー起動 →
+  /// 起動待ち表示から編集画面へ、の順で initial 起動と同じ流れを辿る。
   private func switchProject(to contentRootURL: URL) {
     readinessTimer?.invalidate()
     serverLifecycle?.stop()
 
     let layout = BundleLayoutResolver.resolve(bundleURL: Bundle.main.bundleURL)
-    linkAppNodeModulesIntoContentRoot(contentRootURL: contentRootURL, layout: layout)
     serverLifecycle = ServerLifecycleBinding(
       executableURL: layout.nodeExecutableURL,
-      arguments: [layout.serverEntryURL.path],
+      arguments: serverArguments(layout: layout),
       currentDirectoryURL: contentRootURL
     )
 

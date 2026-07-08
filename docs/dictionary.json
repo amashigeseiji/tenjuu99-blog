@@ -1146,6 +1146,59 @@
       "src": "native/Sources/NativeShellCore/DisplayStateResolver.swift"
     },
     {
+      "name": "プロジェクト",
+      "en": "Project",
+      "context": "native-shell",
+      "domain": "application",
+      "definition": "blog.json を持つ1つのコンテンツフォルダを、#コンテンツルート切り替え の単位として指す語。同一 Mac 内に複数存在しうる。#コンテンツルート解決器 が確定するコンテンツルートは、いずれかのプロジェクトのルートである",
+      "relations": [
+        { "type": "references", "target": "コンテンツルート切り替え", "note": "切り替えの単位" },
+        { "type": "references", "target": "コンテンツルート解決器", "context": "app-bundle", "note": "解決結果はいずれかのプロジェクトのルート" }
+      ],
+      "src": null
+    },
+    {
+      "name": "コンテンツルート切り替え",
+      "en": "ContentRootSwitching",
+      "context": "native-shell",
+      "domain": "application",
+      "definition": "記憶済みのコンテンツルートを解除し、別の #プロジェクト を利用者自身の操作で選びなおすこと。実体は #コンテンツルート記憶 の書き換えと、新しいプロジェクトでのアプリの使用再開。#ネイティブアプリシェル の通常の操作の範囲で行え、永続化ストアの手動操作などアプリ外部の知識を必要としない",
+      "relations": [
+        { "type": "references", "target": "プロジェクト", "note": "切り替えの対象" },
+        { "type": "references", "target": "コンテンツルート記憶", "note": "切り替えは記憶の書き換えを伴う" },
+        { "type": "references", "target": "ネイティブアプリシェル", "context": "native-shell", "note": "アプリの通常操作として提供される" },
+        { "type": "references", "target": "コンテンツルート選択ダイアログ", "context": "app-bundle", "note": "選びなおしにも同じダイアログを使う" }
+      ],
+      "src": null
+    },
+    {
+      "name": "コンテンツルート記憶",
+      "en": "RememberedContentRoot",
+      "context": "native-shell",
+      "domain": "application",
+      "definition": "アプリが再起動を跨いで保持する「選択済みコンテンツルート」の記憶。#コンテンツルート解決器 はこの記憶を優先して解決し、記憶がある限り選択ダイアログを出さない。#コンテンツルート切り替え はこの記憶を新しい #プロジェクト のルートに書き換える",
+      "relations": [
+        { "type": "references", "target": "コンテンツルート解決器", "context": "app-bundle", "note": "解決時に優先参照される" },
+        { "type": "references", "target": "コンテンツルート切り替え", "note": "切り替えにより書き換えられる" },
+        { "type": "references", "target": "プロジェクト", "note": "記憶の内容はいずれかのプロジェクトのルート" }
+      ],
+      "src": null
+    },
+    {
+      "name": "コンテンツルート切り替えメニュー",
+      "en": "ContentRootSwitchMenu",
+      "context": "native-shell",
+      "domain": "solution",
+      "definition": "#コンテンツルート切り替え の入口をアプリの通常操作（メニュー）として利用者に提示する装置。選ばれると #コンテンツルート選択ダイアログ を開き、#切り替え結果 に応じて #ネイティブアプリシェル がサーバーと表示を入れ替える",
+      "relations": [
+        { "type": "references", "target": "コンテンツルート切り替え", "note": "その操作上の入口" },
+        { "type": "references", "target": "コンテンツルート選択ダイアログ", "context": "app-bundle", "note": "選びなおしにも同じダイアログを使う" },
+        { "type": "references", "target": "切り替え結果", "context": "app-bundle", "note": "入口から始まる操作の帰結" },
+        { "type": "references", "target": "ネイティブアプリシェル", "note": "メニューを掲げる本体" }
+      ],
+      "src": "native/Sources/App/AppDelegate.swift"
+    },
+    {
       "name": "配布物",
       "en": "DistributionBundle",
       "context": "app-bundle",
@@ -1156,7 +1209,7 @@
         { "type": "contains", "target": "バンドルレイアウト解決器", "note": "起動時に同梱リソースの場所を導出する" },
         { "type": "contains", "target": "コンテンツルート解決器", "note": "起動時にコンテンツの場所を確定する" },
         { "type": "contains", "target": "配布物組み立て器", "note": "ビルド時に配布物自体を組み立てる" },
-        { "type": "contains", "target": "コンテンツルートモジュール解決リンク", "note": "起動時にコンテンツルートから同梱アプリコードを解決可能にする" }
+        { "type": "contains", "target": "同梱モジュール解決器", "note": "起動時にアプリ自身のパッケージ名への参照を同梱コードへ解決可能にする" }
       ],
       "src": null
     },
@@ -1165,10 +1218,10 @@
       "en": "BundleLayoutResolver",
       "context": "app-bundle",
       "domain": "solution",
-      "definition": "実行中の`.app`自体の場所から、`.app`に同梱された読み取り専用リソース（Node実行ファイル・アプリコードのエントリーパス・アプリコードのnode_modules）の場所を導出する装置。#配布物 の一部として保証されている同梱物のみを扱い、存在しないケースを考慮しない。",
+      "definition": "実行中の`.app`自体の場所から、`.app`に同梱された読み取り専用リソース（Node実行ファイル・アプリコードのエントリーパス・#同梱モジュール解決器 の登録スクリプト）の場所を導出する装置。#配布物 の一部として保証されている同梱物のみを扱い、存在しないケースを考慮しない。",
       "relations": [
         { "type": "belongs_to", "target": "配布物", "note": "配布物の起動を成立させる構成要素" },
-        { "type": "references", "target": "コンテンツルートモジュール解決リンク", "note": "導出したnode_modulesの場所がリンク先になる" }
+        { "type": "references", "target": "同梱モジュール解決器", "note": "その登録スクリプトの場所を導出する" }
       ],
       "src": "native/Sources/NativeShellCore/BundleLayoutResolver.swift"
     },
@@ -1192,19 +1245,6 @@
       "definition": "ユーザーにフォルダ選択UIを提示し、選択結果を#コンテンツルート解決器 に返すAppKit実装。手動検証のみ（単体テストなし）。",
       "relations": [
         { "type": "belongs_to", "target": "コンテンツルート解決器", "note": "記憶済みパスが無い場合の入力源" }
-      ],
-      "src": "native/Sources/App/AppDelegate.swift"
-    },
-    {
-      "name": "コンテンツルートモジュール解決リンク",
-      "en": "ContentRootModuleLink",
-      "context": "app-bundle",
-      "domain": "solution",
-      "definition": "コンテンツルート直下に、同梱アプリコードの`node_modules`へのシンボリックリンクを作る配線。Node のESM解決はコンテンツルートの祖先を遡っても`.app`内のnode_modulesへは辿り着けない（別系統のディレクトリツリーのため）ため、`@tenjuu99/blog`等のbare specifier importを解決可能にするために実装中に発見された必要な処理。#バンドルレイアウト解決器 が導出したnode_modulesの場所と#コンテンツルート解決器 が確定したコンテンツルートを結びつける。AppKit直結の配線のため単体テストなし。",
-      "relations": [
-        { "type": "belongs_to", "target": "配布物", "note": "配布物の起動を成立させる構成要素" },
-        { "type": "references", "target": "バンドルレイアウト解決器", "note": "リンク先の場所を提供する" },
-        { "type": "references", "target": "コンテンツルート解決器", "note": "リンクを作る場所を提供する" }
       ],
       "src": "native/Sources/App/AppDelegate.swift"
     },
@@ -1255,6 +1295,68 @@
         { "type": "belongs_to", "target": "配置マッピング解決器", "note": "この装置が読み込む入力" }
       ],
       "src": "scripts/app-bundle/manifest.json"
+    },
+    {
+      "name": "切り替え結果",
+      "en": "SwitchOutcome",
+      "context": "app-bundle",
+      "domain": "solution",
+      "definition": "#コンテンツルート解決器 が選びなおしの求めに応じて確定する帰結。切り替え確定・取りやめで現状維持・blog.json 無しで退けて現状維持の3値。取りやめと拒否を区別するのは、拒否時のみ利用者への通知が必要になるため。#コンテンツルート切り替え の実体を運ぶデータ概念",
+      "relations": [
+        { "type": "references", "target": "コンテンツルート解決器", "note": "選びなおしの戻り値として生成される" },
+        { "type": "references", "target": "コンテンツルート切り替え", "context": "native-shell", "note": "切り替え操作の帰結を表す" }
+      ],
+      "src": "native/Sources/NativeShellCore/ContentRootResolver.swift"
+    },
+    {
+      "name": "開発中プロジェクト",
+      "en": "ProjectUnderDevelopment",
+      "context": "app-bundle",
+      "domain": "application",
+      "definition": "開発機で既に開発が進行しており、実体の node_modules ディレクトリを持つ #プロジェクト [native-shell]。配布先の Mac（node_modules が存在しないフォルダ）と異なり、フォルダの中身に利用者自身の作業成果物が含まれる。これをコンテンツルートに選ぶことが #同居 の入口になる",
+      "relations": [
+        { "type": "references", "target": "プロジェクト", "context": "native-shell", "note": "実体の node_modules を持つ特殊形" },
+        { "type": "references", "target": "同居", "note": "同居の対象となるプロジェクト" }
+      ],
+      "src": null
+    },
+    {
+      "name": "同居",
+      "en": "Coexistence",
+      "context": "app-bundle",
+      "domain": "application",
+      "definition": "同一のフォルダを、ローカルでの開発（エディタ・npm 等による直接操作）と #配布物 としてのアプリ利用の両方で使い続けられる状態。#開発中プロジェクト をコンテンツルートに選んでも、開発側の作業成果物とアプリ側の動作が互いを壊さずに両立することを指す。成立の前提として #既存物保護 が必要",
+      "relations": [
+        { "type": "references", "target": "開発中プロジェクト", "note": "同居の対象" },
+        { "type": "references", "target": "既存物保護", "note": "同居が成立するための前提" },
+        { "type": "references", "target": "配布物", "note": "同居の片側はアプリとしての利用" }
+      ],
+      "src": null
+    },
+    {
+      "name": "既存物保護",
+      "en": "ExistingContentProtection",
+      "context": "app-bundle",
+      "domain": "application",
+      "definition": "コンテンツルートに選んだフォルダ内の既存ファイル・ディレクトリが、利用者の同意なく削除・置換・変更されないという保証。かつてコンテンツルート直下へのシンボリックリンク配線が既存の実体 node_modules を無条件に削除しこの保証に反していたが、#同梱モジュール解決器 への置き換え（コンテンツルートへの書き込み処理の不存在）により成立する。#同居 が成立するための前提",
+      "relations": [
+        { "type": "references", "target": "同梱モジュール解決器", "note": "この保証を成立させる装置" },
+        { "type": "references", "target": "同居", "note": "この保証が同居を成立させる" }
+      ],
+      "src": null
+    },
+    {
+      "name": "同梱モジュール解決器",
+      "en": "BundledModuleResolver",
+      "context": "app-bundle",
+      "domain": "solution",
+      "definition": "アプリ自身のパッケージ名（@tenjuu99/blog、サブパス含む）への参照を、コンテンツルートの中身に関わらず同梱コード（Contents/Resources/app）へ解決する装置。Node の ESM 解決はコンテンツルートの祖先を遡っても .app 内の node_modules へは辿り着けない（別系統のディレクトリツリーのため）ので、bare specifier import の解決にこの装置が必要になる。アプリが同梱 Node を起動するときだけ差し込まれ、コンテンツルートには一切書き込まないことで #既存物保護 を成立させる。サーバー本体と同一のモジュールインスタンスへ解決するため、allData 等のモジュールレベル状態の共有が保たれる",
+      "relations": [
+        { "type": "references", "target": "既存物保護", "note": "この装置が既存物保護を成立させる" },
+        { "type": "references", "target": "同居", "note": "同居を実現する解決手段" },
+        { "type": "belongs_to", "target": "配布物", "note": "配布物の起動を成立させる構成要素" }
+      ],
+      "src": "scripts/app-bundle/bundledModuleResolver.js"
     }
   ]
 }
