@@ -1,5 +1,5 @@
 /**
- * @vocab 同梱モジュール解決器 (plans/node-modules-destruction/dictionary.json)
+ * @vocab 同梱モジュール解決器
  * @test tests/app-bundle/bundledModuleResolver.test.js
  *
  * アプリ自身のパッケージ名（@tenjuu99/blog、サブパス含む）への参照を、

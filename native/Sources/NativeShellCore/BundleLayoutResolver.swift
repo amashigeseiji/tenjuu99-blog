@@ -1,6 +1,6 @@
 import Foundation
 
-/// @vocab バンドルレイアウト解決器 (plans/native-shell-distribution/dictionary.json)
+/// @vocab バンドルレイアウト解決器
 /// @test native/Tests/NativeShellCoreTests/BundleLayoutResolverTests.swift
 ///
 /// `.app` に同梱された、読み取り専用リソースの絶対パス。

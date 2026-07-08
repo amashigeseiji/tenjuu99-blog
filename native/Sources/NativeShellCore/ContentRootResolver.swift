@@ -1,6 +1,6 @@
 import Foundation
 
-/// @vocab コンテンツルート解決器 (plans/native-shell-distribution/dictionary.json)
+/// @vocab コンテンツルート解決器
 /// @test native/Tests/NativeShellCoreTests/ContentRootResolverTests.swift
 public enum ContentRootResolutionError: Error, Equatable {
   /// 選ばれたフォルダに blog.json が存在しない（新規作成はこの装置の責務に含めない）
@@ -9,7 +9,7 @@ public enum ContentRootResolutionError: Error, Equatable {
   case userCancelled
 }
 
-/// @vocab 切り替え結果 (plans/content-root-switching/dictionary.json)
+/// @vocab 切り替え結果
 /// 選びなおしの帰結。取りやめ（silent）と拒否（利用者への通知が必要）を区別する
 public enum SwitchOutcome: Equatable {
   /// blog.json を持つフォルダが選ばれ、新しいコンテンツルートへの切り替えが確定した

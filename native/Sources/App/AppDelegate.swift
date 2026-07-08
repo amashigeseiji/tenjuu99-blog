@@ -2,7 +2,7 @@ import AppKit
 import NativeShellCore
 import WebKit
 
-/// @vocab アプリウィンドウ (plans/native-mac-shell/dictionary.json)
+/// @vocab アプリウィンドウ
 /// AppKit/WKWebView に直結するため単体テストは行わず、実アプリの起動で手動検証する（test-tree.md 参照）
 final class AppDelegate: NSObject, NSApplicationDelegate {
   private static let serverPort = 8000
@@ -13,8 +13,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   private var startupLabel: NSTextField!
   private var readinessTimer: Timer?
   private var serverLifecycle: ServerLifecycleBinding!
+  private var logWriter: DiagnosticLogWriter!
+  private var displayState: DisplayState = .startupWaiting
+  /// エラー表示の detail に使う直近のサーバー出力（全文は診断ログにある）
+  private var recentServerOutput = ""
 
   func applicationDidFinishLaunching(_ notification: Notification) {
+    logWriter = DiagnosticLogWriter(directory: Self.diagnosticLogDirectory())
     setUpMainMenu()
     setUpWindow()
     // フォルダ選択ダイアログ（モーダル）を表示する前にアプリを前面化する。
@@ -45,7 +50,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     serverLifecycle?.stop()
   }
 
-  /// @vocab 同梱モジュール解決器 (plans/node-modules-destruction/dictionary.json)
+  /// @vocab 同梱モジュール解決器
   /// コンテンツルートのコードからの `@tenjuu99/blog` への参照は、`--import` で差し込む
   /// 同梱モジュール解決器が同梱コードへ解決する。コンテンツルートには一切書き込まない
   /// （既存物保護）。実体の node_modules を持つ開発中プロジェクトを選んでも既存物は壊れない。
@@ -109,7 +114,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     true
   }
 
-  /// @vocab コンテンツルート切り替えメニュー (plans/content-root-switching/dictionary.json)
+  /// @vocab コンテンツルート切り替えメニュー
   /// コンテンツルート切り替えの入口をアプリの通常操作（メニューバー）として提示する（手動検証のみ）
   private func setUpMainMenu() {
     let mainMenu = NSMenu()
@@ -209,15 +214,42 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   private func startServerAndWait() {
+    displayState = .startupWaiting
+    recentServerOutput = ""
+    // ログ開始に失敗しても起動は続ける（診断ログなしで動く。currentLogURL が nil のまま）
+    try? logWriter.startSession()
+
+    // 観測ハンドラは start() 前に配線する。onOutput は読み取りスレッドから呼ばれる。
+    serverLifecycle.onOutput = { [weak self] text in
+      guard let self else { return }
+      self.logWriter.append(text)
+      DispatchQueue.main.async {
+        self.recentServerOutput = String((self.recentServerOutput + text).suffix(8000))
+      }
+    }
+    serverLifecycle.onUnexpectedExit = { [weak self] _ in
+      DispatchQueue.main.async { self?.handleUnexpectedServerExit() }
+    }
+
     do {
       try serverLifecycle.start()
     } catch {
-      startupLabel.stringValue = "サーバーの起動に失敗しました: \(error)"
+      // プロセスを起動すらできなかった（実行ファイル欠損など）。起動失敗として提示する。
+      displayState = .failed(.beforeStartup)
+      showError(ErrorDisplay.compose(
+        stage: .beforeStartup,
+        errorOutput: "\(error)",
+        logURL: logWriter.currentLogURL
+      ))
       return
     }
 
     readinessTimer = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: true) { [weak self] timer in
       guard let self else { return }
+      if case .failed = self.displayState {
+        timer.invalidate()
+        return
+      }
       let ready = ServerReadinessDetector.isReady(port: Self.serverPort)
       if DisplayStateResolver.resolve(serverReady: ready) == .editor {
         timer.invalidate()
@@ -226,7 +258,58 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
   }
 
+  /// サーバーの予期しない終了を失敗段階つきの表示状態に反映し、エラー表示を提示する。
+  /// 呼び出し時点で終了までの出力は onOutput へ配信済み（ServerLifecycleBinding が保証）。
+  private func handleUnexpectedServerExit() {
+    readinessTimer?.invalidate()
+    displayState = DisplayStateResolver.resolve(
+      current: displayState, serverReady: false, serverAlive: false)
+    guard case .failed(let stage) = displayState else { return }
+    showError(ErrorDisplay.compose(
+      stage: stage,
+      errorOutput: recentServerOutput,
+      logURL: logWriter.currentLogURL
+    ))
+  }
+
+  /// エラー表示（手動検証のみ。組み立てロジックは ErrorDisplay がテスト済み）
+  private func showError(_ content: ErrorDisplayContent) {
+    let title = NSTextField(labelWithString: content.title)
+    title.font = .boldSystemFont(ofSize: 16)
+    title.alignment = .center
+
+    let detail = NSTextField(wrappingLabelWithString: content.detail)
+    detail.font = .monospacedSystemFont(ofSize: 11, weight: .regular)
+    detail.isSelectable = true
+    detail.preferredMaxLayoutWidth = 700
+
+    let logLabel = NSTextField(labelWithString: content.logLocation)
+    logLabel.textColor = .secondaryLabelColor
+    logLabel.isSelectable = true
+
+    let openLogButton = NSButton(
+      title: "ログを表示", target: self, action: #selector(revealDiagnosticLog(_:)))
+
+    let stack = NSStackView(views: [title, detail, logLabel, openLogButton])
+    stack.orientation = .vertical
+    stack.alignment = .centerX
+    stack.spacing = 16
+    stack.edgeInsets = NSEdgeInsets(top: 40, left: 40, bottom: 40, right: 40)
+    window.contentView = stack
+  }
+
+  @objc private func revealDiagnosticLog(_ sender: Any?) {
+    guard let url = logWriter.currentLogURL else { return }
+    NSWorkspace.shared.activateFileViewerSelecting([url])
+  }
+
+  private static func diagnosticLogDirectory() -> URL {
+    FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask)[0]
+      .appendingPathComponent("Logs/tenjuu99-blog", isDirectory: true)
+  }
+
   private func showEditor() {
+    displayState = .editor
     window.contentView = webView
     webView.load(URLRequest(url: URL(string: "http://127.0.0.1:\(Self.serverPort)/editor.html")!))
   }

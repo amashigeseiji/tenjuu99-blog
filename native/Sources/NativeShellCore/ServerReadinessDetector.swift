@@ -1,7 +1,7 @@
 import Darwin
 import Foundation
 
-/// @vocab サーバー起動完了検知 (plans/native-mac-shell/dictionary.json)
+/// @vocab サーバー起動完了検知
 /// @test native/Tests/NativeShellCoreTests/ServerReadinessDetectorTests.swift
 public enum ServerReadinessDetector {
   /// - Returns: `127.0.0.1:port` へ接続できれば true
