@@ -1,4 +1,4 @@
-/// @vocab 表示状態判定器 (plans/native-mac-shell/dictionary.json)
+/// @vocab 表示状態判定器
 /// @test native/Tests/NativeShellCoreTests/DisplayStateResolverTests.swift
 public enum DisplayState: Equatable {
   case startupWaiting

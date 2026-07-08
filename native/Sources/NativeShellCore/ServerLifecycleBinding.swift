@@ -1,6 +1,6 @@
 import Foundation
 
-/// @vocab サーバーライフサイクル連動 (plans/native-mac-shell/dictionary.json)
+/// @vocab サーバーライフサイクル連動
 /// @test native/Tests/NativeShellCoreTests/ServerLifecycleBindingTests.swift
 public final class ServerLifecycleBinding {
   private let executableURL: URL

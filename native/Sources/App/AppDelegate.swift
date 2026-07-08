@@ -2,7 +2,7 @@ import AppKit
 import NativeShellCore
 import WebKit
 
-/// @vocab アプリウィンドウ (plans/native-mac-shell/dictionary.json)
+/// @vocab アプリウィンドウ
 /// AppKit/WKWebView に直結するため単体テストは行わず、実アプリの起動で手動検証する（test-tree.md 参照）
 final class AppDelegate: NSObject, NSApplicationDelegate {
   private static let serverPort = 8000
@@ -50,7 +50,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     serverLifecycle?.stop()
   }
 
-  /// @vocab 同梱モジュール解決器 (plans/node-modules-destruction/dictionary.json)
+  /// @vocab 同梱モジュール解決器
   /// コンテンツルートのコードからの `@tenjuu99/blog` への参照は、`--import` で差し込む
   /// 同梱モジュール解決器が同梱コードへ解決する。コンテンツルートには一切書き込まない
   /// （既存物保護）。実体の node_modules を持つ開発中プロジェクトを選んでも既存物は壊れない。
@@ -114,7 +114,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     true
   }
 
-  /// @vocab コンテンツルート切り替えメニュー (plans/content-root-switching/dictionary.json)
+  /// @vocab コンテンツルート切り替えメニュー
   /// コンテンツルート切り替えの入口をアプリの通常操作（メニューバー）として提示する（手動検証のみ）
   private func setUpMainMenu() {
     let mainMenu = NSMenu()
