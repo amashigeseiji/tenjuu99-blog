@@ -17,7 +17,7 @@ public struct ErrorDisplayContent: Equatable {
   }
 }
 
-/// @vocab エラー表示 (plans/error-visibility/dictionary.json)
+/// @vocab エラー表示
 /// @test native/Tests/NativeShellCoreTests/ErrorDisplayTests.swift
 public enum ErrorDisplay {
   /// 表示するエラー内容の最大行数。全文は診断ログにあるため、画面には直近の出力だけ出す。

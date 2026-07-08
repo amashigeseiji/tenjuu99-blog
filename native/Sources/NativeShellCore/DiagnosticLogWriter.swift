@@ -1,6 +1,6 @@
 import Foundation
 
-/// @vocab 診断ログ書き出し (plans/error-visibility/dictionary.json)
+/// @vocab 診断ログ書き出し
 /// @test native/Tests/NativeShellCoreTests/DiagnosticLogWriterTests.swift
 /// サーバー出力を診断ログとして残す装置。起動のたびに新しいログに切り替え、
 /// 直近数回の起動分だけ保持して古いものを消す（溜め込まない）。
@@ -15,7 +15,8 @@ public final class DiagnosticLogWriter {
 
   public init(directory: URL, maxSessions: Int = 5) {
     self.directory = directory
-    self.maxSessions = maxSessions
+    // prefix() は負の値で precondition failure になるため下限を保証する
+    self.maxSessions = max(0, maxSessions)
   }
 
   deinit {

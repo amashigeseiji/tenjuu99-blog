@@ -35,4 +35,14 @@ func testDiagnosticLogWriter(_ t: TestCase) {
   }
   let files = (try? FileManager.default.contentsOfDirectory(atPath: dir.path)) ?? []
   t.expect(files.count == 3, "直近3回分だけ残る（実際: \(files.count)件 \(files)）")
+
+  // maxSessions に負の値を渡してもクラッシュせず 0 に丸められる
+  let negative = DiagnosticLogWriter(directory: dir, maxSessions: -1)
+  t.expect(negative.maxSessions == 0, "負の maxSessions は 0 に丸められる（実際: \(negative.maxSessions)）")
+  do {
+    try negative.startSession(now: Date(timeIntervalSince1970: 1_700_001_000))
+  } catch {
+    t.expect(false, "負の maxSessions でも startSession() が失敗しない: \(error)")
+    return
+  }
 }
