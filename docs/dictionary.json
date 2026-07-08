@@ -1100,7 +1100,7 @@
       "en": "StartupWaitingView",
       "context": "native-shell",
       "domain": "application",
-      "definition": "アプリ起動直後、#サーバーライフサイクル連動 が完了するまでの間、#アプリウィンドウ に表示される状態。エラー表示やクラッシュにはならず、サーバー起動完了次第、編集画面に切り替わる。切り替え判断は#表示状態判定器 が行う。",
+      "definition": "アプリ起動直後、#サーバーライフサイクル連動 が完了するまでの間、#アプリウィンドウ に表示される状態。サーバー起動完了次第、編集画面に切り替わり、起動に失敗した場合は #エラー表示 に切り替わる。切り替え判断は#表示状態判定器 が行う。",
       "relations": [
         { "type": "belongs_to", "target": "アプリウィンドウ" },
         { "type": "references", "target": "サーバーライフサイクル連動" },
@@ -1113,7 +1113,7 @@
       "en": "ServerLifecycleBinding",
       "context": "native-shell",
       "domain": "application",
-      "definition": "@tenjuu99/blog のサーバープロセスの起動・終了を、#アプリウィンドウ の起動・終了に連動させること。アプリ終了時にはサーバープロセスも終了する。起動時は#サーバー起動完了検知 の結果を#起動待ち表示 に伝える。",
+      "definition": "@tenjuu99/blog のサーバープロセスの起動・終了を、#アプリウィンドウ の起動・終了に連動させること。アプリ終了時にはサーバープロセスも終了する。起動時は#サーバー起動完了検知 の結果を#起動待ち表示 に伝える。サーバープロセスの出力と予期しない終了を観測し、出力を #診断ログ書き出し に渡す。",
       "relations": [
         { "type": "belongs_to", "target": "ネイティブアプリシェル" },
         { "type": "references", "target": "アプリウィンドウ" },
@@ -1138,7 +1138,7 @@
       "en": "DisplayStateResolver",
       "context": "native-shell",
       "domain": "solution",
-      "definition": "#サーバー起動完了検知 の結果から、#アプリウィンドウ が次に表示すべき画面（#起動待ち表示 か編集画面か）を決定する純粋関数。AppKitのビュー操作そのものは含まない。",
+      "definition": "#サーバー起動完了検知 の結果とサーバープロセスの生死の観測から、#アプリウィンドウ が次に表示すべき画面（#起動待ち表示 ・編集画面・ #失敗段階 を含む #エラー表示 ）を決定する純粋関数。AppKitのビュー操作そのものは含まない。",
       "relations": [
         { "type": "belongs_to", "target": "起動待ち表示" },
         { "type": "references", "target": "サーバー起動完了検知" }
@@ -1197,6 +1197,56 @@
         { "type": "references", "target": "ネイティブアプリシェル", "note": "メニューを掲げる本体" }
       ],
       "src": "native/Sources/App/AppDelegate.swift"
+    },
+    {
+      "name": "エラー表示",
+      "en": "ErrorDisplay",
+      "context": "native-shell",
+      "domain": "application",
+      "definition": "アプリが正常に使えない状態になったとき、異常が起きた事実・ #失敗段階 ・エラー内容を画面に提示する表示。 #起動待ち表示 （正常系）と対をなす異常系の表示であり、正常時には現れない。確認先として #診断ログ を案内する",
+      "relations": [
+        { "type": "references", "target": "起動待ち表示", "note": "正常系表示との対" },
+        { "type": "references", "target": "アプリウィンドウ", "note": "表示先" },
+        { "type": "references", "target": "失敗段階", "note": "提示する区別" },
+        { "type": "references", "target": "診断ログ", "note": "確認先として案内" }
+      ],
+      "src": null
+    },
+    {
+      "name": "失敗段階",
+      "en": "FailureStage",
+      "context": "native-shell",
+      "domain": "application",
+      "definition": "失敗がサーバー起動前に起きたのか、起動後に起きたのかの区別。値は「起動失敗」と「起動後障害」の2つ。利用者が状況を把握し次の行動（再試行・報告・回避）を選ぶための手がかりとして #エラー表示 が提示する",
+      "relations": [
+        { "type": "references", "target": "サーバー起動完了検知", "note": "起動前/起動後の境界を与える" },
+        { "type": "belongs_to", "target": "エラー表示", "note": "エラー表示が提示する情報" }
+      ],
+      "src": null
+    },
+    {
+      "name": "診断ログ",
+      "en": "DiagnosticLog",
+      "context": "native-shell",
+      "domain": "application",
+      "definition": "サーバープロセスの出力を事後に確認できるよう残した記録。直近数回の起動分のみ保持し、溜め込まない。 #エラー表示 から確認先として案内される。出力の源は #サーバーライフサイクル連動 が管理するサーバープロセス",
+      "relations": [
+        { "type": "references", "target": "サーバーライフサイクル連動", "note": "記録対象のサーバープロセスを管理" },
+        { "type": "references", "target": "エラー表示", "note": "確認先として案内される" }
+      ],
+      "src": null
+    },
+    {
+      "name": "診断ログ書き出し",
+      "en": "DiagnosticLogWriter",
+      "context": "native-shell",
+      "domain": "solution",
+      "definition": "サーバー出力を #診断ログ として残す装置。起動のたびに新しいログに切り替え、直近数回の起動分だけ保持して古いものを消す。溜め込まない責務を担う",
+      "relations": [
+        { "type": "references", "target": "診断ログ", "note": "書き出す対象" },
+        { "type": "references", "target": "サーバーライフサイクル連動", "note": "観測された出力を受け取る" }
+      ],
+      "src": "native/Sources/NativeShellCore/DiagnosticLogWriter.swift"
     },
     {
       "name": "配布物",
