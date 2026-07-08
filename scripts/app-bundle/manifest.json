@@ -8,7 +8,9 @@
     { "src": "repo/packages", "dest": "Contents/Resources/app/packages" },
     { "src": "repo/package.json", "dest": "Contents/Resources/app/package.json" },
     { "src": "repo/node_modules", "dest": "Contents/Resources/app/node_modules" },
-    { "src": "repo/bin/server", "dest": "Contents/Resources/app/bin/server" }
+    { "src": "repo/bin/server", "dest": "Contents/Resources/app/bin/server" },
+    { "src": "repo/scripts/app-bundle/bundledModuleResolver.js", "dest": "Contents/Resources/app/scripts/app-bundle/bundledModuleResolver.js" },
+    { "src": "repo/scripts/app-bundle/registerBundledModuleResolver.js", "dest": "Contents/Resources/app/scripts/app-bundle/registerBundledModuleResolver.js" }
   ],
   "symlinks": [
     {

@@ -8,16 +8,15 @@ import Foundation
 public struct BundleLayout: Equatable {
   public let nodeExecutableURL: URL
   public let serverEntryURL: URL
-  /// 同梱アプリコード自身の node_modules。コンテンツルートから `@tenjuu99/blog` 等の
-  /// bare specifier importを解決可能にするため、起動時にこの場所へのシンボリックリンクを
-  /// コンテンツルート直下に作る必要がある（Node のESM解決はコンテンツルートの祖先を遡っても
-  /// ここへは辿り着けないため）。
-  public let nodeModulesURL: URL
+  /// 同梱モジュール解決器の登録スクリプト。Node 起動時に `--import` で渡すことで、
+  /// コンテンツルートのコードからの `@tenjuu99/blog` への参照を同梱コードへ解決する。
+  /// コンテンツルートには一切書き込まない（既存物保護）。
+  public let moduleResolverRegistrationURL: URL
 }
 
 public enum BundleLayoutResolver {
   /// - Parameter bundleURL: 実行中の `.app` 自体の場所（`Bundle.main.bundleURL`）
-  /// - Returns: 同梱されたNode実行ファイル・アプリコードエントリー・node_modulesの絶対パス
+  /// - Returns: 同梱されたNode実行ファイル・アプリコードエントリー・解決器登録スクリプトの絶対パス
   public static func resolve(bundleURL: URL) -> BundleLayout {
     let resourcesURL = bundleURL
       .appendingPathComponent("Contents")
@@ -30,11 +29,14 @@ public enum BundleLayoutResolver {
     let serverEntryURL = appURL
       .appendingPathComponent("bin")
       .appendingPathComponent("server")
-    let nodeModulesURL = appURL.appendingPathComponent("node_modules")
+    let moduleResolverRegistrationURL = appURL
+      .appendingPathComponent("scripts")
+      .appendingPathComponent("app-bundle")
+      .appendingPathComponent("registerBundledModuleResolver.js")
     return BundleLayout(
       nodeExecutableURL: nodeExecutableURL,
       serverEntryURL: serverEntryURL,
-      nodeModulesURL: nodeModulesURL
+      moduleResolverRegistrationURL: moduleResolverRegistrationURL
     )
   }
 }
