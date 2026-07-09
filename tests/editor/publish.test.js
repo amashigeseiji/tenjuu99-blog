@@ -15,7 +15,7 @@ describe('エディタは編集内容を公開・更新できる', () => {
       const { handlePublish } = await import('../../packages/editor/server/publish.js')
       const reflected = []
       const means = {
-        publishedState: { existsInRemote: async () => false, diffFromRemote: async () => '' },
+        remoteState: { existsInRemote: async () => false, diffFromRemote: async () => '' },
         reflect: async (files) => { reflected.push(...files); return { success: true } },
         deliverable: 'manuscript'
       }
@@ -30,7 +30,7 @@ describe('エディタは編集内容を公開・更新できる', () => {
       const { handlePublish } = await import('../../packages/editor/server/publish.js')
       const reflected = []
       const means = {
-        publishedState: { existsInRemote: async () => true, diffFromRemote: async () => 'diff --git ...' },
+        remoteState: { existsInRemote: async () => true, diffFromRemote: async () => 'diff --git ...' },
         reflect: async (files) => { reflected.push(...files); return { success: true } },
         deliverable: 'manuscript'
       }
@@ -45,7 +45,7 @@ describe('エディタは編集内容を公開・更新できる', () => {
       const { handlePublish } = await import('../../packages/editor/server/publish.js')
       const reflected = []
       const means = {
-        publishedState: { existsInRemote: async () => true, diffFromRemote: async () => '' },
+        remoteState: { existsInRemote: async () => true, diffFromRemote: async () => '' },
         reflect: async (files) => { reflected.push(...files); return { success: true } },
         deliverable: 'manuscript'
       }
@@ -59,7 +59,7 @@ describe('エディタは編集内容を公開・更新できる', () => {
     it('リモートの内容が参照できないときは公開せずエラーを返す', async () => {
       const { handlePublish } = await import('../../packages/editor/server/publish.js')
       const means = {
-        publishedState: {
+        remoteState: {
           existsInRemote: async () => { throw new Error('upstream not set') },
           diffFromRemote: async () => { throw new Error('upstream not set') }
         },
@@ -135,29 +135,29 @@ describe('エディタは編集内容を公開・更新できる', () => {
       })
     })
 
-    describe('公開ステータス判定器は公開済み状態からステータスを導出できる', () => {
+    describe('公開ステータス判定器はリモート状態からステータスを導出できる', () => {
       it('ファイルがリモートに存在しない場合は「new」を返す', async () => {
-        const mockPublishedState = {
+        const mockRemoteState = {
           existsInRemote: async () => false,
           diffFromRemote: async () => ''
         }
-        const result = await getPublicationStatus('src/pages/post/hello.md', mockPublishedState)
+        const result = await getPublicationStatus('src/pages/post/hello.md', mockRemoteState)
         assert.strictEqual(result, 'new')
       })
       it('ファイルがリモートに存在して差分がある場合は「modified」を返す', async () => {
-        const mockPublishedState = {
+        const mockRemoteState = {
           existsInRemote: async () => true,
           diffFromRemote: async () => 'diff --git ...'
         }
-        const result = await getPublicationStatus('src/pages/post/hello.md', mockPublishedState)
+        const result = await getPublicationStatus('src/pages/post/hello.md', mockRemoteState)
         assert.strictEqual(result, 'modified')
       })
       it('ファイルがリモートに存在して差分がない場合は「published」を返す', async () => {
-        const mockPublishedState = {
+        const mockRemoteState = {
           existsInRemote: async () => true,
           diffFromRemote: async () => ''
         }
-        const result = await getPublicationStatus('src/pages/post/hello.md', mockPublishedState)
+        const result = await getPublicationStatus('src/pages/post/hello.md', mockRemoteState)
         assert.strictEqual(result, 'published')
       })
     })

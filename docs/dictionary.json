@@ -1565,7 +1565,7 @@
         { "type": "references", "target": "リモート状態", "note": "を提供する" },
         { "type": "references", "target": "サイドバー取得エンドポイント", "context": "editor", "note": "が使用する" }
       ],
-      "src": "lib/publishing/publishedStateResolver.js"
+      "src": "lib/publishing/remoteStateResolver.js"
     }
   ]
 }

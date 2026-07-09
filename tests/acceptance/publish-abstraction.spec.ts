@@ -137,7 +137,7 @@ test.describe('US-02: 「公開する」を手段の言葉なしで語れる', (
     // Then: 定義文に特定の手段の言葉が現れず、手段は実現方法の一つとして別に位置づけられている
     test.skip(
       true,
-      '語彙定義の検証は設計レビュー事項。plans/publish-abstraction/dictionary.json で「公開する」「公開済み状態」' +
+      '語彙定義の検証は設計レビュー事項。plans/publish-abstraction/dictionary.json で「公開する」「リモート状態」' +
       '「デプロイ」「変更反映器」を redefine 済み（git の言葉は git公開手段エントリと実現例の言及のみに限定）。' +
       '機械的な語句 grep は「実現例としての言及」と「定義としての依存」を区別できないため自動化しない。' +
       'docs/dictionary.json への反映は /tdd-vocab promote（ユーザー承認）で行う。'
@@ -148,7 +148,7 @@ test.describe('US-02: 「公開する」を手段の言葉なしで語れる', (
     // Then: git による公開は、定義の各要素（判定・実行・届けるもの）の実現として説明でき、既存運用は動作する
     test.skip(
       true,
-      'コード上の対応で検証済み: 公開手段の各要素（publishedState=判定の参照 / reflect=反映の実行 / ' +
+      'コード上の対応で検証済み: 公開手段の各要素（remoteState=判定の参照 / reflect=反映の実行 / ' +
       'deliverable=届けるもの）を lib/publishing/gitPublicationMeans.js が実装し、' +
       'tests/publishing/publicationMeans.test.js のルートテスト（git ではないインメモリ手段で公開フローが成立）が green。' +
       '既存運用の動作は本ファイルの US-01 シナリオ 1〜2 が実際の commit/push で検証する。'

@@ -72,6 +72,9 @@ main:not(.sidebar-close) .editor {
   display: flex;
   align-items: center;
 }
+#publicationStatus:not(:empty) {
+  margin-left: 8px;
+}
 #publishBtn {
   height: var(--header-height);
   width: 100px;

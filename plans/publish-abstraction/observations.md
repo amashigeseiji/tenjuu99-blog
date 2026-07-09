@@ -47,3 +47,15 @@
 - 依存グラフの孤立ノードチェックで `公開済み状態解決器` が静的依存元0件と出たが、これは
   `@tenjuu99/blog/...` 自己パッケージ指定子 + `.cache/server` 動的 import による既知の静的解析限界
   であり、`公開手段解決器`・`publish.js` 自体も同じパターンで0件だった。孤立の誤検知に注意が必要
+
+## 追加サイクル（2026-07-10、findings.md F-02・F-04 対応）
+
+- F-04（識別子リネーム）は名前の変更点そのものはリスクが低いが、影響ファイルが lib/publishing・
+  packages/editor/server・tests の3階層×8ファイルに散っており、`grep` による全件把握
+  （`PublishedState|publishedState|公開済み状態`）を先にやらないと1〜2ファイルを取りこぼす
+  （実際に `packages/editor/server/publish.js` の `means.publishedState` 参照を初回パスで見落とし、
+  再検索で発見した）。リネーム系の findings 対応では「実装ファイルを個別に読んで直す」より先に
+  「対象識別子のプロジェクト全体 grep」を最初と最後に行うのが確実
+- 依存グラフの `.claude/tdd/config.json` に `depgraph.regen` が設定されていることを見落とし、
+  一度「未設定なのでスキップ」と findings に書きかけた。前サイクルの findings 記述（設定なしを前提とした
+  書き方）を鵜呑みにせず、`config.json` を毎回確認すべき

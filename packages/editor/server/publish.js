@@ -19,7 +19,7 @@ import { parseJsonBody } from '@tenjuu99/blog/lib/server/helper/parseRequestBody
 export async function handlePublish({ filePath, fileContent, srcDir: srcDirParam = 'src' }, means) {
   const target = collectTarget(filePath, fileContent, srcDirParam)
   const files = [target.markdownFile, ...target.imageFiles]
-  const state = await getPublicationStatus(target.markdownFile, means.publishedState)
+  const state = await getPublicationStatus(target.markdownFile, means.remoteState)
   if (state === 'new') return await publish(files, means)
   if (state === 'modified') return await update(files, means)
   if (state === 'unknown') return { success: false, error: 'リモートへの接続に失敗しました（upstream branch が未設定の可能性があります）' }
