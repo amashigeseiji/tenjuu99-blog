@@ -67,6 +67,7 @@ export const post = async (req, res) => {
     res.writeHead(result.success ? 200 : 500, { 'content-type': 'application/json' })
     res.end(JSON.stringify(result))
   } catch (error) {
+    console.log(styleText('red', '[publish] エラー:'), error.message)
     res.writeHead(500, { 'content-type': 'application/json' })
     res.end(JSON.stringify({ success: false, error: error.message }))
   }

@@ -115,11 +115,15 @@ test.describe('US-01: 手段を意識せずに記事を公開できる', () => {
     const before = commitCountInOrigin()
     await page.goto(`${BASE}/editor?md=${filename}`)
 
-    // When: 執筆者が公開操作を行う
-    await page.locator('#publishBtn').click()
+    // Then: 公開ボタンが操作不可になり、参照できない旨がブラウザ上で知覚できる
+    // （公開可否判定器が unknown ステータスを検出し、クリック前に操作不可であることを伝える）
+    await expect(page.locator('#publicationStatus')).toHaveAttribute('data-status', 'unknown')
+    await expect(page.locator('#publishBtn')).toBeDisabled()
 
-    // Then: 公開は実行されず、参照できない旨のフィードバックがブラウザ上で知覚できる
-    await expect(page.locator('#publishFeedback')).toHaveText(/公開失敗: リモートへの接続に失敗しました/)
+    // When: この状態でも公開操作は実行できない
+    await page.locator('#publishBtn').click({ force: true })
+
+    // Then: 公開は実行されない
     expect(commitCountInOrigin()).toBe(before)
 
     // 後続のためにアップストリームを戻す

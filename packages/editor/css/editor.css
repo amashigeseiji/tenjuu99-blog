@@ -84,6 +84,14 @@ main:not(.sidebar-close) .editor {
 #publishBtn:hover {
   background: var(--light-green);
 }
+#publishBtn:disabled {
+  background: #aaa;
+  color: #eee;
+  cursor: not-allowed;
+}
+#publishBtn:disabled:hover {
+  background: #aaa;
+}
 
 #newFileDialog {
   border: 1px solid #ccc;

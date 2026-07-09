@@ -168,6 +168,20 @@
       "src": "lib/publishing/publicationMeansResolver.js"
     },
     {
+      "name": "公開済み状態解決器",
+      "en": "PublishedStateResolver",
+      "context": "publishing",
+      "domain": "solution",
+      "definition": "構成にもとづいて公開手段を解決し、その#公開済み状態を返す。解決に失敗した場合（不明な手段名など）は、常に例外を投げる（=常に unknown として扱われる）#公開済み状態を代わりに返し、失敗をログに出力する。#サイドバー取得エンドポイント と公開ステータス取得エンドポイントが使用する。",
+      "relations": [
+        { "type": "references", "target": "公開手段解決器", "note": "を介して解決する" },
+        { "type": "references", "target": "公開済み状態", "note": "を提供する" },
+        { "type": "references", "target": "サイドバー取得エンドポイント", "context": "editor", "note": "が使用する" }
+      ],
+      "wip": { "status": "new", "discovered": "tdd-run" },
+      "src": "lib/publishing/publishedStateResolver.js"
+    },
+    {
       "name": "変更反映器",
       "en": "ChangeReflector",
       "context": "editor",
@@ -178,6 +192,18 @@
         { "type": "references", "target": "公開手段", "note": "反映の実行を委ねる" }
       ],
       "wip": { "status": "redefine", "previous_definition": "#公開する または #更新する の遷移イベントを受けて、#公開対象 のファイル群をリモートに反映する装置。遷移の実行体（commit/push）を外部から注入できることで、実際のリモートリポジトリなしにテストが書ける。", "reason": "commit/push（git の言葉）が注入界面に現れていたのを、公開手段への委譲に置き換えたため", "impact": "docs/dictionary.json の editor エントリ、packages/editor/server/changeReflector.js" }
+    },
+    {
+      "name": "公開可否判定器",
+      "en": "PublishAvailabilityResolver",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "#公開ステータスの値（特に unknown）から、公開ボタンを無効化すべきかと利用者への表示文言を判定する純粋関数。unknown の原因（means 不正/git remote 未設定等）を問わず同一の扱いをする。",
+      "relations": [
+        { "type": "references", "target": "公開ステータス", "note": "を判定入力にする" }
+      ],
+      "wip": { "status": "new", "discovered": "tdd-run" },
+      "src": "packages/editor/js/publishAvailability.js"
     }
   ]
 }
