@@ -1,0 +1,183 @@
+{
+  "version": "1",
+  "contexts": [
+    {
+      "dir": "publishing",
+      "name": "公開",
+      "description": "原稿がサイトとして公開された状態に至るまでの流れ（公開状態の判定・リモートへの反映・デプロイ）を、手段から独立に定義する領域",
+      "primary_users": "ブログ執筆者（公開操作）、ツール開発者（公開手段の追加・保守）",
+      "in_scope": "公開の意味の定義、公開ステータスの判定、公開手段の抽象、公開物（原稿/成果物）の区別",
+      "out_of_scope": "執筆・編集UI（editor）、ビルドの実装（ssg-core）、CI/CDパイプラインの設定"
+    }
+  ],
+  "entries": [
+    {
+      "name": "ローカル",
+      "en": "Local",
+      "context": "publishing",
+      "domain": "application",
+      "definition": "執筆者の手元にある資材の置き場所。editor コンテキストの #保存 の書き込み先。ここに #原稿 があるだけでは公開されておらず、#リモート に反映されてはじめて公開となる。",
+      "relations": [
+        { "type": "references", "target": "リモート", "note": "資材の反映先" },
+        { "type": "references", "target": "原稿", "note": "ローカルに置かれる資材" },
+        { "type": "references", "target": "保存", "context": "editor", "note": "保存の書き込み先がローカル" }
+      ],
+      "wip": { "status": "new", "discovered": "tdd-vocab plan" }
+    },
+    {
+      "name": "リモート",
+      "en": "Remote",
+      "context": "publishing",
+      "domain": "application",
+      "definition": "公開の届け先。#ローカル の資材が反映される先であり、ここに反映された状態が「公開済み」の実体。実体は #公開手段 によって異なる（git 運用ではリモートリポジトリ、FTP ならサーバー等）。",
+      "relations": [
+        { "type": "references", "target": "ローカル", "note": "対になる手元の置き場所" },
+        { "type": "references", "target": "公開手段", "note": "リモートの実体を決める" },
+        { "type": "references", "target": "公開済み状態", "note": "リモートの現在の内容を参照する抽象" }
+      ],
+      "wip": { "status": "new", "discovered": "tdd-vocab plan" }
+    },
+    {
+      "name": "原稿",
+      "en": "Manuscript",
+      "context": "publishing",
+      "domain": "application",
+      "definition": "公開前の資材。執筆者が #ローカル で執筆・保存するMarkdownソースと参照画像。#ビルド を経て #成果物 になる。editor コンテキストの #公開対象 は原稿のファイル集合にあたる。",
+      "relations": [
+        { "type": "references", "target": "ローカル", "note": "原稿の置き場所" },
+        { "type": "references", "target": "成果物", "note": "ビルドを経た姿" },
+        { "type": "references", "target": "ビルド", "context": "ssg-core", "note": "原稿を成果物に変換するプロセス" },
+        { "type": "references", "target": "公開対象", "context": "editor", "note": "公開対象は原稿のファイル集合" }
+      ],
+      "wip": { "status": "new", "discovered": "tdd-vocab plan" }
+    },
+    {
+      "name": "成果物",
+      "en": "Artifact",
+      "context": "publishing",
+      "domain": "application",
+      "definition": "#ビルド が #原稿 から生成した、配信可能な形のサイト一式。「公開」によって最終的にサイトとして公開されるのは常にこれであり、原稿そのものではない。",
+      "relations": [
+        { "type": "references", "target": "原稿", "note": "生成元" },
+        { "type": "references", "target": "ビルド", "context": "ssg-core", "note": "成果物を生成するプロセス" }
+      ],
+      "wip": { "status": "new", "discovered": "tdd-vocab plan" }
+    },
+    {
+      "name": "公開手段",
+      "en": "PublicationMeans",
+      "context": "publishing",
+      "domain": "application",
+      "definition": "公開の実現方法の総称（git 運用・FTP/SFTP・JS git 実装など）。公開の定義の各要素——#リモート の内容の参照（#公開済み状態 ）、#ローカル から #リモート への反映の実行、送る #公開物 の形態——をどう実現するかを担う。手段が替わっても #公開する ・ #公開ステータス の意味は変わらない。",
+      "relations": [
+        { "type": "references", "target": "リモート", "note": "リモートの実体を決める" },
+        { "type": "references", "target": "公開済み状態", "note": "リモート内容の参照の実現を担う" },
+        { "type": "references", "target": "公開物", "note": "送るものの形態を決める" },
+        { "type": "references", "target": "公開する", "note": "その実現方法にあたる" },
+        { "type": "references", "target": "デプロイ", "note": "手段によって反映とサイト公開の関係が変わる" },
+        { "type": "references", "target": "公開ステータス", "context": "editor", "note": "手段が替わっても意味は不変" }
+      ],
+      "wip": { "status": "new", "discovered": "tdd-vocab plan" }
+    },
+    {
+      "name": "公開物",
+      "en": "Deliverable",
+      "context": "publishing",
+      "domain": "application",
+      "definition": "#公開手段 が #リモート へ送るもの。#原稿 か #成果物 かは手段により異なる。git 運用では原稿を送り、ビルド（公開の実体）は #リモート 側で行われる。ビルドをしない届け先へは成果物を送る。",
+      "relations": [
+        { "type": "references", "target": "公開手段", "note": "何を送るかを決める" },
+        { "type": "references", "target": "リモート", "note": "送り先" },
+        { "type": "references", "target": "原稿", "note": "送るものの一形態" },
+        { "type": "references", "target": "成果物", "note": "送るものの一形態" }
+      ],
+      "wip": { "status": "new", "discovered": "tdd-vocab plan" }
+    },
+    {
+      "name": "公開する",
+      "en": "Publish",
+      "context": "publishing",
+      "domain": "application",
+      "definition": "#ローカル にある #公開物 を #リモート に反映するアクション。#公開ステータス の 未公開 → 公開済み 遷移にあたる。Publishボタンで実行される。#保存 とは別操作（保存はローカル書き込みのみ）。手段固有の入力なしに完結する。",
+      "relations": [
+        { "type": "references", "target": "ローカル", "note": "反映元" },
+        { "type": "references", "target": "リモート", "note": "反映先" },
+        { "type": "references", "target": "公開物", "note": "反映されるもの" },
+        { "type": "references", "target": "デプロイ", "note": "公開操作によって起動される" },
+        { "type": "references", "target": "公開ステータス", "context": "editor", "note": "未公開 → 公開済み の遷移" },
+        { "type": "references", "target": "公開対象", "context": "editor", "note": "自動収集した公開対象セットを対象とする" },
+        { "type": "references", "target": "公開フィードバック", "context": "editor", "note": "操作結果を通知する" },
+        { "type": "references", "target": "保存", "context": "editor", "note": "保存はローカル書き込みのみで別操作" }
+      ],
+      "wip": { "status": "redefine", "previous_definition": "#公開ステータス の `未公開 → 公開済み` 遷移を起動するアクション。Publishボタンで実行される。#保存 とは別操作（保存はローカル書き込みのみ）。コミットメッセージの入力なしに完結する。", "reason": "git 運用の言葉（コミットメッセージ）を分離し、公開手段から独立に定義するため。コンテキストも editor → publishing へ移動", "impact": "docs/dictionary.json の editor エントリ、packages/editor/server/changeReflector.js の @vocab" }
+    },
+    {
+      "name": "公開済み状態",
+      "en": "PublishedState",
+      "context": "publishing",
+      "domain": "application",
+      "definition": "#リモート の現在の内容を参照するための読み取り専用の抽象。#公開ステータス判定器 が #ローカル と #リモート を対比してステートを導出する。参照のしやすさは #公開手段 により異なり、参照できないときは判定不能として扱う。",
+      "relations": [
+        { "type": "references", "target": "リモート", "note": "参照する対象" },
+        { "type": "references", "target": "ローカル", "note": "対比の相手" },
+        { "type": "references", "target": "公開手段", "note": "参照の実現方法を決める" },
+        { "type": "references", "target": "公開ステータス判定器", "context": "editor", "note": "に注入されて使われる" }
+      ],
+      "wip": { "status": "redefine", "previous_definition": "リモートリポジトリの現在の内容を参照するための読み取り専用の抽象。この抽象を介して #公開ステータス判定器 がローカルとリモートを対比し、現在のステートを導出する。gitの場合はremote HEADへのアクセス（`existsInRemote`, `diffFromRemote`）にあたる。", "reason": "定義文からリモートリポジトリ・remote HEAD 等の git の言葉を分離するため。コンテキストも editor → publishing へ移動", "impact": "docs/dictionary.json の editor エントリ、packages/editor/server/publish.js・publicationStatus.js の @vocab と JSDoc" }
+    },
+    {
+      "name": "デプロイ",
+      "en": "Deploy",
+      "context": "publishing",
+      "domain": "application",
+      "definition": "#リモート に届けられた #公開物 がWebサイトへの実反映に至る流れ。git 手段では push をトリガーとする CI/CD がこれを担い、手段によっては #リモート への反映とサイトへの実反映が一致する。CI/CDパイプラインの設定・変更は範囲外。",
+      "relations": [
+        { "type": "references", "target": "リモート", "note": "実反映の起点" },
+        { "type": "references", "target": "公開物", "note": "実反映に至るもの" },
+        { "type": "references", "target": "公開する", "note": "によって起動される" },
+        { "type": "references", "target": "更新する", "context": "editor", "note": "によって起動される" }
+      ],
+      "wip": { "status": "redefine", "previous_definition": "リモートリポジトリへの送信をトリガーにWebサイトへ変更が反映される一連の自動化フロー。#公開する ・ #更新する によって起動される。CI/CDパイプラインの設定・変更はエディタの範囲外。", "reason": "定義文からリモートリポジトリへの送信（git 前提）を分離し、公開物の実反映として再定義するため。コンテキストも editor → publishing へ移動", "impact": "docs/dictionary.json の editor エントリ" }
+    },
+    {
+      "name": "git公開手段",
+      "en": "GitPublicationMeans",
+      "context": "publishing",
+      "domain": "solution",
+      "definition": "#公開手段 の git による実現。#原稿 を #公開物 として送り、リモートへの反映を commit と push で実行する。ビルドとサイトへの実反映はリモート側の #デプロイ （CI/CD）に委ねる。",
+      "relations": [
+        { "type": "references", "target": "公開手段", "note": "その一つの実現" },
+        { "type": "references", "target": "原稿", "note": "公開物として送るもの" },
+        { "type": "references", "target": "公開物", "note": "形態は原稿" },
+        { "type": "references", "target": "デプロイ", "note": "ビルドと実反映を委ねる" }
+      ],
+      "wip": { "status": "new", "discovered": "tdd-run" },
+      "src": "lib/publishing/gitPublicationMeans.js"
+    },
+    {
+      "name": "公開手段解決器",
+      "en": "PublicationMeansResolver",
+      "context": "publishing",
+      "domain": "solution",
+      "definition": "構成にもとづいて使う #公開手段 を決めて提供する装置。エンドポイントが特定の手段を直接組み立てる代わりにここを通ることで、手段の差し替え点が一箇所になる。現状の既定は #git公開手段 。",
+      "relations": [
+        { "type": "references", "target": "公開手段", "note": "提供するもの" },
+        { "type": "references", "target": "git公開手段", "note": "現状の既定" }
+      ],
+      "wip": { "status": "new", "discovered": "tdd-run" },
+      "src": "lib/publishing/publicationMeansResolver.js"
+    },
+    {
+      "name": "変更反映器",
+      "en": "ChangeReflector",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "#公開する または #更新する の遷移イベントを受けて、#公開対象 のファイル群の反映を #公開手段 に委ねる装置。公開手段を外部から注入できることで、実際のリモートなしにテストが書ける。",
+      "relations": [
+        { "type": "references", "target": "公開対象", "context": "editor", "note": "反映する対象を受け取る" },
+        { "type": "references", "target": "公開手段", "note": "反映の実行を委ねる" }
+      ],
+      "wip": { "status": "redefine", "previous_definition": "#公開する または #更新する の遷移イベントを受けて、#公開対象 のファイル群をリモートに反映する装置。遷移の実行体（commit/push）を外部から注入できることで、実際のリモートリポジトリなしにテストが書ける。", "reason": "commit/push（git の言葉）が注入界面に現れていたのを、公開手段への委譲に置き換えたため", "impact": "docs/dictionary.json の editor エントリ、packages/editor/server/changeReflector.js" }
+    }
+  ]
+}

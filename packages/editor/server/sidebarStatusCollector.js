@@ -3,7 +3,7 @@ import { getPublicationStatus } from './publicationStatus.js'
  * @vocab ファイルステータスコレクター
  * @test tests/editor/editor-sidebar-status.test.js
  * @param {Array<{treePath: string, gitPath: string}>} fileMappings
- * @param {import('./publicationStatus.js').PublishedState} publishedState
+ * @param {import('@tenjuu99/blog/lib/publishing/publicationMeans.js').PublishedState} publishedState
  * @returns {Promise<Object.<string, 'new'|'modified'|'published'|'unknown'>>}
  */
 export async function collectStatuses(fileMappings, publishedState) {

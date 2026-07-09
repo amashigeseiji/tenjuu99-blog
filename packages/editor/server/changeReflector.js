@@ -4,44 +4,26 @@
  */
 
 /**
- * 遷移実行体。commit と push を注入することで実際の git なしにテストできる。
- * @typedef {object} PublishActions
- * @property {(files: string[]) => Promise<boolean>} commit - ファイル群をステージしてコミットする。変更がなければ false を返す
- * @property {() => Promise<{ success: boolean, error?: string }>} push - リモートへプッシュする
- */
-
-/**
- * @param {string[]} files - コミット対象ファイルパスの配列
- * @param {PublishActions} publishActions
- * @returns {Promise<{ success: boolean, error?: string }>}
- */
-async function reflect(files, publishActions) {
-  const committed = await publishActions.commit(files)
-  // 変更がない（コミット不要）場合は成功とみなす
-  if (!committed) return { success: true }
-  return await publishActions.push()
-}
-
-/**
  * @vocab: 公開する
- * 未公開 → 公開済み 遷移。更新する と現在は同じ実装だが、
+ * 未公開 → 公開済み 遷移。ローカルにある公開物をリモートに反映する。
+ * 更新する と現在は同じ実装だが、
  * 将来「非公開にする」「削除する」などの遷移が加わったとき実装が分岐する。
- * @param {string[]} files - コミット対象ファイルパスの配列
- * @param {PublishActions} publishActions
+ * @param {string[]} files - 反映対象ファイルパスの配列
+ * @param {import('@tenjuu99/blog/lib/publishing/publicationMeans.js').PublicationMeans} means
  * @returns {Promise<{ success: boolean, error?: string }>}
  */
-export async function publish(files, publishActions) {
-  return reflect(files, publishActions)
+export async function publish(files, means) {
+  return await means.reflect(files)
 }
 
 /**
  * @vocab: 更新する
  * 更新あり → 公開済み 遷移。公開する と現在は同じ実装だが、
  * 将来「非公開にする」「削除する」などの遷移が加わったとき実装が分岐する。
- * @param {string[]} files - コミット対象ファイルパスの配列
- * @param {PublishActions} publishActions
+ * @param {string[]} files - 反映対象ファイルパスの配列
+ * @param {import('@tenjuu99/blog/lib/publishing/publicationMeans.js').PublicationMeans} means
  * @returns {Promise<{ success: boolean, error?: string }>}
  */
-export async function update(files, publishActions) {
-  return reflect(files, publishActions)
+export async function update(files, means) {
+  return await means.reflect(files)
 }

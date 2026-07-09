@@ -3,7 +3,7 @@ import { watch, rootDir } from '@tenjuu99/blog/lib/dir.js'
 import config from '@tenjuu99/blog/lib/config.js'
 import { renderSidebarTree } from '../helper/sidebarTree.js'
 import { collectStatuses } from './sidebarStatusCollector.js'
-import { createGitPublishedState } from './publish.js'
+import { resolvePublicationMeans } from '@tenjuu99/blog/lib/publishing/publicationMeansResolver.js'
 
 export const path = '/get_sidebar'
 
@@ -36,7 +36,7 @@ function scanFiles(dir, prefix = '') {
  */
 export const get = async (req, res) => {
   const files = scanFiles(watch.pageDir)
-  const publishedState = await createGitPublishedState(rootDir)
+  const { publishedState } = await resolvePublicationMeans({ means: config.publish?.means, cwd: rootDir })
   const fileMappings = files.map(f => ({
     treePath: `${f.name}.${f.__filetype}`,
     gitPath: `${config.src_dir}/pages/${f.name}.${f.__filetype}`,
