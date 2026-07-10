@@ -39,7 +39,7 @@ export const get = async (req, res) => {
   const remoteState = await resolveRemoteState({ means: config.publish?.means, cwd: rootDir })
   const fileMappings = files.map(f => ({
     treePath: `${f.name}.${f.__filetype}`,
-    gitPath: `${config.src_dir}/pages/${f.name}.${f.__filetype}`,
+    localPath: `${config.src_dir}/pages/${f.name}.${f.__filetype}`,
   }))
   const statusMap = await collectStatuses(fileMappings, remoteState)
   const html = renderSidebarTree(files, statusMap)
