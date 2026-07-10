@@ -303,6 +303,24 @@ form select {
   content: " ✓";
   color: #888;
 }
+.sidebar a[data-status="remote-only"]::after {
+  content: " ☁";
+  color: #7a5ea8;
+}
+.sidebar a[data-status="remote-only"] {
+  opacity: 0.7;
+}
+.sidebar-sync {
+  padding: 4px 8px;
+}
+.sidebar-sync #pullFeedback {
+  font-size: 0.8em;
+  white-space: pre-line;
+}
+#unpublishBtn,
+#deleteBtn {
+  margin-left: 4px;
+}
 .sidebar a[data-status="new"],
 .sidebar a[data-status="modified"] {
   color: var(--sidebar-modified-fg);

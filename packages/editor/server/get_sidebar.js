@@ -41,7 +41,17 @@ export const get = async (req, res) => {
     treePath: `${f.name}.${f.__filetype}`,
     localPath: `${config.src_dir}/pages/${f.name}.${f.__filetype}`,
   }))
-  const statusMap = await collectStatuses(fileMappings, remoteState)
+  const statusMap = await collectStatuses(fileMappings, remoteState, { pagesPrefix: `${config.src_dir}/pages/` })
+  // 手元に無いがリモートにあるファイルもツリーに載せる（執筆者が知覚できるように）
+  for (const [treePath, status] of Object.entries(statusMap)) {
+    if (status !== 'remote-only') continue
+    const ext = treePath.split('.').pop()
+    files.push({
+      name: treePath.slice(0, -(ext.length + 1)),
+      __filetype: ext,
+      __is_auto_category: false,
+    })
+  }
   const html = renderSidebarTree(files, statusMap)
   return {
     status: 200,

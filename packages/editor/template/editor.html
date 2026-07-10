@@ -21,6 +21,10 @@
         <button class="sidebar-tab" data-tab="new-file" role="tab" id="sidebar-tab-new-file" aria-selected="false" aria-controls="sidebar-tabpanel-new-file" tabindex="-1">新規作成</button>
       </div>
       <div class="sidebar-tab-content active" data-tab="files" role="tabpanel" id="sidebar-tabpanel-files" aria-labelledby="sidebar-tab-files">
+        <div class="sidebar-sync">
+          <button type="button" id="pullBtn" disabled>リモートから取り込む</button>
+          <p id="pullFeedback" role="status" aria-live="polite"></p>
+        </div>
         <div class="sidebar-files"></div>
       </div>
       <div class="sidebar-tab-content" data-tab="new-file" role="tabpanel" id="sidebar-tabpanel-new-file" aria-labelledby="sidebar-tab-new-file" hidden>
@@ -49,6 +53,8 @@
         </div>
         <div class="editor-options-right">
           <input type="submit" value="publish" data-url="/publish" id="publishBtn">
+          <button type="button" id="unpublishBtn" hidden>非公開にする</button>
+          <button type="button" id="deleteBtn" hidden>削除</button>
           <span id="publishFeedback"></span>
         </div>
       </div>

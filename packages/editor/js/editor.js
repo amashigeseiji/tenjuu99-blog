@@ -1,7 +1,7 @@
 import { initAutoPreview } from './autoPreviewInitializer.js'
 import { initAutoSave } from './autoSaveInitializer.js'
 import { matchTemplate, buildFrontmatterString, loadFrontmatterTemplate } from './frontmatter_template.js'
-import { publishAvailability } from './publishAvailability.js'
+import { publishAvailability, resolveOperations } from './publishAvailability.js'
 
 // @vocab: テンプレートレゾルバー
 // @test: tests/editor/editor-frontmatter-template.test.js
@@ -97,13 +97,21 @@ const onloadFunction = async (e) => {
     publishWithFeedback(form)
   })
 
-  const statusLabels = { new: '未公開', modified: '更新あり', published: '公開済み' }
+  const statusLabels = { new: '未公開', modified: '更新あり', published: '公開済み', 'remote-only': 'リモートのみ' }
+  // @vocab: 公開可否判定器
+  // 記事の状態に応じて、公開・非公開・削除の各操作の提供を切り替える
   const applyPublishAvailability = (status) => {
     const btn = document.querySelector('#publishBtn')
-    if (!btn) return
-    const { disabled, label } = publishAvailability(status)
-    btn.disabled = disabled
-    btn.title = label ?? ''
+    const unpublishBtn = document.querySelector('#unpublishBtn')
+    const deleteBtn = document.querySelector('#deleteBtn')
+    const ops = resolveOperations(status)
+    if (btn) {
+      const { disabled, label } = publishAvailability(status)
+      btn.disabled = disabled || !ops.publish
+      btn.title = label ?? ''
+    }
+    if (unpublishBtn) unpublishBtn.hidden = !ops.unpublish
+    if (deleteBtn) deleteBtn.hidden = !ops.delete
   }
   const renderPublicationStatus = (statusEl, filePath, status) => {
     const { label } = publishAvailability(status)
@@ -157,6 +165,67 @@ const onloadFunction = async (e) => {
       btn.disabled = false
     }
   }
+
+  // @vocab: 非公開にする
+  // リモートから取り除く。原稿は手元に残るため確認なしで実行できる（再公開で戻せる）
+  const unpublishWithFeedback = async () => {
+    const feedback = document.querySelector('#publishFeedback')
+    const filePath = inputFileName.value
+    if (!filePath) return
+    feedback.textContent = '非公開にしています...'
+    try {
+      const res = await fetch('/unpublish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filePath })
+      })
+      const json = await res.json().catch(() => ({}))
+      feedback.textContent = json.success ? '非公開にしました' : `非公開にできませんでした: ${json.error ?? '不明なエラー'}`
+      if (json.success) {
+        fetchPublicationStatus(filePath)
+        refreshSidebar()
+      }
+    } catch {
+      feedback.textContent = 'サーバーに接続できませんでした。しばらくしてからお試しください。'
+    }
+  }
+  document.querySelector('#unpublishBtn')?.addEventListener('click', unpublishWithFeedback)
+
+  // @vocab: 削除する
+  // 手元から取り除く不可逆の操作のため、実行前に確認する
+  const deleteWithFeedback = async () => {
+    const feedback = document.querySelector('#publishFeedback')
+    const filePath = inputFileName.value
+    if (!filePath) return
+    if (!confirm(`「${filePath}」を手元から削除します。よろしいですか？`)) return
+    try {
+      const res = await fetch('/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filePath })
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!json.success) {
+        feedback.textContent = `削除できませんでした: ${json.error ?? '不明なエラー'}`
+        return
+      }
+      feedback.textContent = '削除しました'
+      textarea.value = ''
+      setCurrentFile('')
+      url.searchParams.delete('md')
+      history.pushState({}, '', url)
+      const statusEl = document.querySelector('#publicationStatus')
+      if (statusEl) {
+        statusEl.textContent = ''
+        statusEl.dataset.status = ''
+      }
+      applyPublishAvailability('')
+      refreshSidebar()
+    } catch {
+      feedback.textContent = 'サーバーに接続できませんでした。しばらくしてからお試しください。'
+    }
+  }
+  document.querySelector('#deleteBtn')?.addEventListener('click', deleteWithFeedback)
 
   // @vocab: 自動保存
   // @vocab: 自動保存初期化器
@@ -264,6 +333,46 @@ const onloadFunction = async (e) => {
     }
   }
 
+  // @vocab: 取り込む
+  // リモートの内容を手元に取り込む。見送られた記事はその理由を表示する
+  const pullBtn = document.querySelector('#pullBtn')
+  const pullFeedback = document.querySelector('#pullFeedback')
+  const pullWithFeedback = async () => {
+    if (!pullBtn) return
+    pullBtn.disabled = true
+    pullFeedback.textContent = '取り込んでいます...'
+    try {
+      const res = await fetch('/pull', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: '{}'
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok || !json.success) {
+        pullFeedback.textContent = `取り込めませんでした: ${json.error ?? 'サーバーに接続できませんでした'}`
+        return
+      }
+      const lines = [json.applied.length ? `${json.applied.length}件を取り込みました` : '新しく取り込むものはありませんでした']
+      for (const s of json.skipped ?? []) {
+        lines.push(`見送り: ${s.file.split('/').pop()} — ${s.reason}`)
+      }
+      pullFeedback.textContent = lines.join('\n')
+      refreshSidebar()
+      // 開いている記事が取り込みで更新されたときは、開き直して最新にする
+      const current = inputFileName.value
+      if (current && json.applied.some(p => p.endsWith(`/pages/${current}`))) {
+        await loadFileInPlace(current)
+      }
+    } catch {
+      pullFeedback.textContent = 'サーバーに接続できませんでした。しばらくしてからお試しください。'
+    } finally {
+      pullBtn.disabled = false
+    }
+  }
+  pullBtn?.addEventListener('click', pullWithFeedback)
+  // 初期 disabled はハンドラー登録前の空クリックを防ぐため。登録できたここで操作可能にする
+  if (pullBtn) pullBtn.disabled = false
+
   // サイドバーのリンクをインターセプトしてインプレース読み込みに切り替える。
   // サイドバーは動的に生成されるため、個別リンクへのバインドではなく .sidebar へのデリゲーションで処理する。
   document.querySelector('.sidebar').addEventListener('click', async (e) => {
@@ -275,6 +384,27 @@ const onloadFunction = async (e) => {
     const newTarget = linkUrl.searchParams.get('md')
     if (!newTarget) return
     e.preventDefault()
+
+    // リモートのみの記事は手元に無いため開けない。取り込むか、サイトから取り除くかを選べる
+    if (link.dataset.status === 'remote-only') {
+      if (confirm(`「${newTarget}」はまだ手元にありません。リモートから取り込みますか？`)) {
+        await pullWithFeedback()
+      } else if (confirm(`「${newTarget}」をサイトから取り除きますか？（手元には取り込みません）`)) {
+        try {
+          const res = await fetch('/unpublish', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filePath: newTarget })
+          })
+          const json = await res.json().catch(() => ({}))
+          pullFeedback.textContent = json.success ? `「${newTarget}」をサイトから取り除きました` : `取り除けませんでした: ${json.error ?? '不明なエラー'}`
+          if (json.success) refreshSidebar()
+        } catch {
+          pullFeedback.textContent = 'サーバーに接続できませんでした。しばらくしてからお試しください。'
+        }
+      }
+      return
+    }
 
     const currentTarget = inputFileName.value || url.searchParams.get('md')
     if (newTarget === currentTarget) return
