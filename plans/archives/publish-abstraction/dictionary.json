@@ -1,0 +1,41 @@
+{
+  "version": "1",
+  "contexts": [
+    {
+      "dir": "publishing",
+      "name": "公開",
+      "description": "原稿がサイトとして公開された状態に至るまでの流れ（公開状態の判定・リモートへの反映・デプロイ）を、手段から独立に定義する領域",
+      "primary_users": "ブログ執筆者（公開操作）、ツール開発者（公開手段の追加・保守）",
+      "in_scope": "公開の意味の定義、公開ステータスの判定、公開手段の抽象、公開物（原稿/成果物）の区別",
+      "out_of_scope": "執筆・編集UI（editor）、ビルドの実装（ssg-core）、CI/CDパイプラインの設定"
+    }
+  ],
+  "entries": [
+    {
+      "name": "デプロイ",
+      "en": "Deploy",
+      "context": "publishing",
+      "domain": "application",
+      "definition": "#リモート に届けられた #公開物 がWebサイトへの実反映に至る流れ。git 手段では push をトリガーとする CI/CD がこれを担い、手段によっては #リモート への反映とサイトへの実反映が一致する。CI/CDパイプラインの設定・変更は範囲外。",
+      "relations": [
+        { "type": "references", "target": "リモート", "note": "実反映の起点" },
+        { "type": "references", "target": "公開物", "note": "実反映に至るもの" },
+        { "type": "references", "target": "公開する", "note": "によって起動される" },
+        { "type": "references", "target": "更新する", "context": "editor", "note": "によって起動される" }
+      ],
+      "wip": { "status": "redefine", "previous_definition": "リモートリポジトリへの送信をトリガーにWebサイトへ変更が反映される一連の自動化フロー。#公開する ・ #更新する によって起動される。CI/CDパイプラインの設定・変更はエディタの範囲外。", "reason": "定義文からリモートリポジトリへの送信（git 前提）を分離し、公開物の実反映として再定義するため。コンテキストも editor → publishing へ移動", "impact": "docs/dictionary.json の editor エントリ" }
+    },
+    {
+      "name": "変更反映器",
+      "en": "ChangeReflector",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "#公開する または #更新する の遷移イベントを受けて、#公開対象 のファイル群の反映を #公開手段 に委ねる装置。公開手段を外部から注入できることで、実際のリモートなしにテストが書ける。",
+      "relations": [
+        { "type": "references", "target": "公開対象", "context": "editor", "note": "反映する対象を受け取る" },
+        { "type": "references", "target": "公開手段", "note": "反映の実行を委ねる" }
+      ],
+      "wip": { "status": "redefine", "previous_definition": "#公開する または #更新する の遷移イベントを受けて、#公開対象 のファイル群をリモートに反映する装置。遷移の実行体（commit/push）を外部から注入できることで、実際のリモートリポジトリなしにテストが書ける。", "reason": "commit/push（git の言葉）が注入界面に現れていたのを、公開手段への委譲に置き換えたため", "impact": "docs/dictionary.json の editor エントリ、packages/editor/server/changeReflector.js" }
+    }
+  ]
+}

@@ -72,6 +72,9 @@ main:not(.sidebar-close) .editor {
   display: flex;
   align-items: center;
 }
+#publicationStatus:not(:empty) {
+  margin-left: 8px;
+}
 #publishBtn {
   height: var(--header-height);
   width: 100px;
@@ -83,6 +86,14 @@ main:not(.sidebar-close) .editor {
 }
 #publishBtn:hover {
   background: var(--light-green);
+}
+#publishBtn:disabled {
+  background: #aaa;
+  color: #1f1f1f;
+  cursor: not-allowed;
+}
+#publishBtn:disabled:hover {
+  background: #aaa;
 }
 
 #newFileDialog {

@@ -1,24 +1,17 @@
 import { styleText } from 'node:util'
-/**
- * リモートの現在の内容を参照する読み取り専用の抽象。
- * git 依存を外部から注入することで実際のリモートリポジトリなしにテストできる。
- * @typedef {object} PublishedState
- * @property {(filePath: string) => Promise<boolean>} existsInRemote - ファイルがリモートに存在するか
- * @property {(filePath: string) => Promise<string>} diffFromRemote - リモートとの差分（差分なしなら空文字列）
- */
 
 /**
  * @vocab: 公開ステータス判定器
  * @test tests/editor/publish.test.js
- * @param {string} filePath - git ルートからの相対パス（例: `src/pages/post/hello.md`）
- * @param {PublishedState} publishedState
+ * @param {string} filePath - プロジェクトルートからの相対パス（例: `src/pages/post/hello.md`）
+ * @param {import('@tenjuu99/blog/lib/publishing/publicationMeans.js').RemoteState} remoteState
  * @returns {Promise<'new'|'modified'|'published'|'unknown'>}
  */
-export async function getPublicationStatus(filePath, publishedState) {
+export async function getPublicationStatus(filePath, remoteState) {
   try {
-    const exists = await publishedState.existsInRemote(filePath)
+    const exists = await remoteState.existsInRemote(filePath)
     if (!exists) return 'new'
-    const diff = await publishedState.diffFromRemote(filePath)
+    const diff = await remoteState.diffFromRemote(filePath)
     return diff ? 'modified' : 'published'
   } catch (e) {
     console.log(styleText('red', '[error]'), e)

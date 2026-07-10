@@ -1,6 +1,7 @@
 import { initAutoPreview } from './autoPreviewInitializer.js'
 import { initAutoSave } from './autoSaveInitializer.js'
 import { matchTemplate, buildFrontmatterString, loadFrontmatterTemplate } from './frontmatter_template.js'
+import { publishAvailability } from './publishAvailability.js'
 
 // @vocab: テンプレートレゾルバー
 // @test: tests/editor/editor-frontmatter-template.test.js
@@ -97,24 +98,35 @@ const onloadFunction = async (e) => {
   })
 
   const statusLabels = { new: '未公開', modified: '更新あり', published: '公開済み' }
+  const applyPublishAvailability = (status) => {
+    const btn = document.querySelector('#publishBtn')
+    if (!btn) return
+    const { disabled, label } = publishAvailability(status)
+    btn.disabled = disabled
+    btn.title = label ?? ''
+  }
+  const renderPublicationStatus = (statusEl, filePath, status) => {
+    const { label } = publishAvailability(status)
+    statusEl.textContent = label ?? (statusLabels[status] ? `(${statusLabels[status]})` : '')
+    statusEl.dataset.status = status
+    applyPublishAvailability(status)
+    // サイドバーリンクの data-status も同期する
+    const sidebarLink = document.querySelector(`.sidebar a[href="/editor?md=${encodeURIComponent(filePath)}"]`)
+    if (sidebarLink) sidebarLink.dataset.status = status || ''
+  }
   const fetchPublicationStatus = async (filePath) => {
     if (!filePath) return
     const statusEl = document.querySelector('#publicationStatus')
     if (!statusEl) return
     statusEl.textContent = ''
     statusEl.dataset.status = ''
+    // ステータスが取得できないときは参照不能（unknown）と同等に扱い、公開ボタンを無効化する
     try {
       const res = await fetch(`/publication-status?md=${encodeURIComponent(filePath)}`)
-      if (!res.ok) { statusEl.textContent = ''; return }
-      const { status } = await res.json()
-      const label = statusLabels[status]
-      statusEl.textContent = label ? `(${label})` : ''
-      statusEl.dataset.status = status
-      // サイドバーリンクの data-status も同期する
-      const sidebarLink = document.querySelector(`.sidebar a[href="/editor?md=${encodeURIComponent(filePath)}"]`)
-      if (sidebarLink) sidebarLink.dataset.status = status || ''
+      const status = res.ok ? (await res.json()).status : 'unknown'
+      renderPublicationStatus(statusEl, filePath, status)
     } catch {
-      statusEl.textContent = ''
+      renderPublicationStatus(statusEl, filePath, 'unknown')
     }
   }
 
