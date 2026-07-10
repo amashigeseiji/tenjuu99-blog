@@ -17,3 +17,8 @@ not_include/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+.claude/CLAUDE.md
+docs/map.json
+.dippy
+.node-version
