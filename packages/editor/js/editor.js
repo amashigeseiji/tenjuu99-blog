@@ -442,7 +442,7 @@ const uploadImage = async (file, mdFile) => {
 }
 
 // @vocab: ドロップレシーバー
-// @vocab: ドロップ後更新
+// @vocab: ドロップレシーバー拡張
 const initDropReceiver = (textarea, getMdFile, onUpdate, cancelPendingDebounce) => {
   textarea.addEventListener('dragover', (e) => {
     e.preventDefault()

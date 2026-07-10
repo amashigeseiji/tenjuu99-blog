@@ -1082,6 +1082,18 @@
       "src": "packages/editor/js/publishAvailability.js"
     },
     {
+      "name": "サイドバータブ",
+      "en": "SidebarTab",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "#サイドバー 内の表示を「ファイル」（#ディレクトリツリー）と「新規作成」（#新規作成UI）で切り替えるタブ。",
+      "relations": [
+        { "type": "references", "target": "サイドバー", "note": "表示領域" },
+        { "type": "references", "target": "ディレクトリツリー", "note": "ファイルタブの内容" },
+        { "type": "references", "target": "新規作成UI", "note": "新規作成タブの内容" }
+      ]
+    },
+    {
       "name": "ネイティブアプリシェル",
       "en": "NativeAppShell",
       "context": "native-shell",
