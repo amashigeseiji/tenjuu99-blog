@@ -129,6 +129,26 @@ test.describe('US-01: 手段を意識せずに記事を公開できる', () => {
     // 後続のためにアップストリームを戻す
     git('branch -u origin/main')
   })
+
+  test('シナリオ 4: 公開ステータスの取得に失敗したとき', async ({ page }) => {
+    // Given: /publication-status がサーバーエラーを返す状態にある
+    const filename = 'acceptance-us01-s1.md'
+    await page.route('**/publication-status*', route => route.fulfill({ status: 500, body: '' }))
+    await page.goto(`${BASE}/editor?md=${filename}`)
+
+    // Then: 参照不能（unknown）と同等に扱われ、公開ボタンが操作不可になる
+    await expect(page.locator('#publicationStatus')).toHaveAttribute('data-status', 'unknown')
+    await expect(page.locator('#publishBtn')).toBeDisabled()
+
+    // Given: リクエスト自体が失敗する（ネットワーク断など）状態でも同様
+    await page.unroute('**/publication-status*')
+    await page.route('**/publication-status*', route => route.abort())
+    await page.goto(`${BASE}/editor?md=${filename}`)
+
+    // Then: 同じく unknown として扱われ、公開ボタンが操作不可になる
+    await expect(page.locator('#publicationStatus')).toHaveAttribute('data-status', 'unknown')
+    await expect(page.locator('#publishBtn')).toBeDisabled()
+  })
 })
 
 test.describe('US-02: 「公開する」を手段の言葉なしで語れる', () => {

@@ -105,25 +105,28 @@ const onloadFunction = async (e) => {
     btn.disabled = disabled
     btn.title = label ?? ''
   }
+  const renderPublicationStatus = (statusEl, filePath, status) => {
+    const { label } = publishAvailability(status)
+    statusEl.textContent = label ?? (statusLabels[status] ? `(${statusLabels[status]})` : '')
+    statusEl.dataset.status = status
+    applyPublishAvailability(status)
+    // サイドバーリンクの data-status も同期する
+    const sidebarLink = document.querySelector(`.sidebar a[href="/editor?md=${encodeURIComponent(filePath)}"]`)
+    if (sidebarLink) sidebarLink.dataset.status = status || ''
+  }
   const fetchPublicationStatus = async (filePath) => {
     if (!filePath) return
     const statusEl = document.querySelector('#publicationStatus')
     if (!statusEl) return
     statusEl.textContent = ''
     statusEl.dataset.status = ''
+    // ステータスが取得できないときは参照不能（unknown）と同等に扱い、公開ボタンを無効化する
     try {
       const res = await fetch(`/publication-status?md=${encodeURIComponent(filePath)}`)
-      if (!res.ok) { statusEl.textContent = ''; return }
-      const { status } = await res.json()
-      const { label } = publishAvailability(status)
-      statusEl.textContent = label ?? (statusLabels[status] ? `(${statusLabels[status]})` : '')
-      statusEl.dataset.status = status
-      applyPublishAvailability(status)
-      // サイドバーリンクの data-status も同期する
-      const sidebarLink = document.querySelector(`.sidebar a[href="/editor?md=${encodeURIComponent(filePath)}"]`)
-      if (sidebarLink) sidebarLink.dataset.status = status || ''
+      const status = res.ok ? (await res.json()).status : 'unknown'
+      renderPublicationStatus(statusEl, filePath, status)
     } catch {
-      statusEl.textContent = ''
+      renderPublicationStatus(statusEl, filePath, 'unknown')
     }
   }
 
