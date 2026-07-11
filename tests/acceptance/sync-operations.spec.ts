@@ -119,7 +119,7 @@ test.describe('US-01: 公開した記事を非公開に戻せる', () => {
     await page.locator('#unpublishBtn').click()
 
     // Then: 記事はサイトから取り除かれる
-    await expect(page.locator('#publishFeedback')).toHaveText('非公開にしました')
+    await expect(page.locator('#operationFeedback')).toHaveText('非公開にしました')
     expect(filesInOrigin()).not.toContain(`src-sample/pages/${filename}`)
     // And: 原稿は手元に残っている
     expect(fs.existsSync(articlePath(filename))).toBe(true)
@@ -137,7 +137,7 @@ test.describe('US-01: 公開した記事を非公開に戻せる', () => {
     await page.locator('#publishBtn').click()
 
     // Then: 記事は再びサイトに反映され、公開済みとして表示される
-    await expect(page.locator('#publishFeedback')).toHaveText('公開しました')
+    await expect(page.locator('#operationFeedback')).toHaveText('公開しました')
     await expect(page.locator('#publicationStatus')).toHaveAttribute('data-status', 'published')
     expect(filesInOrigin()).toContain(`src-sample/pages/${filename}`)
   })
@@ -198,7 +198,7 @@ test.describe('US-02: 記事を削除できる', () => {
     await page.locator('#deleteBtn').click()
 
     // Then: 記事は手元のファイルシステムから消える
-    await expect(page.locator('#publishFeedback')).toHaveText('削除しました')
+    await expect(page.locator('#operationFeedback')).toHaveText('削除しました')
     expect(fs.existsSync(articlePath(filename))).toBe(false)
     // And: サイトからも取り除かれている
     expect(filesInOrigin()).not.toContain(`src-sample/pages/${filename}`)
@@ -219,7 +219,7 @@ test.describe('US-02: 記事を削除できる', () => {
     await page.locator('#deleteBtn').click()
 
     // Then: 記事は手元から消える（サイトへの反映は発生しない）
-    await expect(page.locator('#publishFeedback')).toHaveText('削除しました')
+    await expect(page.locator('#operationFeedback')).toHaveText('削除しました')
     expect(fs.existsSync(articlePath(filename))).toBe(false)
     expect(commitCountInOrigin()).toBe(before)
   })
@@ -250,7 +250,7 @@ test.describe('US-02: 記事を削除できる', () => {
       else dialog.accept()
     })
     await link.click()
-    await expect(page.locator('#pullFeedback')).toContainText('サイトから取り除きました')
+    await expect(page.locator('#operationFeedback')).toContainText('サイトから取り除きました')
     expect(filesInOrigin()).not.toContain(`src-sample/pages/${filename}`)
   })
 })
@@ -267,7 +267,7 @@ test.describe('US-03: リモートの内容を手元に取り込める', () => {
     await page.locator('#pullBtn').click()
 
     // Then: その記事が手元に現れ、開いて執筆を続けられる
-    await expect(page.locator('#pullFeedback')).toContainText('1件を取り込みました')
+    await expect(page.locator('#operationFeedback')).toContainText('1件を取り込みました')
     expect(fs.existsSync(articlePath(filename))).toBe(true)
     await openArticle(page, filename)
     await expect(page.locator('#editorTextArea')).toHaveValue(/別のマシンの記事/)
@@ -285,7 +285,7 @@ test.describe('US-03: リモートの内容を手元に取り込める', () => {
     await page.locator('#pullBtn').click()
 
     // Then: 手元の記事が最新の内容になる
-    await expect(page.locator('#pullFeedback')).toContainText('1件を取り込みました')
+    await expect(page.locator('#operationFeedback')).toContainText('1件を取り込みました')
     expect(fs.readFileSync(articlePath(filename), 'utf-8')).toContain('更新された本文')
   })
 
@@ -299,7 +299,7 @@ test.describe('US-03: リモートの内容を手元に取り込める', () => {
     await page.locator('#pullBtn').click()
 
     // Then: 手元の執筆内容は失われない（記事は巻き戻らない）
-    await expect(page.locator('#pullFeedback')).toContainText('新しく取り込むものはありませんでした')
+    await expect(page.locator('#operationFeedback')).toContainText('新しく取り込むものはありませんでした')
     expect(fs.readFileSync(articlePath(filename), 'utf-8')).toContain('手元だけの追記')
   })
 
@@ -314,7 +314,7 @@ test.describe('US-03: リモートの内容を手元に取り込める', () => {
     await page.locator('#pullBtn').click()
 
     // Then: 手元の執筆内容は失われない
-    const feedback = page.locator('#pullFeedback')
+    const feedback = page.locator('#operationFeedback')
     await expect(feedback).toContainText('見送り')
     expect(fs.readFileSync(articlePath(filename), 'utf-8')).toContain('手元だけの追記')
     // And: 取り込めなかったこと・その理由が、git の言葉を使わずに知覚できる
@@ -339,7 +339,7 @@ test.describe('US-03: リモートの内容を手元に取り込める', () => {
     await expect(page.locator('#publicationStatus')).toHaveAttribute('data-status', 'new')
     page.once('dialog', dialog => dialog.accept())
     await page.locator('#deleteBtn').click()
-    await expect(page.locator('#publishFeedback')).toHaveText('削除しました')
+    await expect(page.locator('#operationFeedback')).toHaveText('削除しました')
 
     // And: 削除がサイトへ反映される前の状態も作る（公開済みの記事をエディタ外で削除）
     const pending = 'acceptance-us03-s5-pending.md'
@@ -353,7 +353,7 @@ test.describe('US-03: リモートの内容を手元に取り込める', () => {
     // When: その後に取り込みを行う
     await page.goto(`${BASE}/editor`)
     await page.locator('#pullBtn').click()
-    await expect(page.locator('#pullFeedback')).not.toHaveText('取り込んでいます...')
+    await expect(page.locator('#operationFeedback')).not.toHaveText('取り込んでいます...')
 
     // Then: 削除した記事は手元に復活しない（削除の意図が保たれる）
     expect(fs.existsSync(articlePath(filename))).toBe(false)

@@ -75,24 +75,47 @@ main:not(.sidebar-close) .editor {
 #publicationStatus:not(:empty) {
   margin-left: 8px;
 }
-#publishBtn {
+#publishBtn,
+#unpublishBtn,
+#deleteBtn {
   height: var(--header-height);
-  width: 100px;
-  background: var(--deep-blue);
   color: #ddd;
   border-radius: 0;
   border: none;
   cursor: pointer;
+  font-size: inherit;
 }
-#publishBtn:hover {
+#publishBtn {
+  width: 100px;
+  background: var(--deep-blue);
+  padding: 0;
+}
+#unpublishBtn,
+#deleteBtn {
+  background: #68759a;
+  /* 「非公開にする」の文言が収まり、かつ両ボタンが同じ幅になる固定幅 */
+  width: 120px;
+  padding: 0 8px;
+}
+#unpublishBtn {
+  /* 除去（リモートから取り除く）操作は暖色で区別する。#68759a と同彩度・同明度の暖色 */
+  background: #997766;
+}
+#publishBtn:hover,
+#unpublishBtn:hover,
+#deleteBtn:hover {
   background: var(--light-green);
 }
-#publishBtn:disabled {
+#publishBtn:disabled,
+#unpublishBtn:disabled,
+#deleteBtn:disabled {
   background: #aaa;
   color: #1f1f1f;
   cursor: not-allowed;
 }
-#publishBtn:disabled:hover {
+#publishBtn:disabled:hover,
+#unpublishBtn:disabled:hover,
+#deleteBtn:disabled:hover {
   background: #aaa;
 }
 
@@ -311,15 +334,29 @@ form select {
   opacity: 0.7;
 }
 .sidebar-sync {
-  padding: 4px 8px;
+  flex-shrink: 0;
+  margin-top: auto;
 }
-.sidebar-sync #pullFeedback {
+#pullBtn {
+  display: block;
+  width: 100%;
+  height: var(--footer-height);
+  border: none;
+  border-radius: 0;
+  background: #2a3557;
+  color: #cbcbcb;
   font-size: 0.8em;
-  white-space: pre-line;
+  cursor: pointer;
+  padding: 0;
 }
-#unpublishBtn,
-#deleteBtn {
-  margin-left: 4px;
+#pullBtn:hover {
+  background: var(--light-green);
+  color: #1a2540;
+}
+#pullBtn:disabled {
+  background: #2a3557;
+  color: rgba(203, 203, 203, 0.4);
+  cursor: not-allowed;
 }
 .sidebar a[data-status="new"],
 .sidebar a[data-status="modified"] {
@@ -369,6 +406,17 @@ form select {
   padding-left: var(--sidebar-width);
   color: white;
   transition: padding-left var(--sidebar-transition-speed);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75em;
+}
+.footer-right {
+  margin-left: auto;
+  padding-right: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .sidebar-close .footer {
   padding-left: var(--sidebar-close-width);

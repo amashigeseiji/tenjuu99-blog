@@ -139,7 +139,7 @@ const onloadFunction = async (e) => {
   }
 
   const publishWithFeedback = async (form) => {
-    const feedback = document.querySelector('#publishFeedback')
+    const feedback = document.querySelector('#operationFeedback')
     const btn = document.querySelector('#publishBtn')
     const filePath = form.querySelector('#inputFileName').value
     const fileContent = form.querySelector('textarea').value
@@ -169,7 +169,7 @@ const onloadFunction = async (e) => {
   // @vocab: 非公開にする
   // リモートから取り除く。原稿は手元に残るため確認なしで実行できる（再公開で戻せる）
   const unpublishWithFeedback = async () => {
-    const feedback = document.querySelector('#publishFeedback')
+    const feedback = document.querySelector('#operationFeedback')
     const filePath = inputFileName.value
     if (!filePath) return
     feedback.textContent = '非公開にしています...'
@@ -194,7 +194,7 @@ const onloadFunction = async (e) => {
   // @vocab: 削除する
   // 手元から取り除く不可逆の操作のため、実行前に確認する
   const deleteWithFeedback = async () => {
-    const feedback = document.querySelector('#publishFeedback')
+    const feedback = document.querySelector('#operationFeedback')
     const filePath = inputFileName.value
     if (!filePath) return
     if (!confirm(`「${filePath}」を手元から削除します。よろしいですか？`)) return
@@ -336,7 +336,7 @@ const onloadFunction = async (e) => {
   // @vocab: 取り込む
   // リモートの内容を手元に取り込む。見送られた記事はその理由を表示する
   const pullBtn = document.querySelector('#pullBtn')
-  const pullFeedback = document.querySelector('#pullFeedback')
+  const pullFeedback = document.querySelector('#operationFeedback')
   const pullWithFeedback = async () => {
     if (!pullBtn) return
     pullBtn.disabled = true
@@ -356,7 +356,7 @@ const onloadFunction = async (e) => {
       for (const s of json.skipped ?? []) {
         lines.push(`見送り: ${s.file.split('/').pop()} — ${s.reason}`)
       }
-      pullFeedback.textContent = lines.join('\n')
+      pullFeedback.textContent = lines.join(' ／ ')
       refreshSidebar()
       // 開いている記事が取り込みで更新されたときは、開き直して最新にする
       const current = inputFileName.value
