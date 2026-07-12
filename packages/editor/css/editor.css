@@ -83,7 +83,7 @@ main:not(.sidebar-close) .editor {
   border-radius: 0;
   border: none;
   cursor: pointer;
-  font-size: inherit;
+  font-size: 0.85em;
 }
 #publishBtn {
   width: 100px;
@@ -92,14 +92,11 @@ main:not(.sidebar-close) .editor {
 }
 #unpublishBtn,
 #deleteBtn {
-  background: #68759a;
+  background: #b4d68e;
+  color: #555;
   /* 「非公開にする」の文言が収まり、かつ両ボタンが同じ幅になる固定幅 */
   width: 120px;
   padding: 0 8px;
-}
-#unpublishBtn {
-  /* 除去（リモートから取り除く）操作は暖色で区別する。#68759a と同彩度・同明度の暖色 */
-  background: #997766;
 }
 #publishBtn:hover,
 #unpublishBtn:hover,

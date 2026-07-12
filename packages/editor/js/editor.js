@@ -110,8 +110,12 @@ const onloadFunction = async (e) => {
       btn.disabled = disabled || !ops.publish
       btn.title = label ?? ''
     }
-    if (unpublishBtn) unpublishBtn.hidden = !ops.unpublish
+    // 非公開・削除はどちらか一方を必ず表示する（既定は非公開にする）
     if (deleteBtn) deleteBtn.hidden = !ops.delete
+    if (unpublishBtn) {
+      unpublishBtn.hidden = !!ops.delete
+      unpublishBtn.disabled = !ops.unpublish
+    }
   }
   const renderPublicationStatus = (statusEl, filePath, status) => {
     const { label } = publishAvailability(status)
