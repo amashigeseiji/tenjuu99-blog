@@ -48,6 +48,35 @@ const onloadFunction = async (e) => {
     currentFileName.textContent = filename
   }
 
+  // @vocab: 確認ダイアログ
+  // WKWebView は window.confirm() に応答しない（WKUIDelegate 未実装のため無反応になる）ので、
+  // <dialog> による自前実装で置き換える。ブラウザでもネイティブアプリでも同じ見た目で動く。
+  const confirmDialogEl = document.querySelector('#confirmDialog')
+  const confirmDialogMessage = document.querySelector('#confirmDialogMessage')
+  const confirmDialogActions = document.querySelector('#confirmDialogActions')
+  const showConfirm = (message, choices = [{ label: 'OK', value: true }, { label: 'キャンセル', value: false }]) => {
+    return new Promise((resolve) => {
+      confirmDialogMessage.textContent = message
+      confirmDialogActions.innerHTML = ''
+      let settled = false
+      const settle = (value) => {
+        if (settled) return
+        settled = true
+        confirmDialogEl.close()
+        resolve(value)
+      }
+      choices.forEach(choice => {
+        const btn = document.createElement('button')
+        btn.type = 'button'
+        btn.textContent = choice.label
+        btn.addEventListener('click', () => settle(choice.value))
+        confirmDialogActions.appendChild(btn)
+      })
+      confirmDialogEl.addEventListener('cancel', () => settle(false), { once: true })
+      confirmDialogEl.showModal()
+    })
+  }
+
   if (target) {
     fetchData(target).then(json => {
       textarea.value = json.content
@@ -201,7 +230,7 @@ const onloadFunction = async (e) => {
     const feedback = document.querySelector('#operationFeedback')
     const filePath = inputFileName.value
     if (!filePath) return
-    if (!confirm(`「${filePath}」を手元から削除します。よろしいですか？`)) return
+    if (!(await showConfirm(`「${filePath}」を手元から削除します。よろしいですか？`))) return
     try {
       const res = await fetch('/delete', {
         method: 'POST',
@@ -391,9 +420,14 @@ const onloadFunction = async (e) => {
 
     // リモートのみの記事は手元に無いため開けない。取り込むか、サイトから取り除くかを選べる
     if (link.dataset.status === 'remote-only') {
-      if (confirm(`「${newTarget}」はまだ手元にありません。リモートから取り込みますか？`)) {
+      const choice = await showConfirm(`「${newTarget}」はまだ手元にありません。`, [
+        { label: 'リモートから取り込む', value: 'pull' },
+        { label: '取り除く（手元には取り込みません）', value: 'remove' },
+        { label: 'キャンセル', value: null }
+      ])
+      if (choice === 'pull') {
         await pullWithFeedback()
-      } else if (confirm(`「${newTarget}」をサイトから取り除きますか？（手元には取り込みません）`)) {
+      } else if (choice === 'remove') {
         try {
           const res = await fetch('/unpublish', {
             method: 'POST',
