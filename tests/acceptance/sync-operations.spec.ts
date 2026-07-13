@@ -45,6 +45,13 @@ async function openArticle(page: Page, filename: string) {
   await page.goto(`${BASE}/editor?md=${filename}`)
 }
 
+// 確認ダイアログはネイティブ confirm() ではなく自前の <dialog> 実装
+// （WKWebView が window.confirm() に応答しないため）。該当ラベルのボタンをクリックして選ぶ。
+async function chooseInConfirmDialog(page: Page, label: string) {
+  await page.locator('#confirmDialog').waitFor({ state: 'visible' })
+  await page.locator('#confirmDialogActions').getByRole('button', { name: label, exact: true }).click()
+}
+
 async function waitForServer(timeoutMs = 60000) {
   const deadline = Date.now() + timeoutMs
   while (Date.now() < deadline) {
@@ -165,7 +172,9 @@ test.describe('US-01: 公開した記事を非公開に戻せる', () => {
     // When/Then: 操作は実行されず、行えない理由が執筆者に知覚できる
     await expect(page.locator('#publicationStatus')).toHaveAttribute('data-status', 'unknown')
     await expect(page.locator('#publishBtn')).toBeDisabled()
-    await expect(page.locator('#unpublishBtn')).toBeHidden()
+    // 非公開・削除はどちらか一方（既定は非公開）を必ず表示する。unknown では操作できないため disabled になる
+    await expect(page.locator('#unpublishBtn')).toBeVisible()
+    await expect(page.locator('#unpublishBtn')).toBeDisabled()
     await expect(page.locator('#deleteBtn')).toBeHidden()
 
     // And: エディタの他の機能（サイドバー・編集・プレビュー）は動作を継続している
@@ -194,8 +203,8 @@ test.describe('US-02: 記事を削除できる', () => {
     // When: 執筆者がその記事を削除する（非公開にしてから削除）
     await page.locator('#unpublishBtn').click()
     await expect(page.locator('#publicationStatus')).toHaveAttribute('data-status', 'new')
-    page.once('dialog', dialog => dialog.accept())
     await page.locator('#deleteBtn').click()
+    await chooseInConfirmDialog(page, 'OK')
 
     // Then: 記事は手元のファイルシステムから消える
     await expect(page.locator('#operationFeedback')).toHaveText('削除しました')
@@ -215,8 +224,8 @@ test.describe('US-02: 記事を削除できる', () => {
     await expect(page.locator('#publicationStatus')).toHaveAttribute('data-status', 'new')
 
     // When: 執筆者がその記事を削除する
-    page.once('dialog', dialog => dialog.accept())
     await page.locator('#deleteBtn').click()
+    await chooseInConfirmDialog(page, 'OK')
 
     // Then: 記事は手元から消える（サイトへの反映は発生しない）
     await expect(page.locator('#operationFeedback')).toHaveText('削除しました')
@@ -243,13 +252,8 @@ test.describe('US-02: 記事を削除できる', () => {
 
     // And: サイトからも取り除く手段が失われていない
     //（リンクから「取り込む」を断り「サイトから取り除く」を選ぶ）
-    let dialogCount = 0
-    page.on('dialog', dialog => {
-      dialogCount += 1
-      if (dialogCount === 1) dialog.dismiss()
-      else dialog.accept()
-    })
     await link.click()
+    await chooseInConfirmDialog(page, '取り除く（手元には取り込みません）')
     await expect(page.locator('#operationFeedback')).toContainText('サイトから取り除きました')
     expect(filesInOrigin()).not.toContain(`src-sample/pages/${filename}`)
   })
@@ -337,8 +341,8 @@ test.describe('US-03: リモートの内容を手元に取り込める', () => {
     await expect(page.locator('#publicationStatus')).toHaveAttribute('data-status', 'published')
     await page.locator('#unpublishBtn').click()
     await expect(page.locator('#publicationStatus')).toHaveAttribute('data-status', 'new')
-    page.once('dialog', dialog => dialog.accept())
     await page.locator('#deleteBtn').click()
+    await chooseInConfirmDialog(page, 'OK')
     await expect(page.locator('#operationFeedback')).toHaveText('削除しました')
 
     // And: 削除がサイトへ反映される前の状態も作る（公開済みの記事をエディタ外で削除）
