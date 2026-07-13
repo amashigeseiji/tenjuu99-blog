@@ -27,3 +27,16 @@ export async function publish(files, means) {
 export async function update(files, means) {
   return await means.reflect(files)
 }
+
+/**
+ * @vocab: 非公開にする
+ * @test tests/editor/sync-operations.test.js
+ * 公開済み/更新あり → 未公開 遷移。リモートからファイルを取り除き、
+ * ローカルの原稿は残す（可逆。再公開できる）。
+ * @param {string[]} files - 除去対象ファイルパスの配列
+ * @param {import('@tenjuu99/blog/lib/publishing/publicationMeans.js').PublicationMeans} means
+ * @returns {Promise<{ success: boolean, error?: string }>}
+ */
+export async function unpublish(files, means) {
+  return await means.remove(files)
+}

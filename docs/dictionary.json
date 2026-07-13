@@ -448,13 +448,15 @@
       "en": "PublicationStatus",
       "context": "editor",
       "domain": "application",
-      "definition": "ファイルごとのリモート反映状態を表す状態機械。未公開（ローカルのみ存在）・更新あり（リモートと差分あり）・公開済み（ローカルとリモートが一致）の3ステートをとる。",
+      "definition": "ファイルごとのローカル/リモート間の反映状態を表す状態機械。未公開（ローカルのみ存在）・更新あり（リモートと差分あり）・公開済み（ローカルとリモートが一致）・リモートのみ（ローカルに欠如し、リモートに存在する）の4ステートをとる。#内容差分 の読み（一致・不一致・欠如）の現れにあたる。",
       "relations": [
         { "type": "references", "target": "公開する", "note": "未公開 → 公開済み の遷移アクション" },
         { "type": "references", "target": "更新する", "note": "更新あり → 公開済み の遷移アクション" },
-        { "type": "references", "target": "非公開にする", "note": "公開済み/更新あり → 未公開 の遷移アクション（将来実装）" },
-        { "type": "references", "target": "削除する", "note": "任意 → 未存在 の遷移アクション（将来実装）" },
+        { "type": "references", "target": "非公開にする", "note": "公開済み/更新あり → 未公開 の遷移アクション" },
+        { "type": "references", "target": "削除する", "note": "未公開 → 未存在 の遷移アクション" },
+        { "type": "references", "target": "取り込む", "context": "publishing", "note": "リモートのみ → 公開済み の遷移アクション" },
         { "type": "references", "target": "公開ステータス判定器", "note": "現在のステートを導出する" },
+        { "type": "references", "target": "内容差分", "context": "publishing", "note": "この読みの現れ" },
         { "type": "references", "target": "リモート状態", "context": "publishing", "note": "判定器を介して導出元とする" }
       ],
       "src": null
@@ -527,9 +529,11 @@
       "en": "Delete",
       "context": "editor",
       "domain": "application",
-      "definition": "#公開ステータス の任意ステートから `未存在` への遷移を起動するアクション。ローカルおよびリモートからファイルを削除する。`未公開` 状態のファイルはローカルのみ削除。",
+      "definition": "#公開ステータス が `未公開` のファイルをローカルから除去するアクション（`未公開 → 未存在` の遷移）。公開済み・更新ありのファイルには提供されない（先に #非公開にする でリモートから除去する）。#除去 のローカル向きにあたる。",
       "relations": [
-        { "type": "references", "target": "公開ステータス", "note": "遷移を起動する" }
+        { "type": "references", "target": "公開ステータス", "note": "遷移を起動する" },
+        { "type": "references", "target": "非公開にする", "note": "公開済みの記事を削除する前段の操作" },
+        { "type": "references", "target": "除去", "context": "publishing", "note": "ローカルからの除去にあたる" }
       ],
       "src": null
     },
@@ -899,10 +903,11 @@
       "en": "ChangeReflector",
       "context": "editor",
       "domain": "solution",
-      "definition": "#公開する または #更新する の遷移イベントを受けて、#公開対象 のファイル群の反映を #公開手段 に委ねる装置。公開手段を外部から注入できることで、実際のリモートなしにテストが書ける。",
+      "definition": "#公開する ・ #更新する ・ #非公開にする の遷移イベントを受けて、#公開対象 のファイル群の反映または除去を #公開手段 に委ねる装置。公開手段を外部から注入できることで、実際のリモートなしにテストが書ける。",
       "relations": [
         { "type": "references", "target": "公開対象", "note": "反映する対象を受け取る" },
-        { "type": "references", "target": "公開手段", "context": "publishing", "note": "反映の実行を委ねる" }
+        { "type": "references", "target": "公開手段", "context": "publishing", "note": "反映・除去の実行を委ねる" },
+        { "type": "references", "target": "非公開にする", "note": "除去の遷移イベントを受ける" }
       ],
       "src": "packages/editor/server/changeReflector.js"
     },
@@ -1064,9 +1069,11 @@
       "en": "SidebarStatusCollector",
       "context": "editor",
       "domain": "solution",
-      "definition": "ファイル群の #公開ステータス をまとめて取得できるもの。",
+      "definition": "ファイル群の #公開ステータス をまとめて取得できるもの。手元に無いがリモートにあるファイルも #リモート状態 の一覧から検出して収集し、`リモートのみ` として報告する。",
       "relations": [
-        { "type": "references", "target": "公開ステータス判定器" }
+        { "type": "references", "target": "公開ステータス判定器", "note": "ファイルごとの判定を委ねる" },
+        { "type": "references", "target": "公開ステータス", "note": "収集する判定値（リモートのみを含む）" },
+        { "type": "references", "target": "リモート状態", "context": "publishing", "note": "一覧の参照でリモートのみを検出する" }
       ],
       "src": "packages/editor/server/sidebarStatusCollector.js"
     },
@@ -1075,9 +1082,12 @@
       "en": "PublishAvailabilityResolver",
       "context": "editor",
       "domain": "solution",
-      "definition": "#公開ステータスの値（特に unknown）から、公開ボタンを無効化すべきかと利用者への表示文言を判定する純粋関数。unknown の原因（means 不正/git remote 未設定等）を問わず同一の扱いをする。",
+      "definition": "#公開ステータス の値から、記事に対して行える操作（公開・非公開・削除・取り込み）とその表示を判定する純粋関数。削除は未公開のみ、非公開は公開済み・更新ありのみに提供する。unknown ではどの操作も行えない（原因を問わず同一の扱い）。",
       "relations": [
-        { "type": "references", "target": "公開ステータス", "note": "を判定入力にする" }
+        { "type": "references", "target": "公開ステータス", "note": "を判定入力にする" },
+        { "type": "references", "target": "非公開にする", "note": "提供可否を判定する操作" },
+        { "type": "references", "target": "削除する", "note": "提供可否を判定する操作" },
+        { "type": "references", "target": "取り込む", "context": "publishing", "note": "提供可否を判定する操作" }
       ],
       "src": "packages/editor/js/publishAvailability.js"
     },
@@ -1503,14 +1513,17 @@
       "en": "PublicationMeans",
       "context": "publishing",
       "domain": "application",
-      "definition": "公開の実現方法の総称（git 運用・FTP/SFTP・JS git 実装など）。公開の定義の各要素——#リモート の内容の参照（#リモート状態 ）、#ローカル から #リモート への反映の実行、送る #公開物 の形態——をどう実現するかを担う。手段が替わっても #公開する ・ #公開ステータス の意味は変わらない。",
+      "definition": "公開と同期の実現方法の総称（git 運用・FTP/SFTP・JS git 実装など）。#リモート の内容の参照（#リモート状態 ）、#ローカル から #リモート への反映の実行、送る #公開物 の形態に加えて、リモートからの除去の実行・取り込みの実行・#版の連なり の参照・リモートの知識の更新をどう実現するかを担う。手段が替わっても #公開する ・ #公開ステータス ・ #同期 の各操作の意味は変わらない。",
       "relations": [
         { "type": "references", "target": "リモート", "note": "リモートの実体を決める" },
         { "type": "references", "target": "リモート状態", "note": "リモート内容の参照の実現を担う" },
         { "type": "references", "target": "公開物", "note": "送るものの形態を決める" },
         { "type": "references", "target": "公開する", "note": "その実現方法にあたる" },
         { "type": "references", "target": "デプロイ", "note": "手段によって反映とサイト公開の関係が変わる" },
-        { "type": "references", "target": "公開ステータス", "context": "editor", "note": "手段が替わっても意味は不変" }
+        { "type": "references", "target": "公開ステータス", "context": "editor", "note": "手段が替わっても意味は不変" },
+        { "type": "references", "target": "除去", "note": "リモートからの除去の実行を担う" },
+        { "type": "references", "target": "取り込む", "note": "取り込みの実行を担う" },
+        { "type": "references", "target": "版の連なり", "note": "この知識の提供を要求される（満たさない手段は不一致までで退化）" }
       ]
     },
     {
@@ -1557,7 +1570,7 @@
       "en": "RemoteState",
       "context": "publishing",
       "domain": "application",
-      "definition": "#リモート の現在の内容を参照するための読み取り専用の抽象。#公開ステータス判定器 が #ローカル と #リモート を対比し、この抽象を介して #公開ステータス を導出する。参照のしやすさは #公開手段 により異なり、参照できないときは判定不能として扱う。",
+      "definition": "#リモート の現在の内容を参照するための読み取り専用の抽象。存在・差分に加えて、リモートに存在するファイルの一覧を参照できる（手元に無いがリモートにあるものの検出に使う）。#公開ステータス判定器 が #ローカル と #リモート を対比し、この抽象を介して #公開ステータス を導出する。参照のしやすさは #公開手段 により異なり、参照できないときは判定不能として扱う。",
       "relations": [
         { "type": "references", "target": "リモート", "note": "参照する対象" },
         { "type": "references", "target": "ローカル", "note": "対比の相手" },
@@ -1578,6 +1591,79 @@
         { "type": "references", "target": "サイドバー取得エンドポイント", "context": "editor", "note": "が使用する" }
       ],
       "src": "lib/publishing/remoteStateResolver.js"
+    },
+    {
+      "name": "同期",
+      "en": "Sync",
+      "context": "publishing",
+      "domain": "application",
+      "definition": "#ローカル と #リモート の間で内容を揃える操作の総称。届ける向き（#公開する ・ #更新する ・ #除去 ）と取り込む向き（#取り込む ）がある。開いているファイル単位に縛られず、両場所の全体を対象にできる。",
+      "relations": [
+        { "type": "references", "target": "ローカル", "note": "揃える一方の場所" },
+        { "type": "references", "target": "リモート", "note": "揃えるもう一方の場所" },
+        { "type": "references", "target": "公開する", "note": "届ける向きの同期" },
+        { "type": "references", "target": "更新する", "context": "editor", "note": "届ける向きの同期" },
+        { "type": "contains", "target": "取り込む", "note": "取り込む向きの同期" },
+        { "type": "contains", "target": "除去", "note": "取り除く向きの反映" }
+      ],
+      "src": null
+    },
+    {
+      "name": "取り込む",
+      "en": "Pull",
+      "context": "publishing",
+      "domain": "application",
+      "definition": "#リモート の内容を #ローカル に反映するアクション。#公開する （届ける向き）の逆方向。手元の執筆内容を上書きしてはならず、安全に取り込めない記事は #版の連なり にもとづいて取り込みを見送る。",
+      "relations": [
+        { "type": "belongs_to", "target": "同期", "note": "取り込む向きの同期" },
+        { "type": "references", "target": "リモート", "note": "取り込み元" },
+        { "type": "references", "target": "ローカル", "note": "反映先" },
+        { "type": "references", "target": "公開する", "note": "逆向きの対" },
+        { "type": "references", "target": "版の連なり", "note": "安全に取り込めるかの判定基盤" }
+      ],
+      "src": null
+    },
+    {
+      "name": "除去",
+      "en": "Removal",
+      "context": "publishing",
+      "domain": "application",
+      "definition": "場所からファイルを取り除く向きの反映。追加・更新のみだった反映（#公開する ・ #更新する ）を補完する。一つの操作はちょうど一つの場所から取り除く: #非公開にする はリモートからの除去（原稿は残り可逆）、#削除する はローカルからの除去（未公開であることが前提）。この前提により、二つの場所にまたがる除去や削除の伝播は存在しない。",
+      "relations": [
+        { "type": "belongs_to", "target": "同期", "note": "取り除く向きの反映" },
+        { "type": "references", "target": "公開する", "note": "補完する対象（追加の向き）" },
+        { "type": "references", "target": "更新する", "context": "editor", "note": "補完する対象（更新の向き）" },
+        { "type": "references", "target": "非公開にする", "context": "editor", "note": "リモートからの除去にあたる" },
+        { "type": "references", "target": "削除する", "context": "editor", "note": "ローカルからの除去にあたる" }
+      ],
+      "src": null
+    },
+    {
+      "name": "内容差分",
+      "en": "ContentDifference",
+      "context": "publishing",
+      "domain": "application",
+      "definition": "#ローカル と #リモート の内容比較だけから言える差分の読み。一致・不一致・欠如の3値まで言えるが、どちらが進んでいるか（向き）は言えない。現行 #公開ステータス はこの読みにあたる。",
+      "relations": [
+        { "type": "references", "target": "ローカル", "note": "比較の一方" },
+        { "type": "references", "target": "リモート", "note": "比較のもう一方" },
+        { "type": "references", "target": "公開ステータス", "context": "editor", "note": "この読みの現行の現れ" },
+        { "type": "references", "target": "版の連なり", "note": "向きの判定はこちらの知識で初めて言える" }
+      ],
+      "src": null
+    },
+    {
+      "name": "版の連なり",
+      "en": "VersionLineage",
+      "context": "publishing",
+      "domain": "application",
+      "definition": "版の履歴と共通の祖先の知識。これがあって初めて先行・後行・分岐という向きのある判定が言える。#取り込む の安全性と、不在の曖昧性（手元で消されたのか、他所で作られたのか）の解消の基盤。独自の装置では持たず #公開手段 への要求とする（git は自然に満たす。満たさない手段は #内容差分 の不一致までで正直に退化する）。",
+      "relations": [
+        { "type": "references", "target": "内容差分", "note": "内容比較だけでは言えない向きを言えるようにする" },
+        { "type": "references", "target": "取り込む", "note": "安全性判定の基盤を提供する" },
+        { "type": "references", "target": "公開手段", "note": "この知識の提供を手段に要求する" }
+      ],
+      "src": null
     }
   ]
 }

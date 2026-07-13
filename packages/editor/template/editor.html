@@ -39,6 +39,9 @@
           <button type="button" id="confirmNewFile">作成</button>
         </div>
       </div>
+      <div class="sidebar-sync">
+        <button type="button" id="pullBtn" disabled>リモートから取り込む</button>
+      </div>
       <div class="sidebar-toggle">&nbsp;</div>
     </div>
     <form action="/editor" class="editor" method="post" id="editor">
@@ -48,8 +51,9 @@
           <input type="hidden" id="inputFileName" name="inputFileName" value="">
         </div>
         <div class="editor-options-right">
-          <input type="submit" value="publish" data-url="/publish" id="publishBtn">
-          <span id="publishFeedback"></span>
+          <button type="button" id="unpublishBtn" disabled>非公開にする</button>
+          <button type="button" id="deleteBtn" hidden>削除する</button>
+          <input type="submit" value="公開する" data-url="/publish" id="publishBtn">
         </div>
       </div>
       <div class="textareaAndPreview">
@@ -62,11 +66,20 @@
       </div>
       <input type="hidden" name="token" value="{{TOKEN}}">
     </form>
-    <footer class="footer"></footer>
+    <footer class="footer">
+      <div class="footer-left"></div>
+      <div class="footer-right">
+        <span id="operationFeedback" role="status" aria-live="polite"></span>
+      </div>
+    </footer>
     <div class="hamburger-menu">
       <input type="checkbox" id="menu-btn-check">
       <label for="menu-btn-check" class="menu-btn"><span></span></label>
     </div>
+    <dialog id="confirmDialog">
+      <p id="confirmDialogMessage"></p>
+      <div class="confirm-dialog-actions" id="confirmDialogActions"></div>
+    </dialog>
   </main>
 </body>
 </html>

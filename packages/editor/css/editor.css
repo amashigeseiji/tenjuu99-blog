@@ -75,24 +75,44 @@ main:not(.sidebar-close) .editor {
 #publicationStatus:not(:empty) {
   margin-left: 8px;
 }
-#publishBtn {
+#publishBtn,
+#unpublishBtn,
+#deleteBtn {
   height: var(--header-height);
-  width: 100px;
-  background: var(--deep-blue);
   color: #ddd;
   border-radius: 0;
   border: none;
   cursor: pointer;
+  font-size: 0.85em;
 }
-#publishBtn:hover {
+#publishBtn {
+  width: 100px;
+  background: var(--deep-blue);
+  padding: 0;
+}
+#unpublishBtn,
+#deleteBtn {
+  background: #b4d68e;
+  color: #555;
+  /* 「非公開にする」の文言が収まり、かつ両ボタンが同じ幅になる固定幅 */
+  width: 120px;
+  padding: 0 8px;
+}
+#publishBtn:hover,
+#unpublishBtn:hover,
+#deleteBtn:hover {
   background: var(--light-green);
 }
-#publishBtn:disabled {
+#publishBtn:disabled,
+#unpublishBtn:disabled,
+#deleteBtn:disabled {
   background: #aaa;
   color: #1f1f1f;
   cursor: not-allowed;
 }
-#publishBtn:disabled:hover {
+#publishBtn:disabled:hover,
+#unpublishBtn:disabled:hover,
+#deleteBtn:disabled:hover {
   background: #aaa;
 }
 
@@ -118,6 +138,38 @@ main:not(.sidebar-close) .editor {
   font-size: 0.9em;
   margin: 0;
   min-height: 1.2em;
+}
+#confirmDialog {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  padding: 24px;
+  min-width: 280px;
+  max-width: 400px;
+}
+#confirmDialog::backdrop {
+  background: rgba(0, 0, 0, 0.4);
+}
+#confirmDialog p {
+  margin: 0 0 16px;
+}
+#confirmDialog .confirm-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+#confirmDialog .confirm-dialog-actions button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  background: var(--deep-blue);
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.9em;
+}
+#confirmDialog .confirm-dialog-actions button:hover {
+  background: var(--light-green);
 }
 #editorTextArea {
   resize: none;
@@ -303,6 +355,38 @@ form select {
   content: " ✓";
   color: #888;
 }
+.sidebar a[data-status="remote-only"]::after {
+  content: " ☁";
+  color: #7a5ea8;
+}
+.sidebar a[data-status="remote-only"] {
+  opacity: 0.7;
+}
+.sidebar-sync {
+  flex-shrink: 0;
+  margin-top: auto;
+}
+#pullBtn {
+  display: block;
+  width: 100%;
+  height: var(--footer-height);
+  border: none;
+  border-radius: 0;
+  background: #2a3557;
+  color: #cbcbcb;
+  font-size: 0.8em;
+  cursor: pointer;
+  padding: 0;
+}
+#pullBtn:hover {
+  background: var(--light-green);
+  color: #1a2540;
+}
+#pullBtn:disabled {
+  background: #2a3557;
+  color: rgba(203, 203, 203, 0.4);
+  cursor: not-allowed;
+}
 .sidebar a[data-status="new"],
 .sidebar a[data-status="modified"] {
   color: var(--sidebar-modified-fg);
@@ -351,6 +435,17 @@ form select {
   padding-left: var(--sidebar-width);
   color: white;
   transition: padding-left var(--sidebar-transition-speed);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75em;
+}
+.footer-right {
+  margin-left: auto;
+  padding-right: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .sidebar-close .footer {
   padding-left: var(--sidebar-close-width);

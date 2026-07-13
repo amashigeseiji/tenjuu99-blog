@@ -85,7 +85,7 @@ test.describe('US-01: 手段を意識せずに記事を公開できる', () => {
 
     // Then: 公開が成功したことがブラウザ上で知覚でき、記事の公開ステータスは「公開済み」になり、
     //       従来どおりサイトへの反映フローが起動する（リモートに反映されている）
-    await expect(page.locator('#publishFeedback')).toHaveText('公開しました')
+    await expect(page.locator('#operationFeedback')).toHaveText('公開しました')
     await expect(page.locator('#publicationStatus')).toHaveAttribute('data-status', 'published')
     expect(filesInOrigin()).toContain(`src-sample/pages/${filename}`)
   })
@@ -102,7 +102,7 @@ test.describe('US-01: 手段を意識せずに記事を公開できる', () => {
     await page.locator('#publishBtn').click()
 
     // Then: 更新が成功したことがブラウザ上で知覚でき、記事の公開ステータスは「公開済み」になる
-    await expect(page.locator('#publishFeedback')).toHaveText('公開しました')
+    await expect(page.locator('#operationFeedback')).toHaveText('公開しました')
     await expect(page.locator('#publicationStatus')).toHaveAttribute('data-status', 'published')
     expect(commitCountInOrigin()).toBe(before + 1)
   })
