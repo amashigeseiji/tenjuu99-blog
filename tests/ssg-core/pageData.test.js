@@ -22,6 +22,17 @@ describe('フロントマター解析器は記事の文字列から frontmatter 
     const values = parseFrontmatter(content)
     assert.deepStrictEqual(Object.keys(values), ['title'])
   })
+  it('config.キー名 の値は設定値を参照して解決される', () => {
+    const content = '---\nsite_name: config.site_name\n---\n# 本文'
+    const values = parseFrontmatter(content)
+    assert.strictEqual(values.site_name, 'test')
+  })
+  it('config. に続く値がコードとして実行されない', () => {
+    const globalKey = '__pwned_by_frontmatter__'
+    const content = `---\nsite_name: config.site_name;globalThis.${globalKey}=true\n---\n# 本文`
+    parseFrontmatter(content)
+    assert.strictEqual(globalThis[globalKey], undefined)
+  })
 })
 
 test('基本的なフロントマター解析', () => {

@@ -7,8 +7,13 @@
 const MARKDOWN_IMAGE_REGEXP = /!\[.*?\]\(([^\s)]+)/g
 const IMG_TAG_REGEXP = /<img\s[^>]*?src=["']([^"']+)["']/gi
 
-const isLocalPath = (url) =>
-  !url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('//')
+const SCHEME_REGEXP = /^[a-zA-Z][a-zA-Z\d+.-]*:/
+
+/**
+ * @param {string} url
+ * @returns {boolean} スキーム付きURL（http:, data:, blob: 等）でもプロトコル相対URL（//〜）でもなければ true
+ */
+export const isLocalPath = (url) => !SCHEME_REGEXP.test(url) && !url.startsWith('//')
 
 /**
  * @vocab: 画像参照抽出器
