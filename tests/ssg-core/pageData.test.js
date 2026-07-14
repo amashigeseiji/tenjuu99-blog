@@ -1,6 +1,28 @@
-import { test } from 'node:test';
+import { test, describe, it } from 'node:test';
 import assert from 'node:assert';
-import makePageData from '../../lib/pageData.js';
+import makePageData, { parseFrontmatter } from '../../lib/pageData.js';
+
+describe('フロントマター解析器は記事の文字列から frontmatter の値を取り出せる', () => {
+  it('--- 区切りの frontmatter からフィールドの値を取り出せる', () => {
+    const content = '---\ntitle: テスト記事\nog_image: /image/post/ogp.png\n---\n# 本文'
+    const values = parseFrontmatter(content)
+    assert.strictEqual(values.title, 'テスト記事')
+    assert.strictEqual(values.og_image, '/image/post/ogp.png')
+  })
+  it('<!-- --> 区切りの frontmatter からもフィールドの値を取り出せる', () => {
+    const content = '<!--\ntitle: テスト記事\nog_image: /image/post/ogp.png\n-->\n# 本文'
+    const values = parseFrontmatter(content)
+    assert.strictEqual(values.og_image, '/image/post/ogp.png')
+  })
+  it('frontmatter がない記事では空のオブジェクトを返す', () => {
+    assert.deepStrictEqual(parseFrontmatter('# 本文だけの記事'), {})
+  })
+  it('デフォルト値や設定値を混ぜず、記事に書かれた値だけを返す', () => {
+    const content = '---\ntitle: テスト記事\n---\n# 本文'
+    const values = parseFrontmatter(content)
+    assert.deepStrictEqual(Object.keys(values), ['title'])
+  })
+})
 
 test('基本的なフロントマター解析', () => {
   const markdown = `<!--
