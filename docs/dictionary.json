@@ -215,6 +215,17 @@
       "src": "lib/imageDistributor.js"
     },
     {
+      "name": "フロントマター解析器",
+      "en": "FrontmatterParser",
+      "context": "ssg-core",
+      "domain": "solution",
+      "definition": "記事の文字列から frontmatter 部を解析し、フィールドの値を取り出す装置。#フロントマター の解析実装。",
+      "relations": [
+        { "type": "references", "target": "フロントマター", "note": "の解析実装" }
+      ],
+      "src": "lib/pageData.js"
+    },
+    {
       "name": "サーバーハンドラー",
       "en": "ServerHandler",
       "context": "server",
@@ -505,11 +516,12 @@
       "en": "PublishTarget",
       "context": "editor",
       "domain": "application",
-      "definition": "#公開する ・ #更新する 操作で送信するファイルの集合。現在編集中のMarkdownファイルと、そのファイル内の画像リンク（`![](...)` 形式）を解析して収集した参照画像ファイルから構成される。ユーザーが明示的に選択するのではなく、編集内容から自動的に決定される。",
+      "definition": "#公開する ・ #更新する 操作で送信するファイルの集合。現在編集中の Markdown ファイルと、その記事由来のすべての #画像参照 （本文・frontmatter）から収集した参照画像ファイルで構成される。ユーザーが明示的に選択するのではなく、編集内容から自動的に決定される。",
       "relations": [
         { "type": "references", "target": "公開する", "note": "送信対象となる" },
         { "type": "references", "target": "更新する", "note": "送信対象となる" },
-        { "type": "references", "target": "インライン画像挿入", "note": "挿入済み画像が自動収集の対象になる" }
+        { "type": "references", "target": "インライン画像挿入", "note": "挿入済み画像が自動収集の対象になる" },
+        { "type": "references", "target": "画像参照", "note": "収集根拠" }
       ],
       "src": null
     },
@@ -880,10 +892,12 @@
       "en": "PublishTargetCollector",
       "context": "editor",
       "domain": "solution",
-      "definition": "現在のファイルパスと本文から #公開対象 を収集する装置。#画像参照抽出器 を使って参照画像パスを取得し、Markdownファイルと合わせたファイルリストを返す。",
+      "definition": "現在のファイルパスと記事の内容から #公開対象 を収集する装置。#画像参照抽出器 と #フロントマター画像参照抽出器 を使って記事由来のすべての #画像参照 を取得し、Markdownファイルと合わせたファイルリストを返す。",
       "relations": [
         { "type": "references", "target": "公開対象", "note": "収集した結果が公開対象にあたる" },
-        { "type": "references", "target": "画像参照抽出器", "note": "参照画像の収集を委譲する" }
+        { "type": "references", "target": "画像参照抽出器", "note": "本文参照の収集を委譲する" },
+        { "type": "references", "target": "フロントマター画像参照抽出器", "note": "frontmatter参照の収集を委譲する" },
+        { "type": "references", "target": "画像参照", "note": "収集根拠" }
       ],
       "src": "packages/editor/server/publishTargetCollector.js"
     },
@@ -892,9 +906,10 @@
       "en": "ImageReferenceExtractor",
       "context": "editor",
       "domain": "solution",
-      "definition": "Markdown文字列から `![](...)` 形式の画像パスを抽出する装置。純粋関数として実装され、ファイルシステムへの依存を持たない。",
+      "definition": "Markdown 文字列から #本文画像参照 （Markdown 画像記法と img タグ）を抽出する装置。純粋関数として実装され、ファイルシステムへの依存を持たない。",
       "relations": [
-        { "type": "references", "target": "公開対象コレクター", "note": "に組み込まれる" }
+        { "type": "references", "target": "公開対象コレクター", "note": "に組み込まれる" },
+        { "type": "references", "target": "本文画像参照", "note": "抽出対象" }
       ],
       "src": "packages/editor/js/imageReferenceExtractor.js"
     },
@@ -1102,6 +1117,67 @@
         { "type": "references", "target": "ディレクトリツリー", "note": "ファイルタブの内容" },
         { "type": "references", "target": "新規作成UI", "note": "新規作成タブの内容" }
       ]
+    },
+    {
+      "name": "画像参照",
+      "en": "ImageReference",
+      "context": "editor",
+      "domain": "application",
+      "definition": "記事が画像を参照する経路の総称。#本文画像参照 と #フロントマター画像参照 がある。記事を公開するとき、記事由来のすべての画像参照が #公開対象 の収集根拠になる。",
+      "relations": [
+        { "type": "contains", "target": "本文画像参照", "note": "本文経由の参照" },
+        { "type": "contains", "target": "フロントマター画像参照", "note": "frontmatter経由の参照" },
+        { "type": "references", "target": "公開対象", "note": "公開対象の収集根拠になる" }
+      ],
+      "src": null
+    },
+    {
+      "name": "本文画像参照",
+      "en": "BodyImageReference",
+      "context": "editor",
+      "domain": "application",
+      "definition": "本文による #画像参照 。Markdown 画像記法（`![](...)`）と、Markdown に埋め込まれた HTML の img タグの両方を含む。従来から公開対象の収集根拠だった経路（従来は Markdown 画像記法のみ）。スタイルシート経由の参照（background-image 等）は含まない。",
+      "relations": [
+        { "type": "belongs_to", "target": "画像参照", "note": "画像参照の一種" }
+      ],
+      "src": null
+    },
+    {
+      "name": "フロントマター画像参照",
+      "en": "FrontmatterImageReference",
+      "context": "editor",
+      "domain": "application",
+      "definition": "frontmatter のフィールド値のうち、画像パスの形をもつ値による #画像参照 。フィールド名からは画像参照かどうか自明でなく、値の形から判別される。テンプレートがこれを描画する（OGP 画像等）。",
+      "relations": [
+        { "type": "belongs_to", "target": "画像参照", "note": "画像参照の一種" },
+        { "type": "references", "target": "フロントマター", "context": "ssg-core", "note": "参照元の値は frontmatter から来る" }
+      ],
+      "src": null
+    },
+    {
+      "name": "フロントマター画像参照抽出器",
+      "en": "FrontmatterImageReferenceExtractor",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "記事の文字列から #フロントマター画像参照 を抽出する装置。#フロントマター解析器 で値を取り出し、#画像パス判定器 で画像パスの形の値だけを選ぶ。",
+      "relations": [
+        { "type": "references", "target": "フロントマター画像参照", "note": "抽出対象" },
+        { "type": "references", "target": "フロントマター解析器", "context": "ssg-core", "note": "値の取り出しを委譲する" },
+        { "type": "references", "target": "画像パス判定器", "note": "画像パスの選別を委譲する" },
+        { "type": "references", "target": "公開対象コレクター", "note": "に組み込まれる" }
+      ],
+      "src": "packages/editor/js/frontmatterImageReferenceExtractor.js"
+    },
+    {
+      "name": "画像パス判定器",
+      "en": "ImagePathDetector",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "値が画像パスの形かどうかを判定する装置。ローカルパスかつ画像拡張子をもつ文字列を画像パスとみなす。",
+      "relations": [
+        { "type": "references", "target": "フロントマター画像参照抽出器", "note": "から利用される" }
+      ],
+      "src": "packages/editor/js/imagePathDetector.js"
     },
     {
       "name": "ネイティブアプリシェル",

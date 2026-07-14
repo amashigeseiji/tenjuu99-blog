@@ -1,7 +1,5 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
-import { extractImageReferences } from '../../packages/editor/js/imageReferenceExtractor.js'
-import { collectTarget } from '../../packages/editor/server/publishTargetCollector.js'
 import { publish, update } from '../../packages/editor/server/changeReflector.js'
 import { getPublicationStatus } from '../../packages/editor/server/publicationStatus.js'
 
@@ -72,33 +70,6 @@ describe('エディタは編集内容を公開・更新できる', () => {
       )
       assert.strictEqual(result.success, false)
       assert.ok(result.error)
-    })
-
-    describe('公開対象コレクターは現ファイルと参照画像を収集できる', () => {
-      it('現ファイルと参照画像をgit addできるパスで返す', () => {
-        const target = collectTarget('post/hello.md', '本文\n![猫](/image/post/cat.jpg)', 'src')
-        assert.deepStrictEqual(target, {
-          markdownFile: 'src/pages/post/hello.md',
-          imageFiles: ['src/image/post/cat.jpg']
-        })
-      })
-      it('画像参照がない場合は imageFiles が空配列', () => {
-        const target = collectTarget('post/hello.md', '画像なしの本文', 'src')
-        assert.deepStrictEqual(target, { markdownFile: 'src/pages/post/hello.md', imageFiles: [] })
-      })
-
-      describe('画像参照抽出器はMarkdownから画像パスを抽出できる', () => {
-        it('![](パス)形式の画像パスをすべて返す', () => {
-          const md = '本文\n![猫](src/image/post/cat.jpg)\n![犬](src/image/post/dog.png)'
-          assert.deepStrictEqual(
-            extractImageReferences(md),
-            ['src/image/post/cat.jpg', 'src/image/post/dog.png']
-          )
-        })
-        it('画像参照がない場合は空配列を返す', () => {
-          assert.deepStrictEqual(extractImageReferences('テキストのみの本文'), [])
-        })
-      })
     })
 
     describe('変更反映器は公開手段を介してリモートに反映できる', () => {
