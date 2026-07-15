@@ -396,3 +396,71 @@ test.describe('US-03: 画像の改名', () => {
     expect(fs.existsSync(path.join(absDir, 'a.png'))).toBeTruthy()
   })
 })
+
+// ─── US-07: 画像も記事と同じナビゲーションで扱える ────────────────────────────────────────────────
+
+test.describe('US-07: 画像も記事と同じナビゲーションで扱える', () => {
+  const relPath = 'image/acceptance-image-library-us07/nav.png'
+
+  test.beforeAll(() => {
+    const absPath = path.join(srcDir, relPath)
+    fs.mkdirSync(path.dirname(absPath), { recursive: true })
+    fs.writeFileSync(absPath, TINY_PNG)
+    createdPaths.push(path.dirname(absPath))
+  })
+
+  test('シナリオ 1: リロードしても同じ表示が再現される', async ({ page }) => {
+    // Given: 画像ライブラリで画像を選択し、その詳細が表示されている
+    await gotoWithRetry(page, '/editor')
+    await openImagesTab(page)
+    await page.locator(`.image-node[data-image-path="${relPath}"]`).click()
+    await expect(page.locator('#imageDetailPanel')).toBeVisible()
+
+    // When: ブラウザをリロードする
+    await page.reload()
+
+    // Then: 同じ画像の詳細表示が再現される
+    await expect(page.locator('#imageDetailPanel')).toBeVisible()
+    await expect(page.locator('#imageDetailFileName')).toHaveText(relPath)
+  })
+
+  test('シナリオ 2: URLの直打ちで画像を開ける', async ({ page }) => {
+    // Given: ある画像を特定するURLがある
+    const url = '/editor?image=' + encodeURIComponent(relPath)
+
+    // When: そのURLをブラウザで直接開く
+    await gotoWithRetry(page, url)
+
+    // Then: その画像の詳細が表示される
+    await expect(page.locator('#imageDetailPanel')).toBeVisible()
+    await expect(page.locator('#imageDetailFileName')).toHaveText(relPath)
+  })
+
+  test('シナリオ 3: サイドバーで選択中の画像が識別できる', async ({ page }) => {
+    // Given: ある画像の詳細が表示されている
+    await gotoWithRetry(page, '/editor')
+    await openImagesTab(page)
+    await page.locator(`.image-node[data-image-path="${relPath}"]`).click()
+    await expect(page.locator('#imageDetailPanel')).toBeVisible()
+
+    // When: サイドバーの画像一覧を見る
+    // Then: 表示中の画像が選択状態として識別できる（ファイル一覧のアクティブ表示と同様）
+    await expect(page.locator(`.image-node[data-image-path="${relPath}"]`)).toHaveClass(/(^| )active( |$)/)
+  })
+
+  test('シナリオ 4: ブラウザの「戻る」で遷移前の表示に戻れる', async ({ page }) => {
+    // Given: 記事を開いた状態から画像を選択し、画像の詳細が表示されている
+    await gotoWithRetry(page, '/editor?md=index.md')
+    await openImagesTab(page)
+    await page.locator(`.image-node[data-image-path="${relPath}"]`).click()
+    await expect(page.locator('#imageDetailPanel')).toBeVisible()
+
+    // When: ブラウザの「戻る」を操作する
+    await page.goBack()
+
+    // Then: 遷移前の記事の表示に戻る
+    await expect(page.locator('#imageDetailPanel')).toBeHidden()
+    await expect(page.locator('.textareaAndPreview')).toBeVisible()
+    await expect(page).toHaveURL(/md=index\.md/)
+  })
+})

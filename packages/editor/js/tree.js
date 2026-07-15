@@ -46,10 +46,21 @@ export function escapeHtml(str) {
 }
 
 /**
+ * リンクの作り方の差し替え指定。省略時は従来どおり記事（?md=）へのリンクとして描画する。
+ * @typedef {Object} TreeLinkOptions
+ * @property {(path: string) => string} [buildHref] ファイルパスからリンク先を組み立てる
+ * @property {string} [linkClass] すべてのファイルリンクに付与するクラス名
+ * @property {(file: {path: string, label: string}) => string} [fileAttrs] リンクに付け足す属性文字列（エスケープは呼び出し側の責任）
+ * @property {string} [dirAttr] ディレクトリの <details> に付けるパス属性名
+ * @property {boolean} [openDirs] ディレクトリを開いた状態で描画するか
+ */
+
+/**
  * @param {TreeNode} tree
  * @param {string} [activeFile]
  * @param {Object.<string, 'new'|'modified'|'published'|'unknown'>} [statusMap]
  * @param {string} [_dirPath]
+ * @param {TreeLinkOptions} [options]
  * @returns {string}
  */
 // @vocab: ツリーレンダラー
@@ -58,22 +69,28 @@ export function escapeHtml(str) {
 // @vocab: ファイルノード
 // @vocab: アクティブファイル
 // @test: tests/editor/editor-sidebar.test.js
-export function renderTreeHtml(tree, activeFile = '', statusMap = {}, _dirPath = '') {
+// @test: tests/editor/image-library.test.js
+export function renderTreeHtml(tree, activeFile = '', statusMap = {}, _dirPath = '', options = {}) {
+  const buildHref = options.buildHref ?? (path => `/editor?md=${encodeURIComponent(path)}`)
+  const dirAttr = options.dirAttr ?? 'data-dir'
+  const openAttr = options.openDirs ? ' open' : ''
   let html = '<ul>'
 
   for (const [dirName, subtree] of Object.entries(tree.dirs)) {
     const dirPath = _dirPath ? `${_dirPath}/${dirName}` : dirName
-    html += `<li class="dir-node"><details data-dir="${escapeHtml(dirPath)}"><summary>${escapeHtml(dirName)}</summary>`
-    html += renderTreeHtml(subtree, activeFile, statusMap, dirPath)
+    html += `<li class="dir-node"><details ${dirAttr}="${escapeHtml(dirPath)}"${openAttr}><summary>${escapeHtml(dirName)}</summary>`
+    html += renderTreeHtml(subtree, activeFile, statusMap, dirPath, options)
     html += `</details></li>`
   }
 
   for (const file of tree.files) {
     const isActive = file.path === activeFile
-    const activeAttr = isActive ? ' class="active"' : ''
+    const classes = [options.linkClass, isActive ? 'active' : ''].filter(Boolean).join(' ')
+    const classAttr = classes ? ` class="${classes}"` : ''
     const status = statusMap[file.path]
     const statusAttr = status ? ` data-status="${escapeHtml(status)}"` : ''
-    html += `<li><a href="/editor?md=${encodeURIComponent(file.path)}"${activeAttr}${statusAttr}>${escapeHtml(file.label)}</a></li>`
+    const extraAttrs = options.fileAttrs ? options.fileAttrs(file) : ''
+    html += `<li><a href="${buildHref(file.path)}"${classAttr}${statusAttr}${extraAttrs}>${escapeHtml(file.label)}</a></li>`
   }
 
   html += '</ul>'
