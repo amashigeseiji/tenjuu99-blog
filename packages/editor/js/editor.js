@@ -3,6 +3,7 @@ import { initAutoSave } from './autoSaveInitializer.js'
 import { matchTemplate, buildFrontmatterString, loadFrontmatterTemplate } from './frontmatter_template.js'
 import { publishAvailability, resolveOperations } from './publishAvailability.js'
 import { renderImageList } from './imageListDisplay.js'
+import { resolveDisplayTarget } from './displayTargetResolver.js'
 import { showImageDetail, renderReferencingArticles } from './imageDetailDisplay.js'
 import { initImageDelete } from './imageDeleteUI.js'
 import { initImageRename } from './imageRenameUI.js'
@@ -345,6 +346,7 @@ const onloadFunction = async (e) => {
     textarea.value = content
     setCurrentFile(filename)
     url.searchParams.set('md', filename)
+    url.searchParams.delete('image')
     history.pushState({}, '', url)
     submit('/preview', form)
     fetchPublicationStatus(filename)
@@ -425,6 +427,20 @@ const onloadFunction = async (e) => {
     let linkUrl
     try { linkUrl = new URL(link.href) } catch { return }
     if (linkUrl.pathname !== '/editor') return
+
+    // 画像リンク: 記事リンクと同じその場の資源切り替えとして扱う（URLも遷移する）
+    const linkTarget = resolveDisplayTarget(linkUrl)
+    if (linkTarget?.type === 'image') {
+      e.preventDefault()
+      if (_currentImageDetailEntry?.path === linkTarget.path) return
+      const newUrl = new URL(location)
+      newUrl.searchParams.delete('md')
+      newUrl.searchParams.set('image', linkTarget.path)
+      history.pushState({}, '', newUrl)
+      openImageDetail(linkTarget.path)
+      return
+    }
+
     const newTarget = linkUrl.searchParams.get('md')
     if (!newTarget) return
     e.preventDefault()
@@ -456,20 +472,28 @@ const onloadFunction = async (e) => {
     }
 
     const currentTarget = inputFileName.value || url.searchParams.get('md')
-    if (newTarget === currentTarget) return
+    // 画像詳細を表示中は、同じ記事へのリンクでも記事表示への切り替えとして扱う
+    if (newTarget === currentTarget && !_currentImageDetailEntry) return
 
     const newUrl = new URL(location)
     newUrl.searchParams.set('md', newTarget)
+    newUrl.searchParams.delete('image')
     history.pushState({}, '', newUrl)
 
     await loadFileInPlace(newTarget)
   })
 
-  // ブラウザの戻る/進むに対応
+  // ブラウザの戻る/進むに対応: URLから表示対象を再構成する
   window.addEventListener('popstate', async () => {
-    const newTarget = new URL(location).searchParams.get('md') || ''
-    if (newTarget) {
-      await loadFileInPlace(newTarget)
+    const target = resolveDisplayTarget(new URL(location))
+    if (target?.type === 'image') {
+      switchSidebarTab('images')
+      if (!_imageLibraryEntries.some(en => en.path === target.path)) await initImageLibrary()
+      openImageDetail(target.path)
+    } else if (target?.type === 'article') {
+      await loadFileInPlace(target.path)
+    } else {
+      closeImageDetail()
     }
   })
 }
@@ -572,7 +596,7 @@ const initSidebarTabs = () => {
       if (tab.dataset.tab === 'images') {
         initImageLibrary()
       } else {
-        closeImageDetail()
+        leaveImageDetail()
       }
       if (tab.dataset.tab === 'new-file') {
         const select = document.querySelector('#newFileTemplate')
@@ -664,7 +688,9 @@ const initImageLibrary = async () => {
     if (!res.ok) throw new Error(`unexpected status: ${res.status}`)
     const json = await res.json()
     _imageLibraryEntries = json.images || []
-    renderImageList(container, _imageLibraryEntries)
+    // 選択中の画像はURLから導出する（表示はURLから再構成される）
+    const target = resolveDisplayTarget(new URL(location))
+    renderImageList(container, _imageLibraryEntries, target?.type === 'image' ? target.path : '')
   } catch (e) {
     _imageLibraryEntries = []
     container.innerHTML = '<p class="image-library-error">画像一覧を取得できませんでした</p>'
@@ -680,6 +706,10 @@ const openImageDetail = (imagePath) => {
   const panel = document.querySelector('#imageDetailPanel')
   if (!entry || !panel) return
   _currentImageDetailEntry = entry
+  // サイドバーのアクティブ状態を更新（Filesタブと同じ href マッチング）
+  document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'))
+  const activeLink = document.querySelector(`.sidebar a[href="/editor?image=${encodeURIComponent(imagePath)}"]`)
+  if (activeLink) activeLink.classList.add('active')
   showImageDetail(panel, entry)
   panel.hidden = false
   document.querySelector('.textareaAndPreview')?.setAttribute('hidden', '')
@@ -714,12 +744,23 @@ const closeImageDetail = () => {
   document.querySelector('#imageDetailFileName')?.setAttribute('hidden', '')
 }
 
-document.addEventListener('click', (e) => {
-  const imageNode = e.target.closest('.image-node')
-  if (imageNode) {
-    openImageDetail(imageNode.dataset.imagePath)
+// 画像詳細から離れる: 表示を閉じたうえで、URLから画像の特定を取り除き、
+// 開いていた記事があればその記事を特定するURLに戻す（URLと表示の一致を保つ）
+const leaveImageDetail = () => {
+  if (!_currentImageDetailEntry) return
+  closeImageDetail()
+  const newUrl = new URL(location)
+  if (!newUrl.searchParams.get('image')) return
+  newUrl.searchParams.delete('image')
+  document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'))
+  const currentArticle = document.querySelector('#inputFileName')?.value
+  if (currentArticle) {
+    newUrl.searchParams.set('md', currentArticle)
+    const link = document.querySelector(`.sidebar a[href="/editor?md=${encodeURIComponent(currentArticle)}"]`)
+    if (link) link.classList.add('active')
   }
-})
+  history.pushState({}, '', newUrl)
+}
 
 // @vocab: 画像削除UI
 // @vocab: 画像改名UI
@@ -733,7 +774,8 @@ initImageDelete(
   showConfirm,
   setImageOperationFeedback,
   async (deletedPath, referenceHandling) => {
-    closeImageDetail()
+    // 削除された画像はもう表示対象にならないため、URLからも取り除く
+    leaveImageDetail()
     await initImageLibrary()
     if (referenceHandling === 'update') await reloadCurrentArticle()
   }
@@ -745,6 +787,11 @@ initImageRename(
   showConfirm,
   setImageOperationFeedback,
   async (newPath, referenceHandling) => {
+    // 同じ資源が新しい名前になっただけなので、履歴を積まずにURLを付け替える
+    const newUrl = new URL(location)
+    newUrl.searchParams.set('image', newPath)
+    newUrl.searchParams.delete('md')
+    history.replaceState({}, '', newUrl)
     await initImageLibrary()
     if (referenceHandling === 'update') await reloadCurrentArticle()
     openImageDetail(newPath)
@@ -754,10 +801,18 @@ initImageRename(
 document.addEventListener('DOMContentLoaded', async (event) => {
   const url = new URL(location)
   const activeFile = url.searchParams.get('md') || ''
+  // 静的要素へのイベント配線はフェッチを待たずに行う
+  // （フェッチ完了前のクリックが無反応になるのを防ぐ）
   initSidebarTabs()
+  sidebarToggle(event)
   await initSidebarContent(activeFile)
   await initFrontmatterTemplate()
   await initImageLibrary()
   onloadFunction(event)
-  sidebarToggle(event)
+  // URLが画像を特定していれば、直打ち・リロードでも同じ画像詳細を再構成する
+  const target = resolveDisplayTarget(url)
+  if (target?.type === 'image') {
+    switchSidebarTab('images')
+    openImageDetail(target.path)
+  }
 })

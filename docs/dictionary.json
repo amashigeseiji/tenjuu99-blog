@@ -582,7 +582,7 @@
       "en": "TreeRenderer",
       "context": "editor",
       "domain": "solution",
-      "definition": "#ツリービルダー が生成したツリーデータを HTML 文字列に変換する装置。#ディレクトリノード を `<details>/<summary>`、#ファイルノード をエディタリンク `<a>` として出力する。#アクティブファイル のノードには `class=\"active\"` を付与する。#公開ステータス を受け取り、各 #ファイルノード に `data-status` 属性を付与する。",
+      "definition": "#ツリービルダー が生成したツリーデータを HTML 文字列に変換する装置。#ディレクトリノード を `<details>/<summary>`、#ファイルノード を資源へのリンク `<a>` として出力する。リンクの作り方を差し替えることで、記事に限らず画像など他の資源のツリーも描画できる。#アクティブファイル のノードには `class=\"active\"` を付与する。#公開ステータス を受け取り、各 #ファイルノード に `data-status` 属性を付与する。",
       "relations": [
         { "type": "references", "target": "ツリービルダー" },
         { "type": "references", "target": "ディレクトリノード" },
@@ -1316,10 +1316,11 @@
       "en": "ImageDetailDisplay",
       "context": "editor",
       "domain": "solution",
-      "definition": "#画像リスト表示 が保持済みのリストデータから選択された画像のエントリを取り出し、プレビューとメタデータを右ペインに表示するクライアント側の装置。記事編集画面とは排他的な表示関係にある（どちらか一方のみが表示される）。",
+      "definition": "一覧から選択した画像のプレビューとメタデータを右ペインに表示するクライアント側の装置。表示する画像はURLによって特定され、直打ち・リロードで同じ表示が再構成される。",
       "relations": [
         { "type": "references", "target": "画像リスト表示", "note": "保持データを参照する" },
-        { "type": "references", "target": "画像ライブラリ", "note": "の詳細表示部分にあたる" }
+        { "type": "references", "target": "画像ライブラリ", "note": "の詳細表示部分にあたる" },
+        { "type": "references", "target": "表示対象解決器", "note": "URLからの再構成に利用する" }
       ],
       "src": "packages/editor/js/imageDetailDisplay.js"
     },
@@ -1417,6 +1418,31 @@
       "definition": "メッセージと2つ以上の選択肢を提示し、作成者が選んだ選択肢の値を返す確認ダイアログ。ネイティブの確認ダイアログが使えない環境でも同じ見た目で動作する。特定のコンテキストに属さない独立した原始装置で、他の概念との関係を持たない。",
       "relations": [],
       "src": "packages/editor/js/editor.js"
+    },
+    {
+      "name": "表示対象",
+      "en": "DisplayTarget",
+      "context": "editor",
+      "domain": "application",
+      "definition": "URLによって特定される、エディタが表示すべき資源。資源の種別（記事編集か画像詳細か）とそのパスを持つ",
+      "relations": [
+        { "type": "references", "target": "画像ライブラリ", "note": "画像もURLで特定される表示対象になる" },
+        { "type": "references", "target": "アクティブファイル", "note": "記事編集の表示対象はアクティブファイルに対応する" }
+      ],
+      "src": "packages/editor/js/displayTargetResolver.js"
+    },
+    {
+      "name": "表示対象解決器",
+      "en": "DisplayTargetResolver",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "URLからそれが特定している表示対象を判別して返すことができるもの",
+      "relations": [
+        { "type": "references", "target": "表示対象", "note": "URLから判別して返す" },
+        { "type": "references", "target": "サイドバー", "note": "リンク遷移時の表示切り替えが利用する" },
+        { "type": "references", "target": "画像詳細表示", "note": "URLからの再構成が利用する" }
+      ],
+      "src": "packages/editor/js/displayTargetResolver.js"
     },
     {
       "name": "ネイティブアプリシェル",
