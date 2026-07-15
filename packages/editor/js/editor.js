@@ -652,10 +652,12 @@ const initImageLibrary = async () => {
   if (!container) return
   try {
     const res = await fetch('/get_image_library')
-    const json = res.ok ? await res.json() : { images: [] }
+    if (!res.ok) throw new Error(`unexpected status: ${res.status}`)
+    const json = await res.json()
     _imageLibraryEntries = json.images || []
     renderImageList(container, _imageLibraryEntries)
   } catch (e) {
+    _imageLibraryEntries = []
     container.innerHTML = '<p class="image-library-error">画像一覧を取得できませんでした</p>'
   }
 }

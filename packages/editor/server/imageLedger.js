@@ -8,7 +8,11 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs'
  */
 export function readLedger(ledgerPath) {
   if (!existsSync(ledgerPath)) return {}
-  return JSON.parse(readFileSync(ledgerPath, 'utf-8'))
+  try {
+    return JSON.parse(readFileSync(ledgerPath, 'utf-8'))
+  } catch (e) {
+    return {}
+  }
 }
 
 /**

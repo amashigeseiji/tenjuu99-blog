@@ -1,7 +1,7 @@
 import nodePath from 'node:path'
 import { scanImages } from './imageScanner.js'
 import { readImageMetadata } from './imageMetadataReader.js'
-import { getAddedAt } from './imageLedger.js'
+import { readLedger } from './imageLedger.js'
 
 /**
  * @vocab: 画像ライブラリエントリ
@@ -25,6 +25,7 @@ import { getAddedAt } from './imageLedger.js'
 export async function collectImageLibrary({ srcDir, ledgerPath = nodePath.join(srcDir, 'image-library.json') }) {
   const imageDir = nodePath.join(srcDir, 'image')
   const relPaths = scanImages(imageDir)
+  const ledger = readLedger(ledgerPath)
   return Promise.all(relPaths.map(async (relPath) => {
     const imagePath = `image/${relPath}`
     const metadata = await readImageMetadata(nodePath.join(imageDir, relPath))
@@ -34,7 +35,7 @@ export async function collectImageLibrary({ srcDir, ledgerPath = nodePath.join(s
       size: metadata.size,
       width: metadata.width,
       height: metadata.height,
-      addedAt: getAddedAt(ledgerPath, imagePath),
+      addedAt: ledger[imagePath]?.addedAt ?? null,
     }
   }))
 }
