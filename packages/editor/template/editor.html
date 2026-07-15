@@ -55,10 +55,15 @@
           <span id="imageDetailFileName" hidden></span>
           <input type="hidden" id="inputFileName" name="inputFileName" value="">
         </div>
-        <div class="editor-options-right">
+        <div class="editor-options-right" id="articleOptionsRight">
           <button type="button" id="unpublishBtn" disabled>非公開にする</button>
           <button type="button" id="deleteBtn" hidden>削除する</button>
           <input type="submit" value="公開する" data-url="/publish" id="publishBtn">
+        </div>
+        <div class="editor-options-right" id="imageDetailOptions" hidden>
+          <input type="text" id="imageRenameInput" placeholder="新しいファイル名" autocomplete="off">
+          <button type="button" id="imageRenameBtn">改名する</button>
+          <button type="button" id="imageDeleteBtn">削除する</button>
         </div>
       </div>
       <div class="textareaAndPreview">

@@ -4,6 +4,37 @@ import { matchTemplate, buildFrontmatterString, loadFrontmatterTemplate } from '
 import { publishAvailability, resolveOperations } from './publishAvailability.js'
 import { renderImageList } from './imageListDisplay.js'
 import { showImageDetail } from './imageDetailDisplay.js'
+import { initImageDelete } from './imageDeleteUI.js'
+import { initImageRename } from './imageRenameUI.js'
+
+// @vocab: 確認ダイアログ
+// WKWebView は window.confirm() に応答しない（WKUIDelegate 未実装のため無反応になる）ので、
+// <dialog> による自前実装で置き換える。ブラウザでもネイティブアプリでも同じ見た目で動く。
+const confirmDialogEl = document.querySelector('#confirmDialog')
+const confirmDialogMessage = document.querySelector('#confirmDialogMessage')
+const confirmDialogActions = document.querySelector('#confirmDialogActions')
+const showConfirm = (message, choices = [{ label: 'OK', value: true }, { label: 'キャンセル', value: false }]) => {
+  return new Promise((resolve) => {
+    confirmDialogMessage.textContent = message
+    confirmDialogActions.innerHTML = ''
+    let settled = false
+    const settle = (value) => {
+      if (settled) return
+      settled = true
+      confirmDialogEl.close()
+      resolve(value)
+    }
+    choices.forEach(choice => {
+      const btn = document.createElement('button')
+      btn.type = 'button'
+      btn.textContent = choice.label
+      btn.addEventListener('click', () => settle(choice.value))
+      confirmDialogActions.appendChild(btn)
+    })
+    confirmDialogEl.addEventListener('cancel', () => settle(false), { once: true })
+    confirmDialogEl.showModal()
+  })
+}
 
 // @vocab: テンプレートレゾルバー
 // @test: tests/editor/editor-frontmatter-template.test.js
@@ -48,35 +79,6 @@ const onloadFunction = async (e) => {
   const setCurrentFile = (filename) => {
     inputFileName.value = filename
     currentFileName.textContent = filename
-  }
-
-  // @vocab: 確認ダイアログ
-  // WKWebView は window.confirm() に応答しない（WKUIDelegate 未実装のため無反応になる）ので、
-  // <dialog> による自前実装で置き換える。ブラウザでもネイティブアプリでも同じ見た目で動く。
-  const confirmDialogEl = document.querySelector('#confirmDialog')
-  const confirmDialogMessage = document.querySelector('#confirmDialogMessage')
-  const confirmDialogActions = document.querySelector('#confirmDialogActions')
-  const showConfirm = (message, choices = [{ label: 'OK', value: true }, { label: 'キャンセル', value: false }]) => {
-    return new Promise((resolve) => {
-      confirmDialogMessage.textContent = message
-      confirmDialogActions.innerHTML = ''
-      let settled = false
-      const settle = (value) => {
-        if (settled) return
-        settled = true
-        confirmDialogEl.close()
-        resolve(value)
-      }
-      choices.forEach(choice => {
-        const btn = document.createElement('button')
-        btn.type = 'button'
-        btn.textContent = choice.label
-        btn.addEventListener('click', () => settle(choice.value))
-        confirmDialogActions.appendChild(btn)
-      })
-      confirmDialogEl.addEventListener('cancel', () => settle(false), { once: true })
-      confirmDialogEl.showModal()
-    })
   }
 
   if (target) {
@@ -664,17 +666,21 @@ const initImageLibrary = async () => {
 
 // @vocab: 画像詳細表示
 // 記事編集画面のヘッダー（editor-options）を流用する: 左側にファイルパスの
-// かわりに画像パスを、右側には記事の操作ボタンのかわりに画像の操作ボタンを表示する。
-// 現時点では画像側の操作ボタンはまだ無いため、右側は表示しない。
+// かわりに画像パスを、右側には記事の操作ボタンのかわりに画像の操作ボタン（削除・改名）を表示する。
+let _currentImageDetailEntry = null
 const openImageDetail = (imagePath) => {
   const entry = _imageLibraryEntries.find(e => e.path === imagePath)
   const panel = document.querySelector('#imageDetailPanel')
   if (!entry || !panel) return
+  _currentImageDetailEntry = entry
   showImageDetail(panel, entry)
   panel.hidden = false
   document.querySelector('.textareaAndPreview')?.setAttribute('hidden', '')
   document.querySelector('#fileStatus')?.setAttribute('hidden', '')
-  document.querySelector('.editor-options-right')?.setAttribute('hidden', '')
+  document.querySelector('#articleOptionsRight')?.setAttribute('hidden', '')
+  document.querySelector('#imageDetailOptions')?.removeAttribute('hidden')
+  const renameInput = document.querySelector('#imageRenameInput')
+  if (renameInput) renameInput.value = ''
   const imageFileNameEl = document.querySelector('#imageDetailFileName')
   if (imageFileNameEl) {
     imageFileNameEl.textContent = entry.path
@@ -683,10 +689,12 @@ const openImageDetail = (imagePath) => {
 }
 
 const closeImageDetail = () => {
+  _currentImageDetailEntry = null
   document.querySelector('#imageDetailPanel')?.setAttribute('hidden', '')
   document.querySelector('.textareaAndPreview')?.removeAttribute('hidden')
   document.querySelector('#fileStatus')?.removeAttribute('hidden')
-  document.querySelector('.editor-options-right')?.removeAttribute('hidden')
+  document.querySelector('#articleOptionsRight')?.removeAttribute('hidden')
+  document.querySelector('#imageDetailOptions')?.setAttribute('hidden', '')
   document.querySelector('#imageDetailFileName')?.setAttribute('hidden', '')
 }
 
@@ -696,6 +704,34 @@ document.addEventListener('click', (e) => {
     openImageDetail(imageNode.dataset.imagePath)
   }
 })
+
+// @vocab: 画像削除UI
+// @vocab: 画像改名UI
+const setImageOperationFeedback = (message) => {
+  const feedback = document.querySelector('#operationFeedback')
+  if (feedback) feedback.textContent = message
+}
+initImageDelete(
+  document.querySelector('#imageDeleteBtn'),
+  () => _currentImageDetailEntry,
+  showConfirm,
+  setImageOperationFeedback,
+  async () => {
+    closeImageDetail()
+    await initImageLibrary()
+  }
+)
+initImageRename(
+  document.querySelector('#imageRenameBtn'),
+  () => _currentImageDetailEntry,
+  () => document.querySelector('#imageRenameInput')?.value.trim(),
+  showConfirm,
+  setImageOperationFeedback,
+  async (newPath) => {
+    await initImageLibrary()
+    openImageDetail(newPath)
+  }
+)
 
 document.addEventListener('DOMContentLoaded', async (event) => {
   const url = new URL(location)
