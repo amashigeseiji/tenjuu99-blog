@@ -9,7 +9,7 @@
  * @param {() => string} getNewFileName - 入力された新しいファイル名を返す
  * @param {(message: string, choices?: { label: string, value: any }[]) => Promise<any>} showConfirm
  * @param {(message: string) => void} setFeedback
- * @param {(newPath: string) => void} onRenamed - 改名成功後、画像リストの再取得等を行うコールバック
+ * @param {(newPath: string, referenceHandling: 'keep'|'update') => void} onRenamed - 改名成功後、画像リストの再取得等を行うコールバック
  */
 export function initImageRename(renameBtn, getEntry, getNewFileName, showConfirm, setFeedback, onRenamed) {
   if (!renameBtn) return
@@ -35,8 +35,8 @@ export function initImageRename(renameBtn, getEntry, getNewFileName, showConfirm
       const choice = await showConfirm(
         `この画像を参照している記事があります:\n${lines.join('\n')}`,
         [
-          { label: '参照も書き換えて改名', value: 'update' },
-          { label: '参照はそのままにして改名', value: 'keep' },
+          { label: '改名', value: 'keep' },
+          { label: '改名(参照も改名)', value: 'update' },
           { label: '中止', value: null },
         ]
       )
@@ -59,7 +59,7 @@ export function initImageRename(renameBtn, getEntry, getNewFileName, showConfirm
         return
       }
       setFeedback('改名しました')
-      onRenamed(json.newPath)
+      onRenamed(json.newPath, referenceHandling)
     } catch {
       setFeedback('サーバーに接続できませんでした。しばらくしてからお試しください。')
     }

@@ -8,7 +8,7 @@
  * @param {() => { path: string }|null} getEntry - 現在選択中の画像エントリを返す
  * @param {(message: string, choices?: { label: string, value: any }[]) => Promise<any>} showConfirm
  * @param {(message: string) => void} setFeedback
- * @param {(deletedPath: string) => void} onDeleted - 削除成功後、画像リストの再取得等を行うコールバック
+ * @param {(deletedPath: string, referenceHandling: 'keep'|'update') => void} onDeleted - 削除成功後、画像リストの再取得等を行うコールバック
  */
 export function initImageDelete(deleteBtn, getEntry, showConfirm, setFeedback, onDeleted) {
   if (!deleteBtn) return
@@ -32,8 +32,8 @@ export function initImageDelete(deleteBtn, getEntry, showConfirm, setFeedback, o
       const choice = await showConfirm(
         `この画像を参照している記事があります:\n${lines.join('\n')}`,
         [
-          { label: '参照はそのままにして削除', value: 'keep' },
-          { label: '参照も除去して削除', value: 'update' },
+          { label: '削除', value: 'keep' },
+          { label: '削除(参照も除去)', value: 'update' },
           { label: '中止', value: null },
         ]
       )
@@ -56,7 +56,7 @@ export function initImageDelete(deleteBtn, getEntry, showConfirm, setFeedback, o
         return
       }
       setFeedback('削除しました')
-      onDeleted(entry.path)
+      onDeleted(entry.path, referenceHandling)
     } catch {
       setFeedback('サーバーに接続できませんでした。しばらくしてからお試しください。')
     }

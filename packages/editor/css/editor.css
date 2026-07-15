@@ -125,15 +125,34 @@ main:not(.sidebar-close) .editor {
 #publicationStatus:not(:empty) {
   margin-left: 8px;
 }
+#imageRenameInput {
+  border: none;
+  padding: 3px 10px;
+  box-shadow: inset 0.1px 0.5px 6px 0px rgba(0, 0, 0, 0.1);
+  height: var(--header-height);
+  background: #eee;
+  transition: background 0.2s;
+}
+#imageRenameInput:focus {
+  background: #fff;
+  transition: background 0.2s;
+}
+#imageRenameInput::placeholder {
+  color: #aaa;
+  font-size: 0.85em;
+}
 #publishBtn,
 #unpublishBtn,
-#deleteBtn {
+#deleteBtn,
+#imageRenameBtn,
+#imageDeleteBtn {
   height: var(--header-height);
   color: #ddd;
   border-radius: 0;
   border: none;
   cursor: pointer;
   font-size: 0.85em;
+  transition: background 0.2s, color 0.2s;
 }
 #publishBtn {
   width: 100px;
@@ -141,7 +160,9 @@ main:not(.sidebar-close) .editor {
   padding: 0;
 }
 #unpublishBtn,
-#deleteBtn {
+#deleteBtn,
+#imageRenameBtn,
+#imageDeleteBtn {
   background: #b4d68e;
   color: #555;
   /* 「非公開にする」の文言が収まり、かつ両ボタンが同じ幅になる固定幅 */
@@ -150,20 +171,35 @@ main:not(.sidebar-close) .editor {
 }
 #publishBtn:hover,
 #unpublishBtn:hover,
-#deleteBtn:hover {
+#deleteBtn:hover,
+#imageRenameBtn:hover,
+#imageDeleteBtn:hover {
   background: var(--light-green);
+  transition: background 0.2s, color 0.2s;
 }
 #publishBtn:disabled,
 #unpublishBtn:disabled,
-#deleteBtn:disabled {
+#deleteBtn:disabled,
+#imageRenameBtn:disabled,
+#imageDeleteBtn:disabled {
   background: #aaa;
   color: #1f1f1f;
   cursor: not-allowed;
 }
 #publishBtn:disabled:hover,
 #unpublishBtn:disabled:hover,
-#deleteBtn:disabled:hover {
+#deleteBtn:disabled:hover,
+#imageRenameBtn:disabled:hover,
+#imageDeleteBtn:disabled:hover {
   background: #aaa;
+}
+#imageDeleteBtn {
+  background: #ff8d8d;
+  color: #222222;
+}
+#imageDeleteBtn:hover {
+  background: #c14040;
+  color: #fff;
 }
 
 #newFileDialog {
@@ -220,6 +256,13 @@ main:not(.sidebar-close) .editor {
 }
 #confirmDialog .confirm-dialog-actions button:hover {
   background: var(--light-green);
+}
+#confirmDialog .confirm-dialog-actions button.confirm-dialog-cancel {
+  background: #e0e0e0;
+  color: #555;
+}
+#confirmDialog .confirm-dialog-actions button.confirm-dialog-cancel:hover {
+  background: #cacaca;
 }
 #editorTextArea {
   resize: none;

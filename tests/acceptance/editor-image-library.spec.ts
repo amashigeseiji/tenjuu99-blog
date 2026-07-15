@@ -233,7 +233,7 @@ test.describe('US-02: 画像の削除', () => {
 
     // Then: 削除は即座には実行されず、参照記事一覧（公開ステータス含む）が提示される
     await expect(page.locator('#confirmDialogMessage')).toContainText(mdFile)
-    await page.locator('#confirmDialogActions button', { hasText: '参照はそのままにして削除' }).click()
+    await page.locator('#confirmDialogActions button', { hasText: /^削除$/ }).click()
 
     await expect(page.locator('#operationFeedback')).toHaveText('削除しました')
     expect(fs.existsSync(absPath)).toBeFalsy()
@@ -255,7 +255,7 @@ test.describe('US-02: 画像の削除', () => {
     await openImagesTab(page)
     await page.locator(`.image-node[data-image-path="${relPath}"]`).click()
     await page.locator('#imageDeleteBtn').click()
-    await page.locator('#confirmDialogActions button', { hasText: '参照も除去して削除' }).click()
+    await page.locator('#confirmDialogActions button', { hasText: '削除(参照も除去)' }).click()
 
     await expect(page.locator('#operationFeedback')).toHaveText('削除しました')
     expect(fs.existsSync(absPath)).toBeFalsy()
@@ -326,7 +326,7 @@ test.describe('US-03: 画像の改名', () => {
 
     // Then: 改名は即座には実行されず、参照記事一覧が提示される
     await expect(page.locator('#confirmDialogMessage')).toContainText(mdFile)
-    await page.locator('#confirmDialogActions button', { hasText: '参照も書き換えて改名' }).click()
+    await page.locator('#confirmDialogActions button', { hasText: '改名(参照も改名)' }).click()
 
     await expect(page.locator('#operationFeedback')).toHaveText('改名しました')
     expect(fs.readFileSync(mdPath, 'utf-8')).toContain('renamed-referenced.png')
@@ -348,7 +348,7 @@ test.describe('US-03: 画像の改名', () => {
     await page.locator(`.image-node[data-image-path="${relPath}"]`).click()
     await page.locator('#imageRenameInput').fill('renamed-referenced-keep.png')
     await page.locator('#imageRenameBtn').click()
-    await page.locator('#confirmDialogActions button', { hasText: '参照はそのままにして改名' }).click()
+    await page.locator('#confirmDialogActions button', { hasText: /^改名$/ }).click()
 
     await expect(page.locator('#operationFeedback')).toHaveText('改名しました')
     expect(fs.readFileSync(mdPath, 'utf-8')).toContain(path.basename(relPath))

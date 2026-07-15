@@ -3,7 +3,7 @@ import { initAutoSave } from './autoSaveInitializer.js'
 import { matchTemplate, buildFrontmatterString, loadFrontmatterTemplate } from './frontmatter_template.js'
 import { publishAvailability, resolveOperations } from './publishAvailability.js'
 import { renderImageList } from './imageListDisplay.js'
-import { showImageDetail } from './imageDetailDisplay.js'
+import { showImageDetail, renderReferencingArticles } from './imageDetailDisplay.js'
 import { initImageDelete } from './imageDeleteUI.js'
 import { initImageRename } from './imageRenameUI.js'
 
@@ -28,6 +28,7 @@ const showConfirm = (message, choices = [{ label: 'OK', value: true }, { label: 
       const btn = document.createElement('button')
       btn.type = 'button'
       btn.textContent = choice.label
+      if (choice.value === null) btn.classList.add('confirm-dialog-cancel')
       btn.addEventListener('click', () => settle(choice.value))
       confirmDialogActions.appendChild(btn)
     })
@@ -371,6 +372,10 @@ const onloadFunction = async (e) => {
       setCurrentFile(newTarget)
     }
   }
+  // 画像削除UI・画像改名UIが「参照も更新」を選んだ後、開いている記事をサーバー側の最新内容に揃えるために使う
+  reloadCurrentArticle = async () => {
+    if (inputFileName.value) await loadFileInPlace(inputFileName.value)
+  }
 
   // @vocab: 取り込む
   // リモートの内容を手元に取り込む。見送られた記事はその理由を表示する
@@ -543,6 +548,8 @@ const initSidebarContent = async (activeFile) => {
 
 // @vocab: サイドバータブ
 let switchSidebarTab = () => {}
+// 画像削除UI・画像改名UIから、開いている記事の再読み込みをトリガーするために公開する
+let reloadCurrentArticle = async () => {}
 const initSidebarTabs = () => {
   const tabs = document.querySelectorAll('.sidebar-tab')
   const contents = document.querySelectorAll('.sidebar-tab-content')
@@ -686,6 +693,15 @@ const openImageDetail = (imagePath) => {
     imageFileNameEl.textContent = entry.path
     imageFileNameEl.hidden = false
   }
+  // 参照記事一覧は画像1件ごとにgit問い合わせを伴うため、一覧取得時ではなく選択時に個別取得する
+  fetch(`/get_image_references?imagePath=${encodeURIComponent(entry.path)}`)
+    .then(res => res.json())
+    .then(json => {
+      // 取得中に別の画像へ選択が切り替わっていたら、古い結果は反映しない
+      if (_currentImageDetailEntry?.path !== entry.path) return
+      renderReferencingArticles(panel, json.articles || [])
+    })
+    .catch(() => {})
 }
 
 const closeImageDetail = () => {
@@ -716,9 +732,10 @@ initImageDelete(
   () => _currentImageDetailEntry,
   showConfirm,
   setImageOperationFeedback,
-  async () => {
+  async (deletedPath, referenceHandling) => {
     closeImageDetail()
     await initImageLibrary()
+    if (referenceHandling === 'update') await reloadCurrentArticle()
   }
 )
 initImageRename(
@@ -727,8 +744,9 @@ initImageRename(
   () => document.querySelector('#imageRenameInput')?.value.trim(),
   showConfirm,
   setImageOperationFeedback,
-  async (newPath) => {
+  async (newPath, referenceHandling) => {
     await initImageLibrary()
+    if (referenceHandling === 'update') await reloadCurrentArticle()
     openImageDetail(newPath)
   }
 )
