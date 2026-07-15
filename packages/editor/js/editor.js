@@ -644,7 +644,7 @@ const initDropReceiver = (textarea, getMdFile, onUpdate, cancelPendingDebounce) 
 }
 
 // @vocab: 画像ライブラリ
-// #画像一覧コレクター の結果を一度だけ取得し、一覧表示・詳細表示の両方がこの結果を参照する
+// #画像リストコレクター の結果を一度だけ取得し、リスト表示・詳細表示の両方がこの結果を参照する
 // （個別画像の詳細表示のために追加のサーバーリクエストは発生しない）。
 let _imageLibraryEntries = []
 const initImageLibrary = async () => {

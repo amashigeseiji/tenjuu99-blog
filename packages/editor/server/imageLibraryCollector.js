@@ -15,10 +15,10 @@ import { getAddedAt } from './imageLedger.js'
  */
 
 /**
- * @vocab: 画像一覧コレクター
+ * @vocab: 画像リストコレクター
  * @test tests/editor/image-library.test.js
  * #画像スキャナー ・ #画像メタデータ読み取り器 ・ #画像台帳 を組み合わせ、
- * #画像ライブラリ が表示する画像一覧を組み立てる。
+ * #画像ライブラリ が表示する画像リストを組み立てる。
  * @param {{ srcDir: string, ledgerPath?: string }} options
  * @returns {Promise<ImageLibraryEntry[]>}
  */

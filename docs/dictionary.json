@@ -1258,7 +1258,7 @@
       "domain": "solution",
       "definition": "`src/image/` 配下の画像ファイルを再帰的に列挙する装置。ディレクトリ階層を辿り、画像拡張子を持つファイルパスの一覧を返す。",
       "relations": [
-        { "type": "references", "target": "画像一覧コレクター", "note": "に組み込まれる" }
+        { "type": "references", "target": "画像リストコレクター", "note": "に組み込まれる" }
       ],
       "src": "packages/editor/server/imageScanner.js"
     },
@@ -1269,7 +1269,7 @@
       "domain": "solution",
       "definition": "画像ファイルのバイト数と解像度（幅・高さ）を読み取る装置。",
       "relations": [
-        { "type": "references", "target": "画像一覧コレクター", "note": "に組み込まれる" }
+        { "type": "references", "target": "画像リストコレクター", "note": "に組み込まれる" }
       ],
       "src": "packages/editor/server/imageMetadataReader.js"
     },
@@ -1280,17 +1280,17 @@
       "domain": "solution",
       "definition": "画像パスごとの追加日時を永続的に記録・取得する装置。エディタ経由で追加された画像のみ記録され、記録のない画像は追加日時「不明」として扱われる。",
       "relations": [
-        { "type": "references", "target": "画像一覧コレクター", "note": "に組み込まれる" },
+        { "type": "references", "target": "画像リストコレクター", "note": "に組み込まれる" },
         { "type": "references", "target": "アップロードエンドポイント", "note": "画像アップロード時に記録される" }
       ],
       "src": "packages/editor/server/imageLedger.js"
     },
     {
-      "name": "画像一覧コレクター",
-      "en": "ImageLibraryCollector",
+      "name": "画像リストコレクター",
+      "en": "ImageListCollector",
       "context": "editor",
       "domain": "solution",
-      "definition": "#画像スキャナー ・ #画像メタデータ読み取り器 ・ #画像台帳 を組み合わせ、#画像ライブラリ が表示する画像一覧（パス・サイズ・解像度・追加日時）を組み立てる装置。",
+      "definition": "#画像スキャナー ・ #画像メタデータ読み取り器 ・ #画像台帳 を組み合わせ、#画像ライブラリ が表示する画像リスト（パス・サイズ・解像度・追加日時）を組み立てる装置。",
       "relations": [
         { "type": "references", "target": "画像スキャナー", "note": "組み込む" },
         { "type": "references", "target": "画像メタデータ読み取り器", "note": "組み込む" },
@@ -1300,14 +1300,14 @@
       "src": "packages/editor/server/imageLibraryCollector.js"
     },
     {
-      "name": "画像一覧表示",
+      "name": "画像リスト表示",
       "en": "ImageListDisplay",
       "context": "editor",
       "domain": "solution",
-      "definition": "#画像一覧コレクター の結果をサイドバーの「画像」タブにツリー形式で表示するクライアント側の装置。DOM描画に依存するため自動テストを持たない。",
+      "definition": "#画像リストコレクター の結果をサイドバーの「画像」タブにツリー形式で表示するクライアント側の装置。画像タブを開くたびに最新の状態を反映する。",
       "relations": [
-        { "type": "references", "target": "画像一覧コレクター", "note": "データを取得する" },
-        { "type": "references", "target": "画像ライブラリ", "note": "の一覧表示部分にあたる" }
+        { "type": "references", "target": "画像リストコレクター", "note": "データを取得する" },
+        { "type": "references", "target": "画像ライブラリ", "note": "のリスト表示部分にあたる" }
       ],
       "src": "packages/editor/js/imageListDisplay.js"
     },
@@ -1316,9 +1316,9 @@
       "en": "ImageDetailDisplay",
       "context": "editor",
       "domain": "solution",
-      "definition": "#画像一覧表示 が保持済みの一覧データから選択された画像のエントリを取り出し、プレビューとメタデータを右ペインに表示するクライアント側の装置。選択のたびに追加のサーバーリクエストは発生しない。DOM描画に依存するため自動テストを持たない。",
+      "definition": "#画像リスト表示 が保持済みのリストデータから選択された画像のエントリを取り出し、プレビューとメタデータを右ペインに表示するクライアント側の装置。記事編集画面とは排他的な表示関係にある（どちらか一方のみが表示される）。",
       "relations": [
-        { "type": "references", "target": "画像一覧表示", "note": "保持データを参照する" },
+        { "type": "references", "target": "画像リスト表示", "note": "保持データを参照する" },
         { "type": "references", "target": "画像ライブラリ", "note": "の詳細表示部分にあたる" }
       ],
       "src": "packages/editor/js/imageDetailDisplay.js"
@@ -1328,10 +1328,10 @@
       "en": "ImageLibraryEntry",
       "context": "editor",
       "domain": "solution",
-      "definition": "#画像一覧コレクター が返す画像1件分のデータ（パス・URL・バイト数・解像度・追加日時）。#画像一覧表示 と #画像詳細表示 の間で受け渡される共通の形。",
+      "definition": "#画像リストコレクター が返す画像1件分のデータ（パス・URL・バイト数・解像度・追加日時）。#画像リスト表示 と #画像詳細表示 の間で受け渡される共通の形。",
       "relations": [
-        { "type": "references", "target": "画像一覧コレクター", "note": "この装置が生成する" },
-        { "type": "references", "target": "画像一覧表示", "note": "この形で受け渡される" },
+        { "type": "references", "target": "画像リストコレクター", "note": "この装置が生成する" },
+        { "type": "references", "target": "画像リスト表示", "note": "この形で受け渡される" },
         { "type": "references", "target": "画像詳細表示", "note": "この形で受け渡される" }
       ],
       "src": "packages/editor/server/imageLibraryCollector.js"

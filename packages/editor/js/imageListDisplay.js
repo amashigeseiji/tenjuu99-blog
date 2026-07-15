@@ -17,9 +17,9 @@ function renderNode(tree, dirPath = '') {
 }
 
 /**
- * @vocab: 画像一覧表示
+ * @vocab: 画像リスト表示
  * @test tests/editor/image-library.test.js
- * #画像一覧コレクター の結果をサイドバーの「画像」タブにツリー表示する。
+ * #画像リストコレクター の結果をサイドバーの「画像」タブにツリー表示する。
  * DOM描画に依存するため自動テストを持たない（手動確認のみ）。
  * @param {HTMLElement} container
  * @param {import('../server/imageLibraryCollector.js').ImageLibraryEntry[]} entries

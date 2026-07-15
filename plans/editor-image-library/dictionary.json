@@ -1,32 +1,5 @@
 {
   "version": "1",
   "contexts": [],
-  "entries": [
-    {
-      "name": "画像一覧表示",
-      "en": "ImageListDisplay",
-      "context": "editor",
-      "domain": "solution",
-      "definition": "#画像一覧コレクター の結果をサイドバーの「画像」タブにツリー形式で表示するクライアント側の装置。画像タブを開くたびに最新の状態を反映する。",
-      "relations": [
-        { "type": "references", "target": "画像一覧コレクター", "note": "データを取得する" },
-        { "type": "references", "target": "画像ライブラリ", "note": "の一覧表示部分にあたる" }
-      ],
-      "src": "packages/editor/js/imageListDisplay.js",
-      "wip": { "status": "redefine", "discovered": "tdd-run" }
-    },
-    {
-      "name": "画像詳細表示",
-      "en": "ImageDetailDisplay",
-      "context": "editor",
-      "domain": "solution",
-      "definition": "#画像一覧表示 が保持済みの一覧データから選択された画像のエントリを取り出し、プレビューとメタデータを右ペインに表示するクライアント側の装置。記事編集画面とは排他的な表示関係にある（どちらか一方のみが表示される）。",
-      "relations": [
-        { "type": "references", "target": "画像一覧表示", "note": "保持データを参照する" },
-        { "type": "references", "target": "画像ライブラリ", "note": "の詳細表示部分にあたる" }
-      ],
-      "src": "packages/editor/js/imageDetailDisplay.js",
-      "wip": { "status": "redefine", "discovered": "tdd-run" }
-    }
-  ]
+  "entries": []
 }
