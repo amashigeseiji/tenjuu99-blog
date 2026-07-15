@@ -2,6 +2,8 @@ import { initAutoPreview } from './autoPreviewInitializer.js'
 import { initAutoSave } from './autoSaveInitializer.js'
 import { matchTemplate, buildFrontmatterString, loadFrontmatterTemplate } from './frontmatter_template.js'
 import { publishAvailability, resolveOperations } from './publishAvailability.js'
+import { renderImageList } from './imageListDisplay.js'
+import { showImageDetail } from './imageDetailDisplay.js'
 
 // @vocab: テンプレートレゾルバー
 // @test: tests/editor/editor-frontmatter-template.test.js
@@ -335,6 +337,7 @@ const onloadFunction = async (e) => {
       return
     }
 
+    closeImageDetail()
     switchSidebarTab('files')
     textarea.value = content
     setCurrentFile(filename)
@@ -349,6 +352,7 @@ const onloadFunction = async (e) => {
   // サイドバーリンクのクリックやブラウザ履歴移動で呼ばれる。
   // turbolink によるページ全体の差し替えではなく、エディタ状態をその場で更新することでちらつきを防ぐ。
   const loadFileInPlace = async (newTarget) => {
+    closeImageDetail()
     // サイドバーのアクティブ状態を更新
     document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'))
     const activeLink = document.querySelector(`.sidebar a[href="/editor?md=${encodeURIComponent(newTarget)}"]`)
@@ -556,6 +560,11 @@ const initSidebarTabs = () => {
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
       switchSidebarTab(tab.dataset.tab)
+      if (tab.dataset.tab === 'images') {
+        initImageLibrary()
+      } else {
+        closeImageDetail()
+      }
       if (tab.dataset.tab === 'new-file') {
         const select = document.querySelector('#newFileTemplate')
         select.innerHTML = '<option value="">テンプレートなし</option>'
@@ -634,12 +643,67 @@ const initDropReceiver = (textarea, getMdFile, onUpdate, cancelPendingDebounce) 
   })
 }
 
+// @vocab: 画像ライブラリ
+// #画像リストコレクター の結果を一度だけ取得し、リスト表示・詳細表示の両方がこの結果を参照する
+// （個別画像の詳細表示のために追加のサーバーリクエストは発生しない）。
+let _imageLibraryEntries = []
+const initImageLibrary = async () => {
+  const container = document.querySelector('.sidebar-images')
+  if (!container) return
+  try {
+    const res = await fetch('/get_image_library')
+    if (!res.ok) throw new Error(`unexpected status: ${res.status}`)
+    const json = await res.json()
+    _imageLibraryEntries = json.images || []
+    renderImageList(container, _imageLibraryEntries)
+  } catch (e) {
+    _imageLibraryEntries = []
+    container.innerHTML = '<p class="image-library-error">画像一覧を取得できませんでした</p>'
+  }
+}
+
+// @vocab: 画像詳細表示
+// 記事編集画面のヘッダー（editor-options）を流用する: 左側にファイルパスの
+// かわりに画像パスを、右側には記事の操作ボタンのかわりに画像の操作ボタンを表示する。
+// 現時点では画像側の操作ボタンはまだ無いため、右側は表示しない。
+const openImageDetail = (imagePath) => {
+  const entry = _imageLibraryEntries.find(e => e.path === imagePath)
+  const panel = document.querySelector('#imageDetailPanel')
+  if (!entry || !panel) return
+  showImageDetail(panel, entry)
+  panel.hidden = false
+  document.querySelector('.textareaAndPreview')?.setAttribute('hidden', '')
+  document.querySelector('#fileStatus')?.setAttribute('hidden', '')
+  document.querySelector('.editor-options-right')?.setAttribute('hidden', '')
+  const imageFileNameEl = document.querySelector('#imageDetailFileName')
+  if (imageFileNameEl) {
+    imageFileNameEl.textContent = entry.path
+    imageFileNameEl.hidden = false
+  }
+}
+
+const closeImageDetail = () => {
+  document.querySelector('#imageDetailPanel')?.setAttribute('hidden', '')
+  document.querySelector('.textareaAndPreview')?.removeAttribute('hidden')
+  document.querySelector('#fileStatus')?.removeAttribute('hidden')
+  document.querySelector('.editor-options-right')?.removeAttribute('hidden')
+  document.querySelector('#imageDetailFileName')?.setAttribute('hidden', '')
+}
+
+document.addEventListener('click', (e) => {
+  const imageNode = e.target.closest('.image-node')
+  if (imageNode) {
+    openImageDetail(imageNode.dataset.imagePath)
+  }
+})
+
 document.addEventListener('DOMContentLoaded', async (event) => {
   const url = new URL(location)
   const activeFile = url.searchParams.get('md') || ''
   initSidebarTabs()
   await initSidebarContent(activeFile)
   await initFrontmatterTemplate()
+  await initImageLibrary()
   onloadFunction(event)
   sidebarToggle(event)
 })

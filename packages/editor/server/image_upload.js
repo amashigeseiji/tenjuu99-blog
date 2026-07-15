@@ -3,10 +3,12 @@ import nodePath from 'node:path'
 import { styleText } from 'node:util'
 import config from '@tenjuu99/blog/lib/config.js'
 import { createConverter } from './createConverter.js'
+import { recordAddition } from './imageLedger.js'
 import { parseJsonBody } from '@tenjuu99/blog/lib/server/helper/parseRequestBody.js'
 
 const rootDir = process.cwd()
 const srcDir = nodePath.join(rootDir, config.src_dir)
+export const imageLedgerPath = nodePath.join(srcDir, 'image-library.json')
 
 export const path = '/upload-image'
 
@@ -37,7 +39,7 @@ export const post = async (req, res) => {
       return true
     }
     const { fn, ext } = await converterPromise
-    const result = await handleImageUpload({ imageData, imageFilename, mdFile }, { converterFn: fn, outputExt: ext })
+    const result = await handleImageUpload({ imageData, imageFilename, mdFile }, { converterFn: fn, outputExt: ext, ledgerPath: imageLedgerPath })
     console.log(styleText('blue', '[upload-image] finished'))
     res.writeHead(200, { 'content-type': 'application/json' })
     res.end(JSON.stringify(result))
@@ -95,9 +97,13 @@ export function writeImageFile(saveSubPath, data, baseDir = srcDir) {
 
 /**
  * @vocab: アップロードエンドポイント
+ * @vocab: 画像台帳
  * @test: tests/editor/editor-image-upload.test.js
+ * @test: tests/editor/image-library.test.js
+ * `options.ledgerPath` が渡された場合、保存した画像パスを画像台帳に追加日時として記録する
+ * （画像ライブラリの一覧で「エディタ経由で追加された画像」の追加日時に使われる）。
  * @param {{ imageData: string, imageFilename: string, mdFile: string }} payload
- * @param {{ converterFn?: Function, outputExt?: string|null, baseDir?: string }} [options]
+ * @param {{ converterFn?: Function, outputExt?: string|null, baseDir?: string, ledgerPath?: string }} [options]
  * @returns {Promise<{ markdownUrl: string }>}
  */
 export async function handleImageUpload(payload, options = {}) {
@@ -118,5 +124,8 @@ export async function handleImageUpload(payload, options = {}) {
   const { saveSubPath, markdownUrl } = resolveImagePath(mdFile, imageFilename, outputExt)
   const converted = await converterFn(buffer)
   writeImageFile(saveSubPath, converted, baseDir)
+  if (options.ledgerPath) {
+    recordAddition(options.ledgerPath, saveSubPath)
+  }
   return { markdownUrl }
 }
