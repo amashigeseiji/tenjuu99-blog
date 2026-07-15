@@ -123,3 +123,72 @@ test.describe('US-01: 画像の一覧・プレビュー・メタデータ確認'
   // tests/editor/image-library.test.js のユニットテストで検証済み。
   test.skip('シナリオ 4: 画像が1枚もない場合（共有フィクスチャでは再現不可、ユニットテストで検証済み）', async () => {})
 })
+
+// ─── 画像ライブラリは画像の変化を一覧に反映し続け、記事編集画面と安全に共存できる ────────────────────────
+// 実利用で発見された不具合(F-01, F-02)の回帰防止。ページ遷移を挟まない
+// 同一ページ内での操作パターンを検証する(既存シナリオは gotoWithRetry で毎回遷移するため
+// この種の不具合を検出できなかった)。
+
+test.describe('画像ライブラリは画像の変化を一覧に反映し続け、記事編集画面と安全に共存できる', () => {
+  test('画像一覧は画像タブを開くたびに最新の状態を反映できる(F-01)', async ({ page }) => {
+    // Given: 記事を編集中
+    const mdFile = 'acceptance-image-library-f01.md'
+    const mdPath = path.join(srcDir, 'pages', mdFile)
+    fs.writeFileSync(mdPath, '---\ntitle: f01\n---\nbody\n')
+    createdPaths.push(mdPath)
+    await gotoWithRetry(page, `/editor?md=${mdFile}`)
+
+    // When: 記事編集画面から画像をアップロードする(ページ遷移なし)
+    const markdownUrl = await page.evaluate(async (base64) => {
+      const res = await fetch('/upload-image', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ imageData: base64, imageFilename: 'f01-uploaded.png', mdFile: 'acceptance-image-library-f01.md' })
+      })
+      return (await res.json()).markdownUrl
+    }, TINY_PNG.toString('base64'))
+    const relPath = markdownUrl.replace(/^\//, '')
+    createdPaths.push(path.join(srcDir, path.dirname(relPath)))
+
+    // And: リロードせずに画像タブを開く
+    await openImagesTab(page)
+
+    // Then: アップロードした画像がリロードなしで一覧に現れる
+    await expect(page.locator(`.image-node[data-image-path="${relPath}"]`)).toBeVisible()
+  })
+
+  test('画像詳細表示は記事編集画面と操作エリアを共有し、画像タブを離れると自動的に閉じる(F-02)', async ({ page }) => {
+    // Given: 記事を編集中で、画像ライブラリに画像が表示されている
+    const relPath = 'image/acceptance-image-library-f02/scenario.png'
+    const absPath = path.join(srcDir, relPath)
+    fs.mkdirSync(path.dirname(absPath), { recursive: true })
+    fs.writeFileSync(absPath, TINY_PNG)
+    createdPaths.push(path.dirname(absPath))
+
+    const mdFile = 'acceptance-image-library-f02.md'
+    const mdPath = path.join(srcDir, 'pages', mdFile)
+    fs.writeFileSync(mdPath, '---\ntitle: f02\n---\nbody\n')
+    createdPaths.push(mdPath)
+
+    // When: 画像を選択して詳細表示を開く
+    await gotoWithRetry(page, `/editor?md=${mdFile}`)
+    await openImagesTab(page)
+    await page.locator(`.image-node[data-image-path="${relPath}"]`).click()
+
+    // Then: プレビューが表示され、操作エリア左側は画像パスに、右側は空(記事の操作ボタンなし)になる
+    await expect(page.locator('#imageDetailPanel')).toBeVisible()
+    await expect(page.locator('.textareaAndPreview')).toBeHidden()
+    await expect(page.locator('#imageDetailFileName')).toHaveText(relPath)
+    await expect(page.locator('#fileStatus')).toBeHidden()
+    await expect(page.locator('.editor-options-right')).toBeHidden()
+
+    // When: サイドバーの「Files」タブに切り替える(記事を選ぶ前に、タブ切り替えだけで)
+    await page.locator('.sidebar-tab[data-tab="files"]').click()
+
+    // Then: 画像詳細表示は自動的に閉じ、記事編集画面の操作エリアに戻る
+    await expect(page.locator('#imageDetailPanel')).toBeHidden()
+    await expect(page.locator('.textareaAndPreview')).toBeVisible()
+    await expect(page.locator('#fileStatus')).toBeVisible()
+    await expect(page.locator('.editor-options-right')).toBeVisible()
+  })
+})

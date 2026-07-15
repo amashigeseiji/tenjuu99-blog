@@ -17,6 +17,8 @@ function formatBytes(bytes) {
  * @test tests/editor/image-library.test.js
  * #画像一覧表示 が保持済みの一覧データから選択された画像のエントリを受け取り、
  * プレビューとメタデータを表示する。追加のサーバーリクエストは発生しない。
+ * ファイルパス・操作ボタンは記事編集画面と共通の editor-options に表示するため、
+ * このパネル自体はプレビューとメタデータのみを描画する。
  * DOM描画に依存するため自動テストを持たない（手動確認のみ）。
  * @param {HTMLElement} panelEl
  * @param {import('../server/imageLibraryCollector.js').ImageLibraryEntry} entry
@@ -26,10 +28,6 @@ export function showImageDetail(panelEl, entry) {
   const addedAt = entry.addedAt ? new Date(entry.addedAt).toLocaleString('ja-JP') : '不明'
   const fileName = entry.path.split('/').pop()
   panelEl.innerHTML = `
-    <div class="image-detail-header">
-      <span class="image-detail-filename">${escapeHtml(fileName)}</span>
-      <button type="button" class="image-detail-close">閉じる</button>
-    </div>
     <img class="image-detail-preview" src="${escapeHtml(entry.url)}" alt="${escapeHtml(fileName)}">
     <dl class="image-detail-meta">
       <dt>ファイル名</dt><dd>${escapeHtml(fileName)}</dd>

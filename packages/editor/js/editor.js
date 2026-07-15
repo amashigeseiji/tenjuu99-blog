@@ -337,6 +337,7 @@ const onloadFunction = async (e) => {
       return
     }
 
+    closeImageDetail()
     switchSidebarTab('files')
     textarea.value = content
     setCurrentFile(filename)
@@ -351,6 +352,7 @@ const onloadFunction = async (e) => {
   // サイドバーリンクのクリックやブラウザ履歴移動で呼ばれる。
   // turbolink によるページ全体の差し替えではなく、エディタ状態をその場で更新することでちらつきを防ぐ。
   const loadFileInPlace = async (newTarget) => {
+    closeImageDetail()
     // サイドバーのアクティブ状態を更新
     document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'))
     const activeLink = document.querySelector(`.sidebar a[href="/editor?md=${encodeURIComponent(newTarget)}"]`)
@@ -558,6 +560,11 @@ const initSidebarTabs = () => {
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
       switchSidebarTab(tab.dataset.tab)
+      if (tab.dataset.tab === 'images') {
+        initImageLibrary()
+      } else {
+        closeImageDetail()
+      }
       if (tab.dataset.tab === 'new-file') {
         const select = document.querySelector('#newFileTemplate')
         select.innerHTML = '<option value="">テンプレートなし</option>'
@@ -654,6 +661,9 @@ const initImageLibrary = async () => {
 }
 
 // @vocab: 画像詳細表示
+// 記事編集画面のヘッダー（editor-options）を流用する: 左側にファイルパスの
+// かわりに画像パスを、右側には記事の操作ボタンのかわりに画像の操作ボタンを表示する。
+// 現時点では画像側の操作ボタンはまだ無いため、右側は表示しない。
 const openImageDetail = (imagePath) => {
   const entry = _imageLibraryEntries.find(e => e.path === imagePath)
   const panel = document.querySelector('#imageDetailPanel')
@@ -661,21 +671,27 @@ const openImageDetail = (imagePath) => {
   showImageDetail(panel, entry)
   panel.hidden = false
   document.querySelector('.textareaAndPreview')?.setAttribute('hidden', '')
+  document.querySelector('#fileStatus')?.setAttribute('hidden', '')
+  document.querySelector('.editor-options-right')?.setAttribute('hidden', '')
+  const imageFileNameEl = document.querySelector('#imageDetailFileName')
+  if (imageFileNameEl) {
+    imageFileNameEl.textContent = entry.path
+    imageFileNameEl.hidden = false
+  }
 }
 
 const closeImageDetail = () => {
   document.querySelector('#imageDetailPanel')?.setAttribute('hidden', '')
   document.querySelector('.textareaAndPreview')?.removeAttribute('hidden')
+  document.querySelector('#fileStatus')?.removeAttribute('hidden')
+  document.querySelector('.editor-options-right')?.removeAttribute('hidden')
+  document.querySelector('#imageDetailFileName')?.setAttribute('hidden', '')
 }
 
 document.addEventListener('click', (e) => {
   const imageNode = e.target.closest('.image-node')
   if (imageNode) {
     openImageDetail(imageNode.dataset.imagePath)
-    return
-  }
-  if (e.target.closest('.image-detail-close')) {
-    closeImageDetail()
   }
 })
 

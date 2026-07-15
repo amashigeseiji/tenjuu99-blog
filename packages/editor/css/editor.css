@@ -52,11 +52,6 @@ main.container {
 .image-detail-panel[hidden] {
   display: none;
 }
-.image-detail-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
 .image-detail-preview {
   max-width: 100%;
   max-height: 50vh;
@@ -78,9 +73,10 @@ main.container {
   border: none;
   cursor: pointer;
   padding: 2px 4px;
+  color: var(--sidebar-file);
 }
 .sidebar-images .image-node:hover {
-  background: rgba(0, 0, 0, 0.06);
+  background: var(--sidebar-hover-bg);
 }
 .image-library-empty,
 .image-library-error {
@@ -114,6 +110,9 @@ main:not(.sidebar-close) .editor {
   align-items: center;
   gap: 8px;
   height: var(--header-height);
+}
+.editor-options-right[hidden] {
+  display: none;
 }
 .editor-options-left {
   display: flex;
