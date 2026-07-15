@@ -1,47 +1,5 @@
 {
   "version": "1",
   "contexts": [],
-  "entries": [
-    {
-      "name": "表示対象",
-      "en": "DisplayTarget",
-      "context": "editor",
-      "domain": "application",
-      "definition": "URLによって特定される、エディタが表示すべき資源。資源の種別（記事編集か画像詳細か）とそのパスを持つ",
-      "relations": [
-        { "type": "references", "target": "画像ライブラリ", "note": "画像もURLで特定される表示対象になる" },
-        { "type": "references", "target": "アクティブファイル", "note": "記事編集の表示対象はアクティブファイルに対応する" }
-      ],
-      "wip": { "status": "new", "discovered": "tdd-run" },
-      "src": "packages/editor/js/displayTargetResolver.js"
-    },
-    {
-      "name": "表示対象解決器",
-      "en": "DisplayTargetResolver",
-      "context": "editor",
-      "domain": "solution",
-      "definition": "URLからそれが特定している表示対象を判別して返すことができるもの",
-      "relations": [
-        { "type": "references", "target": "表示対象", "note": "URLから判別して返す" },
-        { "type": "references", "target": "サイドバー", "note": "リンク遷移時の表示切り替えが利用する" },
-        { "type": "references", "target": "画像詳細表示", "note": "URLからの再構成が利用する" }
-      ],
-      "wip": { "status": "new", "discovered": "tdd-run" },
-      "src": "packages/editor/js/displayTargetResolver.js"
-    },
-    {
-      "name": "画像詳細表示",
-      "en": "ImageDetailDisplay",
-      "context": "editor",
-      "domain": "solution",
-      "definition": "一覧から選択した画像のプレビューとメタデータを右ペインに表示するクライアント側の装置。表示する画像はURLによって特定され、直打ち・リロードで同じ表示が再構成される。",
-      "src": "packages/editor/js/imageDetailDisplay.js",
-      "relations": [
-        { "type": "references", "target": "画像リスト表示", "note": "保持データを参照する" },
-        { "type": "references", "target": "画像ライブラリ", "note": "の詳細表示部分にあたる" },
-        { "type": "references", "target": "表示対象解決器", "note": "URLからの再構成に利用する" }
-      ],
-      "wip": { "status": "redefine", "discovered": "tdd-run" }
-    }
-  ]
+  "entries": []
 }
