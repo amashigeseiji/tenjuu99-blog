@@ -2,6 +2,8 @@ import { initAutoPreview } from './autoPreviewInitializer.js'
 import { initAutoSave } from './autoSaveInitializer.js'
 import { matchTemplate, buildFrontmatterString, loadFrontmatterTemplate } from './frontmatter_template.js'
 import { publishAvailability, resolveOperations } from './publishAvailability.js'
+import { renderImageList } from './imageListDisplay.js'
+import { showImageDetail } from './imageDetailDisplay.js'
 
 // @vocab: テンプレートレゾルバー
 // @test: tests/editor/editor-frontmatter-template.test.js
@@ -634,12 +636,56 @@ const initDropReceiver = (textarea, getMdFile, onUpdate, cancelPendingDebounce) 
   })
 }
 
+// @vocab: 画像ライブラリ
+// #画像一覧コレクター の結果を一度だけ取得し、一覧表示・詳細表示の両方がこの結果を参照する
+// （個別画像の詳細表示のために追加のサーバーリクエストは発生しない）。
+let _imageLibraryEntries = []
+const initImageLibrary = async () => {
+  const container = document.querySelector('.sidebar-images')
+  if (!container) return
+  try {
+    const res = await fetch('/get_image_library')
+    const json = res.ok ? await res.json() : { images: [] }
+    _imageLibraryEntries = json.images || []
+    renderImageList(container, _imageLibraryEntries)
+  } catch (e) {
+    container.innerHTML = '<p class="image-library-error">画像一覧を取得できませんでした</p>'
+  }
+}
+
+// @vocab: 画像詳細表示
+const openImageDetail = (imagePath) => {
+  const entry = _imageLibraryEntries.find(e => e.path === imagePath)
+  const panel = document.querySelector('#imageDetailPanel')
+  if (!entry || !panel) return
+  showImageDetail(panel, entry)
+  panel.hidden = false
+  document.querySelector('.textareaAndPreview')?.setAttribute('hidden', '')
+}
+
+const closeImageDetail = () => {
+  document.querySelector('#imageDetailPanel')?.setAttribute('hidden', '')
+  document.querySelector('.textareaAndPreview')?.removeAttribute('hidden')
+}
+
+document.addEventListener('click', (e) => {
+  const imageNode = e.target.closest('.image-node')
+  if (imageNode) {
+    openImageDetail(imageNode.dataset.imagePath)
+    return
+  }
+  if (e.target.closest('.image-detail-close')) {
+    closeImageDetail()
+  }
+})
+
 document.addEventListener('DOMContentLoaded', async (event) => {
   const url = new URL(location)
   const activeFile = url.searchParams.get('md') || ''
   initSidebarTabs()
   await initSidebarContent(activeFile)
   await initFrontmatterTemplate()
+  await initImageLibrary()
   onloadFunction(event)
   sidebarToggle(event)
 })

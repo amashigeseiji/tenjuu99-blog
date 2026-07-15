@@ -36,6 +36,57 @@ main.container {
 .textareaAndPreview>* {
   flex-basis: 50%;
 }
+.textareaAndPreview[hidden] {
+  display: none;
+}
+.image-detail-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  border: 1px solid #666;
+  height: 100%;
+  padding: 12px;
+  overflow: auto;
+}
+.image-detail-panel[hidden] {
+  display: none;
+}
+.image-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.image-detail-preview {
+  max-width: 100%;
+  max-height: 50vh;
+  object-fit: contain;
+  border: 1px solid #ccc;
+}
+.image-detail-meta dt {
+  font-weight: bold;
+  margin-top: 8px;
+}
+.image-detail-meta dd {
+  margin: 0;
+}
+.sidebar-images .image-node {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+.sidebar-images .image-node:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+.image-library-empty,
+.image-library-error {
+  padding: 8px;
+  color: #666;
+}
 .editor {
   display: flex;
   flex-direction: column;

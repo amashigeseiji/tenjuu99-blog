@@ -1180,6 +1180,163 @@
       "src": "packages/editor/js/imagePathDetector.js"
     },
     {
+      "name": "画像ライブラリ",
+      "en": "ImageLibrary",
+      "context": "editor",
+      "domain": "application",
+      "definition": "エディタUIから `src/image/` 配下の画像を一覧・確認・追加・削除・改名できる機能。記事編集を経由しない画像操作の窓口。",
+      "relations": [
+        { "type": "references", "target": "画像参照", "note": "一覧・詳細に参照情報を表示する" },
+        { "type": "references", "target": "ローカル参照", "note": "削除・改名時の参照記事提示に使う" },
+        { "type": "references", "target": "参照更新", "note": "削除・改名で発生しうる" },
+        { "type": "references", "target": "検出外参照宣言", "note": "宣言の付与・解除のUI導線を提供する" },
+        { "type": "references", "target": "ディレクトリツリー", "note": "一覧表示に既存のツリー装置を転用する" }
+      ]
+    },
+    {
+      "name": "参照更新",
+      "en": "ReferenceUpdate",
+      "context": "editor",
+      "domain": "application",
+      "definition": "画像の削除・改名にともない、参照している記事の #画像参照 をどう扱うか（そのまま／更新する／中止）を作成者が選び、選択どおりに記事を書き換える操作。作成者が選択しない限り記事は書き換わらない。",
+      "relations": [
+        { "type": "references", "target": "画像参照", "note": "更新対象" },
+        { "type": "references", "target": "画像ライブラリ", "note": "発生元の操作" }
+      ]
+    },
+    {
+      "name": "検出外参照宣言",
+      "en": "UndetectedReferenceDeclaration",
+      "context": "editor",
+      "domain": "application",
+      "definition": "テンプレート等、自動検出できない場所で画像が使われていることを作成者が申告すること。宣言された画像は参照切れ扱い・自動非公開の対象にならない。",
+      "relations": [
+        { "type": "references", "target": "画像ライブラリ", "note": "付与・解除のUI" },
+        { "type": "references", "target": "画像公開状態", "note": "GC対象から除外する根拠になる" }
+      ]
+    },
+    {
+      "name": "ローカル参照",
+      "en": "LocalReference",
+      "context": "editor",
+      "domain": "application",
+      "definition": "現在（編集中）の記事内容が画像を参照していること。削除・改名の確認ダイアログで提示する参照記事一覧の根拠になる #画像参照 の評価。",
+      "relations": [
+        { "type": "belongs_to", "target": "画像参照", "note": "現在の記事内容にもとづく評価" },
+        { "type": "references", "target": "画像ライブラリ", "note": "削除・改名確認に使われる" }
+      ]
+    },
+    {
+      "name": "公開済み参照",
+      "en": "PublishedReference",
+      "context": "editor",
+      "domain": "application",
+      "definition": "公開済みの記事内容が画像を参照していること。#ローカル参照 とは独立に、同期操作（公開・更新・非公開・取り込み）のタイミングでのみ更新される #画像参照 の評価。画像を自動非公開にするかどうかの唯一の判断根拠。",
+      "relations": [
+        { "type": "belongs_to", "target": "画像参照", "note": "公開済み内容にもとづく評価" },
+        { "type": "references", "target": "画像公開状態", "note": "GC判断根拠になる" },
+        { "type": "references", "target": "同期", "context": "publishing", "note": "このタイミングでのみ更新される" }
+      ]
+    },
+    {
+      "name": "画像公開状態",
+      "en": "ImagePublicationState",
+      "context": "editor",
+      "domain": "application",
+      "definition": "画像の公開・非公開が、記事からの参照の有無（#公開済み参照 または #検出外参照宣言 ）から自動的に導出される状態。画像に対する独立した公開操作は存在しない。",
+      "relations": [
+        { "type": "references", "target": "公開済み参照", "note": "導出根拠" },
+        { "type": "references", "target": "検出外参照宣言", "note": "導出の例外" },
+        { "type": "references", "target": "除去", "context": "publishing", "note": "非公開化（GC）はリモートからの除去にあたる" },
+        { "type": "references", "target": "同期", "context": "publishing", "note": "判定・反映のタイミング" }
+      ]
+    },
+    {
+      "name": "画像スキャナー",
+      "en": "ImageScanner",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "`src/image/` 配下の画像ファイルを再帰的に列挙する装置。ディレクトリ階層を辿り、画像拡張子を持つファイルパスの一覧を返す。",
+      "relations": [
+        { "type": "references", "target": "画像一覧コレクター", "note": "に組み込まれる" }
+      ],
+      "src": "packages/editor/server/imageScanner.js"
+    },
+    {
+      "name": "画像メタデータ読み取り器",
+      "en": "ImageMetadataReader",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "画像ファイルのバイト数と解像度（幅・高さ）を読み取る装置。",
+      "relations": [
+        { "type": "references", "target": "画像一覧コレクター", "note": "に組み込まれる" }
+      ],
+      "src": "packages/editor/server/imageMetadataReader.js"
+    },
+    {
+      "name": "画像台帳",
+      "en": "ImageLedger",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "画像パスごとの追加日時を永続的に記録・取得する装置。エディタ経由で追加された画像のみ記録され、記録のない画像は追加日時「不明」として扱われる。",
+      "relations": [
+        { "type": "references", "target": "画像一覧コレクター", "note": "に組み込まれる" },
+        { "type": "references", "target": "アップロードエンドポイント", "note": "画像アップロード時に記録される" }
+      ],
+      "src": "packages/editor/server/imageLedger.js"
+    },
+    {
+      "name": "画像一覧コレクター",
+      "en": "ImageLibraryCollector",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "#画像スキャナー ・ #画像メタデータ読み取り器 ・ #画像台帳 を組み合わせ、#画像ライブラリ が表示する画像一覧（パス・サイズ・解像度・追加日時）を組み立てる装置。",
+      "relations": [
+        { "type": "references", "target": "画像スキャナー", "note": "組み込む" },
+        { "type": "references", "target": "画像メタデータ読み取り器", "note": "組み込む" },
+        { "type": "references", "target": "画像台帳", "note": "組み込む" },
+        { "type": "references", "target": "画像ライブラリ", "note": "結果を提供する" }
+      ],
+      "src": "packages/editor/server/imageLibraryCollector.js"
+    },
+    {
+      "name": "画像一覧表示",
+      "en": "ImageListDisplay",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "#画像一覧コレクター の結果をサイドバーの「画像」タブにツリー形式で表示するクライアント側の装置。DOM描画に依存するため自動テストを持たない。",
+      "relations": [
+        { "type": "references", "target": "画像一覧コレクター", "note": "データを取得する" },
+        { "type": "references", "target": "画像ライブラリ", "note": "の一覧表示部分にあたる" }
+      ],
+      "src": "packages/editor/js/imageListDisplay.js"
+    },
+    {
+      "name": "画像詳細表示",
+      "en": "ImageDetailDisplay",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "#画像一覧表示 が保持済みの一覧データから選択された画像のエントリを取り出し、プレビューとメタデータを右ペインに表示するクライアント側の装置。選択のたびに追加のサーバーリクエストは発生しない。DOM描画に依存するため自動テストを持たない。",
+      "relations": [
+        { "type": "references", "target": "画像一覧表示", "note": "保持データを参照する" },
+        { "type": "references", "target": "画像ライブラリ", "note": "の詳細表示部分にあたる" }
+      ],
+      "src": "packages/editor/js/imageDetailDisplay.js"
+    },
+    {
+      "name": "画像ライブラリエントリ",
+      "en": "ImageLibraryEntry",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "#画像一覧コレクター が返す画像1件分のデータ（パス・URL・バイト数・解像度・追加日時）。#画像一覧表示 と #画像詳細表示 の間で受け渡される共通の形。",
+      "relations": [
+        { "type": "references", "target": "画像一覧コレクター", "note": "この装置が生成する" },
+        { "type": "references", "target": "画像一覧表示", "note": "この形で受け渡される" },
+        { "type": "references", "target": "画像詳細表示", "note": "この形で受け渡される" }
+      ],
+      "src": "packages/editor/server/imageLibraryCollector.js"
+    },
+    {
       "name": "ネイティブアプリシェル",
       "en": "NativeAppShell",
       "context": "native-shell",

@@ -19,6 +19,7 @@
       <div class="sidebar-tabs" role="tablist">
         <button class="sidebar-tab active" data-tab="files" role="tab" id="sidebar-tab-files" aria-selected="true" aria-controls="sidebar-tabpanel-files" tabindex="0">Files</button>
         <button class="sidebar-tab" data-tab="new-file" role="tab" id="sidebar-tab-new-file" aria-selected="false" aria-controls="sidebar-tabpanel-new-file" tabindex="-1">新規作成</button>
+        <button class="sidebar-tab" data-tab="images" role="tab" id="sidebar-tab-images" aria-selected="false" aria-controls="sidebar-tabpanel-images" tabindex="-1">画像</button>
       </div>
       <div class="sidebar-tab-content active" data-tab="files" role="tabpanel" id="sidebar-tabpanel-files" aria-labelledby="sidebar-tab-files">
         <div class="sidebar-files"></div>
@@ -38,6 +39,9 @@
           <p id="newFileError" role="alert" aria-live="assertive"></p>
           <button type="button" id="confirmNewFile">作成</button>
         </div>
+      </div>
+      <div class="sidebar-tab-content" data-tab="images" role="tabpanel" id="sidebar-tabpanel-images" aria-labelledby="sidebar-tab-images" hidden>
+        <div class="sidebar-images"></div>
       </div>
       <div class="sidebar-sync">
         <button type="button" id="pullBtn" disabled>リモートから取り込む</button>
@@ -64,6 +68,7 @@
           <div id="previewContent"></div>
         </div>
       </div>
+      <div class="image-detail-panel" id="imageDetailPanel" hidden></div>
       <input type="hidden" name="token" value="{{TOKEN}}">
     </form>
     <footer class="footer">
