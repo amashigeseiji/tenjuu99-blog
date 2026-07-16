@@ -6,8 +6,8 @@
 ## 操作の事実
 
 - `node scripts/app-bundle/build-local.js` で `.app` をビルド
-- `~/dev/blog` の実体 `node_modules` を削除した状態で `tenjuu99-blog.app` から `~/dev/blog` をコンテンツルートとして選択し、画像メタデータ読み取り機能を操作 → 問題なく動作
-- 続けて `~/dev/blog` で `pnpm install` を実行し、実体 `node_modules` がある状態で同じ `.app` から `~/dev/blog` を開き直して同機能を操作 → 問題なく動作し、`node_modules` は破壊されていないことを確認
+- 実体 `node_modules` を削除した状態のフォルダをコンテンツルートに選択し、`.app` を起動して画像メタデータ読み取り機能を操作 → 問題なく動作
+- 続けて同じフォルダに `pnpm install` を実行して実体 `node_modules` を持つ開発中プロジェクトにし、同じ `.app` からそのフォルダをコンテンツルートとして開き直して同機能を操作 → 問題なく動作し、`node_modules` は破壊されていないことを確認
 
 ## 利用仮説の照合
 
