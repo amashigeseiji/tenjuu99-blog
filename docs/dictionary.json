@@ -1627,6 +1627,18 @@
       "src": "native/Sources/NativeShellCore/DiagnosticLogWriter.swift"
     },
     {
+      "name": "ファイル選択応答器",
+      "en": "FileSelectionResponder",
+      "context": "native-shell",
+      "domain": "solution",
+      "definition": "編集画面からのファイル選択要求に応じて、注入された手段で作成者にファイルを選ばせ、選択結果（選んだファイル群または取りやめ）を要求の条件（複数選択の可否）に整合させて要求元へ返すことができるもの",
+      "relations": [
+        { "type": "references", "target": "アプリウィンドウ", "note": "配線先。アプリウィンドウ内の編集操作からのファイル選択要求に応える" },
+        { "type": "references", "target": "コンテンツルート選択ダイアログ", "note": "同じ「選択の場の注入」パターンに従う" }
+      ],
+      "src": "native/Sources/NativeShellCore/FileSelectionResponder.swift"
+    },
+    {
       "name": "配布物",
       "en": "DistributionBundle",
       "context": "app-bundle",
