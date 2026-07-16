@@ -6,7 +6,7 @@ import { renderImageList } from './imageListDisplay.js'
 import { resolveDisplayTarget } from './displayTargetResolver.js'
 import { showImageDetail, renderReferencingArticles } from './imageDetailDisplay.js'
 import { initImageDelete } from './imageDeleteUI.js'
-import { initImageRename } from './imageRenameUI.js'
+import { initImageMove } from './imageMoveUI.js'
 
 // @vocab: 確認ダイアログ
 // WKWebView は window.confirm() に応答しない（WKUIDelegate 未実装のため無反応になる）ので、
@@ -770,8 +770,9 @@ const openImageDetail = (imagePath) => {
   document.querySelector('#fileStatus')?.setAttribute('hidden', '')
   document.querySelector('#articleOptionsRight')?.setAttribute('hidden', '')
   document.querySelector('#imageDetailOptions')?.removeAttribute('hidden')
-  const renameInput = document.querySelector('#imageRenameInput')
-  if (renameInput) renameInput.value = ''
+  // 移動先入力には現在の配置パス（image/ 相対）をプリフィルし、編集して確定する
+  const moveInput = document.querySelector('#imageMoveInput')
+  if (moveInput) moveInput.value = entry.path.replace(/^image\//, '')
   const imageFileNameEl = document.querySelector('#imageDetailFileName')
   if (imageFileNameEl) {
     imageFileNameEl.textContent = entry.path
@@ -817,7 +818,7 @@ const leaveImageDetail = () => {
 }
 
 // @vocab: 画像削除UI
-// @vocab: 画像改名UI
+// @vocab: 画像移動UI
 const setImageOperationFeedback = (message) => {
   const feedback = document.querySelector('#operationFeedback')
   if (feedback) feedback.textContent = message
@@ -834,14 +835,14 @@ initImageDelete(
     if (referenceHandling === 'update') await reloadCurrentArticle()
   }
 )
-initImageRename(
-  document.querySelector('#imageRenameBtn'),
+initImageMove(
+  document.querySelector('#imageMoveBtn'),
   () => _currentImageDetailEntry,
-  () => document.querySelector('#imageRenameInput')?.value.trim(),
+  () => document.querySelector('#imageMoveInput')?.value.trim(),
   showConfirm,
   setImageOperationFeedback,
   async (newPath, referenceHandling) => {
-    // 同じ資源が新しい名前になっただけなので、履歴を積まずにURLを付け替える
+    // 同じ資源が新しいパスになっただけなので、履歴を積まずにURLを付け替える
     const newUrl = new URL(location)
     newUrl.searchParams.set('image', newPath)
     newUrl.searchParams.delete('md')

@@ -284,116 +284,184 @@ test.describe('US-02: 画像の削除', () => {
   })
 })
 
-// ─── US-03: 画像の改名 ────────────────────────────────────────────────
+// ─── US-03: 画像の移動（パスの付け替え） ────────────────────────────────────────────────
+// 改名（ファイル名だけの変更）は同じ置き場所への移動の特殊な場合（問題定義 v5）。
+// 移動先入力（#imageMoveInput）は image/ 相対の配置パス（階層可）。
 
-test.describe('US-03: 画像の改名', () => {
-  test('シナリオ1: どの記事からも参照されていない画像を改名できる', async ({ page }) => {
-    const relPath = 'image/acceptance-image-library-rename/unreferenced.png'
+test.describe('US-03: 画像の移動（パスの付け替え）', () => {
+  test('シナリオ1: どの記事からも参照されていない画像を移動できる', async ({ page }) => {
+    // Given: 画像ライブラリに画像が表示されている（参照なし）
+    const relPath = 'image/acceptance-image-library-move/unreferenced.png'
     const absPath = path.join(srcDir, relPath)
     fs.mkdirSync(path.dirname(absPath), { recursive: true })
     fs.writeFileSync(absPath, TINY_PNG)
     createdPaths.push(path.dirname(absPath))
-    const renamedPath = path.join(path.dirname(absPath), 'renamed-unreferenced.png')
+    const movedRelPath = 'image/acceptance-image-library-move-dest/moved-unreferenced.png'
+    const movedAbsPath = path.join(srcDir, movedRelPath)
+    createdPaths.push(path.dirname(movedAbsPath))
 
+    // When: 新しいパス（別の置き場所）を入力して移動操作を行う
     await gotoWithRetry(page, '/editor')
     await openImagesTab(page)
     await page.locator(`.image-node[data-image-path="${relPath}"]`).click()
-    await page.locator('#imageRenameInput').fill('renamed-unreferenced.png')
-    await page.locator('#imageRenameBtn').click()
+    await page.locator('#imageMoveInput').fill('acceptance-image-library-move-dest/moved-unreferenced.png')
+    await page.locator('#imageMoveBtn').click()
     await page.locator('#confirmDialogActions button', { hasText: 'OK' }).click()
 
-    await expect(page.locator('#operationFeedback')).toHaveText('改名しました')
+    // Then: 画像ファイルが新しいパスに移り、一覧で新しいパスに表示される
+    await expect(page.locator('#operationFeedback')).toHaveText('移動しました')
+    expect(fs.existsSync(movedAbsPath)).toBeTruthy()
+    expect(fs.existsSync(absPath)).toBeFalsy()
+    await expect(page.locator(`.image-node[data-image-path="${movedRelPath}"]`)).toBeVisible()
+  })
+
+  test('シナリオ2: ファイル名だけの変更（改名）もできる', async ({ page }) => {
+    // Given: 画像ライブラリに画像が表示されている（参照なし）
+    const relPath = 'image/acceptance-image-library-move/rename-only.png'
+    const absPath = path.join(srcDir, relPath)
+    fs.mkdirSync(path.dirname(absPath), { recursive: true })
+    fs.writeFileSync(absPath, TINY_PNG)
+    createdPaths.push(path.dirname(absPath))
+    const renamedPath = path.join(path.dirname(absPath), 'renamed-only.png')
+
+    // When: 置き場所は変えずファイル名だけを変えて移動操作を行う
+    await gotoWithRetry(page, '/editor')
+    await openImagesTab(page)
+    await page.locator(`.image-node[data-image-path="${relPath}"]`).click()
+    await page.locator('#imageMoveInput').fill('acceptance-image-library-move/renamed-only.png')
+    await page.locator('#imageMoveBtn').click()
+    await page.locator('#confirmDialogActions button', { hasText: 'OK' }).click()
+
+    // Then: 画像ファイルが新しい名前に変更され、一覧に新しいファイル名で表示される
+    await expect(page.locator('#operationFeedback')).toHaveText('移動しました')
     expect(fs.existsSync(renamedPath)).toBeTruthy()
     expect(fs.existsSync(absPath)).toBeFalsy()
   })
 
-  test('シナリオ2〜3: 参照されている画像は参照記事の提示を経て「参照も書き換えて改名」できる', async ({ page }) => {
-    const relPath = 'image/acceptance-image-library-rename/referenced-update.png'
+  test('シナリオ3〜4: 参照されている画像は参照記事の提示を経て「参照も書き換えて移動」できる', async ({ page }) => {
+    // Given: 1つ以上の記事がその画像を参照している
+    const relPath = 'image/acceptance-image-library-move/referenced-update.png'
     const absPath = path.join(srcDir, relPath)
     fs.mkdirSync(path.dirname(absPath), { recursive: true })
     fs.writeFileSync(absPath, TINY_PNG)
     createdPaths.push(path.dirname(absPath))
-    const mdFile = 'acceptance-image-library-rename-update.md'
+    const mdFile = 'acceptance-image-library-move-update.md'
     const mdPath = path.join(srcDir, 'pages', mdFile)
-    fs.writeFileSync(mdPath, `---\ntitle: rename-update\n---\n![alt](/${relPath})\n`)
+    fs.writeFileSync(mdPath, `---\ntitle: move-update\n---\n![alt](/${relPath})\n`)
     createdPaths.push(mdPath)
+    const movedRelPath = 'image/acceptance-image-library-move-dest/moved-referenced.png'
+    createdPaths.push(path.dirname(path.join(srcDir, movedRelPath)))
 
+    // When: 新しいパスを入力して移動操作を行う
     await gotoWithRetry(page, '/editor')
     await openImagesTab(page)
     await page.locator(`.image-node[data-image-path="${relPath}"]`).click()
-    await page.locator('#imageRenameInput').fill('renamed-referenced.png')
-    await page.locator('#imageRenameBtn').click()
+    await page.locator('#imageMoveInput').fill('acceptance-image-library-move-dest/moved-referenced.png')
+    await page.locator('#imageMoveBtn').click()
 
-    // Then: 改名は即座には実行されず、参照記事一覧が提示される
+    // Then: 移動は即座には実行されず、参照記事一覧が提示される
     await expect(page.locator('#confirmDialogMessage')).toContainText(mdFile)
-    await page.locator('#confirmDialogActions button', { hasText: '改名(参照も改名)' }).click()
+    await page.locator('#confirmDialogActions button', { hasText: '移動(参照も書き換え)' }).click()
 
-    await expect(page.locator('#operationFeedback')).toHaveText('改名しました')
-    expect(fs.readFileSync(mdPath, 'utf-8')).toContain('renamed-referenced.png')
+    // Then: 参照していた記事の画像参照が新しいパスに書き換えられる
+    await expect(page.locator('#operationFeedback')).toHaveText('移動しました')
+    expect(fs.readFileSync(mdPath, 'utf-8')).toContain(`/${movedRelPath}`)
+    expect(fs.existsSync(path.join(srcDir, movedRelPath))).toBeTruthy()
   })
 
-  test('シナリオ4: 「参照はそのままにして改名」を選ぶと記事は変更されない', async ({ page }) => {
-    const relPath = 'image/acceptance-image-library-rename/referenced-keep.png'
+  test('シナリオ5: 「参照はそのままにして移動」を選ぶと記事は変更されない', async ({ page }) => {
+    // Given: 1つ以上の記事がその画像を参照している
+    const relPath = 'image/acceptance-image-library-move/referenced-keep.png'
     const absPath = path.join(srcDir, relPath)
     fs.mkdirSync(path.dirname(absPath), { recursive: true })
     fs.writeFileSync(absPath, TINY_PNG)
     createdPaths.push(path.dirname(absPath))
-    const mdFile = 'acceptance-image-library-rename-keep.md'
+    const mdFile = 'acceptance-image-library-move-keep.md'
     const mdPath = path.join(srcDir, 'pages', mdFile)
-    fs.writeFileSync(mdPath, `---\ntitle: rename-keep\n---\n![alt](/${relPath})\n`)
+    fs.writeFileSync(mdPath, `---\ntitle: move-keep\n---\n![alt](/${relPath})\n`)
     createdPaths.push(mdPath)
 
+    // When: 移動操作で「参照はそのままにして移動」を選ぶ
     await gotoWithRetry(page, '/editor')
     await openImagesTab(page)
     await page.locator(`.image-node[data-image-path="${relPath}"]`).click()
-    await page.locator('#imageRenameInput').fill('renamed-referenced-keep.png')
-    await page.locator('#imageRenameBtn').click()
-    await page.locator('#confirmDialogActions button', { hasText: /^改名$/ }).click()
+    await page.locator('#imageMoveInput').fill('acceptance-image-library-move/renamed-referenced-keep.png')
+    await page.locator('#imageMoveBtn').click()
+    await page.locator('#confirmDialogActions button', { hasText: /^移動$/ }).click()
 
-    await expect(page.locator('#operationFeedback')).toHaveText('改名しました')
+    // Then: 画像は移動し、参照していた記事は変更されない
+    await expect(page.locator('#operationFeedback')).toHaveText('移動しました')
     expect(fs.readFileSync(mdPath, 'utf-8')).toContain(path.basename(relPath))
   })
 
-  test('シナリオ5: 「中止」を選ぶとファイル名も記事も変更されない', async ({ page }) => {
-    const relPath = 'image/acceptance-image-library-rename/referenced-cancel.png'
+  test('シナリオ6: 「中止」を選ぶとパスも記事も変更されない', async ({ page }) => {
+    // Given: 1つ以上の記事がその画像を参照している
+    const relPath = 'image/acceptance-image-library-move/referenced-cancel.png'
     const absPath = path.join(srcDir, relPath)
     fs.mkdirSync(path.dirname(absPath), { recursive: true })
     fs.writeFileSync(absPath, TINY_PNG)
     createdPaths.push(path.dirname(absPath))
-    const mdFile = 'acceptance-image-library-rename-cancel.md'
+    const mdFile = 'acceptance-image-library-move-cancel.md'
     const mdPath = path.join(srcDir, 'pages', mdFile)
-    fs.writeFileSync(mdPath, `---\ntitle: rename-cancel\n---\n![alt](/${relPath})\n`)
+    fs.writeFileSync(mdPath, `---\ntitle: move-cancel\n---\n![alt](/${relPath})\n`)
     createdPaths.push(mdPath)
 
+    // When: 移動操作で「中止」を選ぶ
     await gotoWithRetry(page, '/editor')
     await openImagesTab(page)
     await page.locator(`.image-node[data-image-path="${relPath}"]`).click()
-    await page.locator('#imageRenameInput').fill('should-not-be-used.png')
-    await page.locator('#imageRenameBtn').click()
+    await page.locator('#imageMoveInput').fill('should-not-be-used/cancel.png')
+    await page.locator('#imageMoveBtn').click()
     await page.locator('#confirmDialogActions button', { hasText: '中止' }).click()
 
+    // Then: 画像ファイルのパスは変更されず、記事も変更されない
     expect(fs.existsSync(absPath)).toBeTruthy()
     expect(fs.readFileSync(mdPath, 'utf-8')).toContain(relPath)
   })
 
-  test('シナリオ6: すでに同名のファイルが存在する場合は改名されない', async ({ page }) => {
-    const dir = 'image/acceptance-image-library-rename-dup'
+  test('シナリオ7: 移動先にすでに同じパスの画像が存在する場合は移動されない', async ({ page }) => {
+    // Given: 画像ライブラリに画像が表示されている
+    const dir = 'image/acceptance-image-library-move-dup'
     const absDir = path.join(srcDir, dir)
     fs.mkdirSync(absDir, { recursive: true })
     fs.writeFileSync(path.join(absDir, 'a.png'), TINY_PNG)
     fs.writeFileSync(path.join(absDir, 'b.png'), TINY_PNG)
     createdPaths.push(absDir)
 
+    // When: 既存の別の画像と同じパスになる入力で移動操作を行う
     await gotoWithRetry(page, '/editor')
     await openImagesTab(page)
     await page.locator(`.image-node[data-image-path="${dir}/a.png"]`).click()
-    await page.locator('#imageRenameInput').fill('b.png')
-    await page.locator('#imageRenameBtn').click()
+    await page.locator('#imageMoveInput').fill('acceptance-image-library-move-dup/b.png')
+    await page.locator('#imageMoveBtn').click()
     await page.locator('#confirmDialogActions button', { hasText: 'OK' }).click()
 
-    // Then: 改名は実行されず、重複している旨が伝わる
-    await expect(page.locator('#operationFeedback')).toContainText('改名できませんでした')
+    // Then: 移動は実行されず、パスが重複している旨がユーザーに伝わる
+    await expect(page.locator('#operationFeedback')).toContainText('移動できませんでした')
     expect(fs.existsSync(path.join(absDir, 'a.png'))).toBeTruthy()
+  })
+
+  test('シナリオ8: 画像がUIから管理できなくなる付け替えは受け付けられない（F-02）', async ({ page }) => {
+    // Given: 画像ライブラリに画像が表示されている
+    const relPath = 'image/acceptance-image-library-move/still-image.png'
+    const absPath = path.join(srcDir, relPath)
+    fs.mkdirSync(path.dirname(absPath), { recursive: true })
+    fs.writeFileSync(absPath, TINY_PNG)
+    createdPaths.push(path.dirname(absPath))
+
+    // When: 画像でない拡張子（例: .md）に変わる入力で移動操作を行う
+    await gotoWithRetry(page, '/editor')
+    await openImagesTab(page)
+    await page.locator(`.image-node[data-image-path="${relPath}"]`).click()
+    await page.locator('#imageMoveInput').fill('acceptance-image-library-move/still-image.md')
+    await page.locator('#imageMoveBtn').click()
+    await page.locator('#confirmDialogActions button', { hasText: 'OK' }).click()
+
+    // Then: 移動は実行されず、受け付けられない旨がユーザーに伝わる
+    await expect(page.locator('#operationFeedback')).toContainText('移動できませんでした')
+    // Then: 画像は引き続き画像ライブラリから管理できる
+    expect(fs.existsSync(absPath)).toBeTruthy()
+    await expect(page.locator(`.image-node[data-image-path="${relPath}"]`)).toBeVisible()
   })
 })
 
