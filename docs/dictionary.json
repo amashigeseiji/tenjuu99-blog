@@ -1187,13 +1187,14 @@
       "en": "ImageLibrary",
       "context": "editor",
       "domain": "application",
-      "definition": "エディタUIから `src/image/` 配下の画像を一覧・確認・追加・削除・改名できる機能。記事編集を経由しない画像操作の窓口。",
+      "definition": "エディタUIから `src/image/` 配下の画像を一覧・確認・追加・削除・移動（パスの付け替え。改名はその特殊な場合）できる機能。記事編集を経由しない画像操作の窓口。",
       "relations": [
         { "type": "references", "target": "画像参照", "note": "一覧・詳細に参照情報を表示する" },
-        { "type": "references", "target": "ローカル参照", "note": "削除・改名時の参照記事提示に使う" },
-        { "type": "references", "target": "参照更新", "note": "削除・改名で発生しうる" },
+        { "type": "references", "target": "ローカル参照", "note": "削除・移動時の参照記事提示に使う" },
+        { "type": "references", "target": "参照更新", "note": "削除・移動で発生しうる" },
         { "type": "references", "target": "検出外参照宣言", "note": "宣言の付与・解除のUI導線を提供する" },
-        { "type": "references", "target": "ディレクトリツリー", "note": "一覧表示に既存のツリー装置を転用する" }
+        { "type": "references", "target": "ディレクトリツリー", "note": "一覧表示に既存のツリー装置を転用する" },
+        { "type": "references", "target": "画像移動エンドポイント", "note": "移動の実行を担う" }
       ]
     },
     {
@@ -1401,19 +1402,6 @@
       "src": "packages/editor/server/delete_image.js"
     },
     {
-      "name": "画像改名エンドポイント",
-      "en": "ImageRenameEndpoint",
-      "context": "editor",
-      "domain": "solution",
-      "definition": "参照の扱いの指定にもとづいて画像を改名するエンドポイント。改名先のファイル名が既存の画像と重複する場合は実行しない。「更新」なら参照更新器で参照を新しいパスに書き換える。",
-      "relations": [
-        { "type": "references", "target": "参照記事逆引き器", "note": "" },
-        { "type": "references", "target": "参照更新器", "note": "" },
-        { "type": "references", "target": "画像台帳", "note": "改名に伴う台帳の更新に使う" }
-      ],
-      "src": "packages/editor/server/rename_image.js"
-    },
-    {
       "name": "確認ダイアログ",
       "en": "ConfirmDialog",
       "context": "editor",
@@ -1446,6 +1434,31 @@
         { "type": "references", "target": "画像詳細表示", "note": "URLからの再構成が利用する" }
       ],
       "src": "packages/editor/js/displayTargetResolver.js"
+    },
+    {
+      "name": "移動先検証器",
+      "en": "MoveDestinationValidator",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "移動先の配置パス（image/ 相対・階層可）が #画像ライブラリ の管理下にとどまるかを判定する装置。画像として扱える名前でない、または管理領域の外へ出る配置パスを受け付けないと判定する。",
+      "relations": [
+        { "type": "references", "target": "画像スキャナー", "note": "管理対象とする画像の判定基準を共有する" }
+      ],
+      "src": "packages/editor/server/moveDestinationValidator.js"
+    },
+    {
+      "name": "画像移動エンドポイント",
+      "en": "ImageMoveEndpoint",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "参照の扱いの指定にもとづいて画像を新しいパス（置き場所とファイル名）へ移動するエンドポイント。移動先が既存の画像と重複する場合、および管理下から外れるパスの場合は実行しない。「更新」なら #参照更新器 で参照を新しいパスに書き換える。改名（ファイル名だけの変更）は同じ置き場所への移動として包含する。",
+      "relations": [
+        { "type": "references", "target": "移動先検証器", "note": "" },
+        { "type": "references", "target": "参照記事逆引き器", "note": "" },
+        { "type": "references", "target": "参照更新器", "note": "" },
+        { "type": "references", "target": "画像台帳", "note": "移動に伴う台帳の付け替えに使う" }
+      ],
+      "src": "packages/editor/server/move_image.js"
     },
     {
       "name": "ネイティブアプリシェル",
