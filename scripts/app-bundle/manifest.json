@@ -10,6 +10,7 @@
     { "src": "repo/node_modules", "dest": "Contents/Resources/app/node_modules" },
     { "src": "repo/bin/server", "dest": "Contents/Resources/app/bin/server" },
     { "src": "repo/scripts/app-bundle/bundledModuleResolver.js", "dest": "Contents/Resources/app/scripts/app-bundle/bundledModuleResolver.js" },
+    { "src": "repo/scripts/app-bundle/bundledDependencyMatcher.js", "dest": "Contents/Resources/app/scripts/app-bundle/bundledDependencyMatcher.js" },
     { "src": "repo/scripts/app-bundle/registerBundledModuleResolver.js", "dest": "Contents/Resources/app/scripts/app-bundle/registerBundledModuleResolver.js" }
   ],
   "symlinks": [

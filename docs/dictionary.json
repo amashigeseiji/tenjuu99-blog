@@ -1775,13 +1775,25 @@
       "en": "BundledModuleResolver",
       "context": "app-bundle",
       "domain": "solution",
-      "definition": "アプリ自身のパッケージ名（@tenjuu99/blog、サブパス含む）への参照を、コンテンツルートの中身に関わらず同梱コード（Contents/Resources/app）へ解決する装置。Node の ESM 解決はコンテンツルートの祖先を遡っても .app 内の node_modules へは辿り着けない（別系統のディレクトリツリーのため）ので、bare specifier import の解決にこの装置が必要になる。アプリが同梱 Node を起動するときだけ差し込まれ、コンテンツルートには一切書き込まないことで #既存物保護 を成立させる。サーバー本体と同一のモジュールインスタンスへ解決するため、allData 等のモジュールレベル状態の共有が保たれる",
+      "definition": "アプリ自身のパッケージ名（@tenjuu99/blog、サブパス含む）への参照に加え、#依存パッケージ名判定器 が同梱コード自身の依存パッケージへの参照と判定した bare specifier も、コンテンツルートの中身に関わらず同梱コード（Contents/Resources/app）へ解決する装置。Node の ESM 解決はコンテンツルートの祖先を遡っても .app 内の node_modules へは辿り着けない（別系統のディレクトリツリーのため）ので、これらの bare specifier import の解決にこの装置が必要になる。アプリが同梱 Node を起動するときだけ差し込まれ、コンテンツルートには一切書き込まないことで #既存物保護 を成立させる。サーバー本体と同一のモジュールインスタンスへ解決するため、allData 等のモジュールレベル状態の共有が保たれる",
       "relations": [
         { "type": "references", "target": "既存物保護", "note": "この装置が既存物保護を成立させる" },
         { "type": "references", "target": "同居", "note": "同居を実現する解決手段" },
         { "type": "belongs_to", "target": "配布物", "note": "配布物の起動を成立させる構成要素" }
       ],
       "src": "scripts/app-bundle/bundledModuleResolver.js"
+    },
+    {
+      "name": "依存パッケージ名判定器",
+      "en": "BundledDependencyMatcher",
+      "context": "app-bundle",
+      "domain": "solution",
+      "definition": "参照（import指定子）が、同梱コード自身が持つ依存パッケージ名（またはそのサブパス）への参照かどうかを判定する装置。対象パッケージは個別列挙せず、同梱コード自身のpackage.jsonのdependenciesから動的に取得する。",
+      "relations": [
+        { "type": "references", "target": "同梱モジュール解決器", "note": "この判定結果を使って解決を委譲する" },
+        { "type": "belongs_to", "target": "配布物", "note": "" }
+      ],
+      "src": "scripts/app-bundle/bundledDependencyMatcher.js"
     },
     {
       "name": "公開する",
