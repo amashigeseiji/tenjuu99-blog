@@ -2,13 +2,16 @@
  * @vocab 同梱モジュール解決器
  * @test tests/app-bundle/bundledModuleResolver.test.js
  *
- * アプリ自身のパッケージ名（@tenjuu99/blog、サブパス含む）への参照を、
+ * 同梱コードが使う依存パッケージへの参照（アプリ自身のパッケージ名
+ * @tenjuu99/blog、サブパス含む／同梱コード自身の package.json の dependencies）を、
  * コンテンツルートの中身に関わらず同梱コードへ解決する。
  * コンテンツルートには一切書き込まないため、実体の node_modules を持つ
  * 開発中プロジェクトをコンテンツルートに選んでも既存物が壊れない。
  * サーバー本体と同じ実体パスへ解決するので、allData 等のモジュールレベル状態の
  * 共有（同一インスタンス性）が保たれる。
  */
+
+import { matches, dependencyNames } from './bundledDependencyMatcher.js'
 
 const PACKAGE_NAME = '@tenjuu99/blog'
 
@@ -49,6 +52,11 @@ export function resolve(specifier, context, nextResolve) {
   const redirected = redirect(specifier)
   if (redirected) {
     return { url: redirected, shortCircuit: true }
+  }
+  if (matches(specifier, dependencyNames())) {
+    // 同梱コード自身（アプリのルート）を起点に解決させることで、Node 標準の
+    // 解決アルゴリズムに package.json の exports/main 解決を委ねる
+    return nextResolve(specifier, { ...context, parentURL: appRootURL.href })
   }
   return nextResolve(specifier, context)
 }

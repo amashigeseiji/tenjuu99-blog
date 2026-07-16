@@ -1,0 +1,19 @@
+{
+  "version": "1",
+  "contexts": [],
+  "entries": [
+    {
+      "name": "依存パッケージ名判定器",
+      "en": "BundledDependencyMatcher",
+      "context": "app-bundle",
+      "domain": "solution",
+      "definition": "参照（import指定子）が、同梱コード自身が持つ依存パッケージ名（またはそのサブパス）への参照かどうかを判定する装置。対象パッケージは個別列挙せず、同梱コード自身のpackage.jsonのdependenciesから動的に取得する。",
+      "relations": [
+        { "type": "references", "target": "同梱モジュール解決器", "note": "この判定結果を使って解決を委譲する" },
+        { "type": "belongs_to", "target": "配布物", "note": "" }
+      ],
+      "wip": { "status": "new", "discovered": "tdd-run" },
+      "src": "scripts/app-bundle/bundledDependencyMatcher.js"
+    }
+  ]
+}
