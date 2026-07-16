@@ -295,13 +295,28 @@ const onloadFunction = async (e) => {
   // @vocab: 新規作成UI
   const newFileNameInput = document.querySelector('#newFileName')
   const newFileTemplateSelect = document.querySelector('#newFileTemplate')
+  const newFileImageInput = document.querySelector('#newFileImage')
   const newFileError = document.querySelector('#newFileError')
   const confirmNewFile = document.querySelector('#confirmNewFile')
 
   const refreshSidebar = () => initSidebarContent(inputFileName.value)
 
+  // 画像ファイルの選択有無がモードを決める: 選択済みなら画像追加（ファイル名入力は image/ 相対の配置パス）、
+  // 未選択なら従来どおり記事作成（src/pages/ 相対）
+  newFileImageInput.addEventListener('change', () => {
+    const file = newFileImageInput.files[0]
+    if (file) {
+      newFileNameInput.value = file.name
+      newFileTemplateSelect.value = ''
+      newFileTemplateSelect.disabled = true
+    } else {
+      newFileTemplateSelect.disabled = false
+    }
+  })
+
   // ファイル名入力に応じてテンプレートを auto-select
   newFileNameInput.addEventListener('input', () => {
+    if (newFileImageInput.files[0]) return
     const filename = newFileNameInput.value
     const template = matchTemplate(filename, _frontmatterTemplates)
     newFileTemplateSelect.value = template ? template.path_prefix : ''
@@ -319,6 +334,27 @@ const onloadFunction = async (e) => {
   confirmNewFile.addEventListener('click', async () => {
     const filename = newFileNameInput.value.trim()
     if (!filename) return
+
+    // 画像モード: 記事作成ではなく画像ライブラリへの追加として扱う
+    const imageFile = newFileImageInput.files[0]
+    if (imageFile) {
+      const result = await addLibraryImage(imageFile, filename)
+      if (!result.ok) {
+        newFileError.textContent = result.message ?? '画像の追加に失敗しました'
+        return
+      }
+      newFileImageInput.value = ''
+      newFileTemplateSelect.disabled = false
+      // 追加した画像を表示対象にする（画像リンククリックと同じその場の資源切り替え）
+      const newUrl = new URL(location)
+      newUrl.searchParams.delete('md')
+      newUrl.searchParams.set('image', result.imagePath)
+      history.pushState({}, '', newUrl)
+      switchSidebarTab('images')
+      await initImageLibrary()
+      openImageDetail(result.imagePath)
+      return
+    }
 
     const selectedPrefix = newFileTemplateSelect.value
     const selectedTemplate = selectedPrefix
@@ -609,6 +645,8 @@ const initSidebarTabs = () => {
         }
         document.querySelector('#newFileName').value = ''
         document.querySelector('#newFileError').textContent = ''
+        document.querySelector('#newFileImage').value = ''
+        select.disabled = false
         document.querySelector('#newFileName').focus()
       }
     })
@@ -635,6 +673,22 @@ const sidebarToggle = (e) => {
   hamburger.addEventListener('change', (e) => {
     main.classList.toggle('sidebar-close')
   })
+}
+
+// @vocab: 画像アップローダー
+// 記事に紐づかない追加（画像ライブラリからの追加）。mdFile を送らず、
+// 配置パス（image/ 相対・ディレクトリ階層可）を imageFilename として送る
+const addLibraryImage = async (file, destPath) => {
+  const buffer = await file.arrayBuffer()
+  const base64 = btoa(new Uint8Array(buffer).reduce((s, b) => s + String.fromCharCode(b), ''))
+  const res = await fetch('/upload-image', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ imageData: base64, imageFilename: destPath })
+  })
+  const json = await res.json().catch(() => ({}))
+  if (!res.ok) return { ok: false, message: json.message }
+  return { ok: true, imagePath: json.imagePath }
 }
 
 // @vocab: 画像アップローダー

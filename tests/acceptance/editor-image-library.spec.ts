@@ -48,7 +48,7 @@ const TINY_PNG = Buffer.from(
 )
 
 // ─── US-01: 画像の一覧・プレビュー・メタデータ確認 ────────────────────────────────────────────────
-// US-04〜US-06（追加・公開状態導出・宣言）は本セッションの実装スコープ外のため対象外。
+// US-05〜US-06（公開状態導出・宣言）は未実装のため対象外。
 
 test.describe('US-01: 画像の一覧・プレビュー・メタデータ確認', () => {
   test('シナリオ 1: 画像一覧を開くと全画像が表示される', async ({ page }) => {
@@ -395,6 +395,57 @@ test.describe('US-03: 画像の改名', () => {
     await expect(page.locator('#operationFeedback')).toContainText('改名できませんでした')
     expect(fs.existsSync(path.join(absDir, 'a.png'))).toBeTruthy()
   })
+})
+
+// ─── US-04: 画像ライブラリからの画像追加 ────────────────────────────────────────────────
+
+async function openNewFileTab(page: Page) {
+  const isClosed = await page.locator('main').evaluate(el => el.classList.contains('sidebar-close'))
+  if (isClosed) {
+    await page.locator('.sidebar-toggle').click()
+  }
+  await page.locator('.sidebar-tab[data-tab="new-file"]').click()
+  await expect(page.locator('#sidebar-tabpanel-new-file')).toBeVisible()
+}
+
+test.describe('US-04: 画像ライブラリからの画像追加', () => {
+  test('シナリオ 1: 新規作成から画像を追加できる', async ({ page }) => {
+    createdPaths.push(path.join(srcDir, 'image/acceptance-image-library-us04'))
+
+    // Given: エディタUIを開いている
+    await gotoWithRetry(page, '/editor')
+    await openNewFileTab(page)
+
+    // When: 新規作成タブで画像ファイルを選び、配置パスを指定して追加する操作を行う
+    await page.locator('#newFileImage').setInputFiles({
+      name: 'added.png', mimeType: 'image/png', buffer: TINY_PNG,
+    })
+    // ファイル名入力にベース名がプリフィルされ、画像モードではテンプレート選択が無効になる
+    await expect(page.locator('#newFileName')).toHaveValue('added.png')
+    await expect(page.locator('#newFileTemplate')).toBeDisabled()
+    await page.locator('#newFileName').fill('acceptance-image-library-us04/added.png')
+    await page.locator('#confirmNewFile').click()
+
+    // Then: 画像が src/image/ 配下に保存される（追加した画像が表示対象になり、URLが画像を特定する）
+    await expect(page.locator('#imageDetailPanel')).toBeVisible()
+    const imageParam = await page.evaluate(() => new URL(location.href).searchParams.get('image'))
+    expect(imageParam).toMatch(/^image\/acceptance-image-library-us04\/added\./)
+    expect(fs.existsSync(path.join(srcDir, imageParam!))).toBeTruthy()
+
+    // And: 画像ライブラリの一覧にその画像が現れる
+    await expect(page.locator(`.image-node[data-image-path="${imageParam}"]`)).toBeVisible()
+
+    // And: 追加日時が記録される（詳細メタデータの追加日時が「不明」ではない）
+    const metaText = await page.locator('.image-detail-meta').textContent()
+    expect(metaText).not.toMatch(/追加日時\s*不明/)
+  })
+
+  // シナリオ 2「追加しただけでは公開されない」: 公開・同期は実 git 操作を伴うため、この共有フィクスチャ
+  // では検証できない（sync-operations.spec.ts と同様の使い捨てリポジトリフィクスチャが必要）。
+  // 参照に連動した公開状態の導出は US-05 のスコープであり、その受け入れテストで同期フィクスチャごと扱う。
+  // 現実装では追加は /upload-image で完結し、リモートに触れる経路は同期操作のみ・公開対象コレクターは
+  // 記事の参照からのみ画像を収集する（tests/editor/publish.test.js で検証済み）。
+  test.skip('シナリオ 2: 追加しただけでは公開されない（同期フィクスチャが必要なため US-05 の受け入れテストで扱う）', async () => {})
 })
 
 // ─── US-07: 画像も記事と同じナビゲーションで扱える ────────────────────────────────────────────────
