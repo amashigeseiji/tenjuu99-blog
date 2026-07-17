@@ -4,7 +4,7 @@ import WebKit
 
 /// @vocab アプリウィンドウ
 /// AppKit/WKWebView に直結するため単体テストは行わず、実アプリの起動で手動検証する（test-tree.md 参照）
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate {
   private static let serverPort = 8000
   private static let contentRootDefaultsKey = "ContentRootURL"
 
@@ -208,6 +208,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let configuration = WKWebViewConfiguration()
     webView = WKWebView(frame: contentRect, configuration: configuration)
     webView.autoresizingMask = [.width, .height]
+    // uiDelegate が無いと編集画面の <input type="file"> が無反応になる（ファイル選択要求の受け口）
+    webView.uiDelegate = self
 
     window.contentView = startupLabel
     window.makeKeyAndOrderFront(nil)
@@ -312,5 +314,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     displayState = .editor
     window.contentView = webView
     webView.load(URLRequest(url: URL(string: "http://127.0.0.1:\(Self.serverPort)/editor.html")!))
+  }
+
+  /// @vocab ファイル選択応答器
+  /// 編集画面からのファイル選択要求（<input type="file"> 等）への応答の配線。
+  /// 応答の整合はテスト済みの FileSelectionResponder が担い、ここはパネル表示の注入のみ（手動検証）。
+  func webView(
+    _ webView: WKWebView,
+    runOpenPanelWith parameters: WKOpenPanelParameters,
+    initiatedByFrame frame: WKFrameInfo,
+    completionHandler: @escaping ([URL]?) -> Void
+  ) {
+    let request = FileSelectionRequest(allowsMultipleSelection: parameters.allowsMultipleSelection)
+    completionHandler(
+      FileSelectionResponder.respond(request: request, pickFiles: Self.presentFilePicker))
+  }
+
+  /// ファイル選択パネル（手動検証のみ。単体テスト対象外）
+  private static func presentFilePicker(_ request: FileSelectionRequest) -> [URL]? {
+    let panel = NSOpenPanel()
+    panel.canChooseFiles = true
+    panel.canChooseDirectories = false
+    panel.allowsMultipleSelection = request.allowsMultipleSelection
+    return panel.runModal() == .OK ? panel.urls : nil
   }
 }

@@ -36,6 +36,10 @@
               <option value="">テンプレートなし</option>
             </select>
           </label>
+          <label>
+            画像ファイル（画像を追加する場合に選択）
+            <input type="file" id="newFileImage" accept="image/*">
+          </label>
           <p id="newFileError" role="alert" aria-live="assertive"></p>
           <button type="button" id="confirmNewFile">作成</button>
         </div>
@@ -61,8 +65,8 @@
           <input type="submit" value="公開する" data-url="/publish" id="publishBtn">
         </div>
         <div class="editor-options-right" id="imageDetailOptions" hidden>
-          <input type="text" id="imageRenameInput" placeholder="新しいファイル名" autocomplete="off">
-          <button type="button" id="imageRenameBtn">改名する</button>
+          <input type="text" id="imageMoveInput" placeholder="移動先（image/ 配下のパス）" autocomplete="off">
+          <button type="button" id="imageMoveBtn">移動する</button>
           <button type="button" id="imageDeleteBtn">削除する</button>
         </div>
       </div>

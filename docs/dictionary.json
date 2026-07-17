@@ -422,7 +422,7 @@
       "en": "ImageDestinationPath",
       "context": "editor",
       "domain": "application",
-      "definition": "編集中のMarkdownファイルパスから自動決定される、画像の配置先。例: `book/painting/claude-monet.md` を編集中なら `src/image/book/painting/claude-monet/` 配下。",
+      "definition": "画像の配置先。記事に紐づくアップロードでは編集中のMarkdownファイルパスから自動決定される（例: `book/painting/claude-monet.md` なら `src/image/book/painting/claude-monet/` 配下）。記事に紐づかない追加では作成者が指定する配置パス（`src/image/` 相対・階層可）から決まる。",
       "relations": [
         { "type": "belongs_to", "target": "インライン画像挿入", "note": "インライン画像挿入の際に自動決定される" },
         { "type": "references", "target": "パスリゾルバー", "note": "パスリゾルバーが導出する" }
@@ -717,13 +717,14 @@
       "en": "UploadEndpoint",
       "context": "editor",
       "domain": "solution",
-      "definition": "画像データを受け取り、保存先を決定して変換・保存し、画像パスを返すHTTPハンドラ。",
+      "definition": "画像データを受け取り、保存先を決定して変換・保存し、画像パスを返すHTTPハンドラ。mdFile を省略した記事に紐づかない追加では、既存の画像を上書きせず（同名は拒否）、画像台帳に追加日時を記録する。",
       "relations": [
         { "type": "references", "target": "画像アップローダー", "note": "リクエストを受け取る" },
         { "type": "references", "target": "パスリゾルバー", "note": "呼び出す" },
         { "type": "references", "target": "画像コンバーター", "note": "呼び出す" },
         { "type": "references", "target": "ファイルライター", "note": "呼び出す" },
-        { "type": "references", "target": "画像保存先パス", "note": "レスポンスで返す" }
+        { "type": "references", "target": "画像保存先パス", "note": "レスポンスで返す" },
+        { "type": "references", "target": "画像ライブラリ", "note": "記事に紐づかない追加の受け口" }
       ],
       "src": "packages/editor/server/image_upload.js post / handleImageUpload"
     },
@@ -732,12 +733,12 @@
       "en": "PathResolver",
       "context": "editor",
       "domain": "solution",
-      "definition": "編集中MarkdownファイルのパスとファイルURLから、画像の保存先パスとMarkdown埋め込みURLを導出する装置。",
+      "definition": "画像の保存先パスとMarkdown埋め込みURLを導出する装置。記事に紐づくアップロードでは編集中Markdownファイルのパスから、記事に紐づかない追加（画像ライブラリからの追加）では作成者が指定した配置パスから導出する。",
       "relations": [
         { "type": "references", "target": "アップロードエンドポイント", "note": "呼び出される" },
         { "type": "references", "target": "画像保存先パス", "note": "具現化する" }
       ],
-      "src": "packages/editor/server/image_upload.js resolveImagePath"
+      "src": "packages/editor/server/image_upload.js resolveImagePath / resolveLibraryImagePath"
     },
     {
       "name": "コンバーターファクトリー",
@@ -981,11 +982,13 @@
       "en": "NewFileCreationUI",
       "context": "editor",
       "domain": "solution",
-      "definition": "「新規作成」ボタンとダイアログで構成されるブラウザUI。ファイル名の入力と #フロントマターテンプレート の表示・選択を担う。確定時に #保存エンドポイント を呼び出してファイルを作成し、エディタで開く。",
+      "definition": "「新規作成」タブのブラウザUI。ファイル名（配置パス）の入力と #フロントマターテンプレート の表示・選択を担い、確定時に #保存エンドポイント を呼び出してファイルを作成しエディタで開く。画像ファイルが選択されている場合は記事作成ではなく画像の追加として扱い、#アップロードエンドポイント を呼び出して追加した画像を表示対象にする。",
       "relations": [
         { "type": "references", "target": "新規作成", "note": "新規作成操作を UI として具現化する" },
         { "type": "references", "target": "フロントマターテンプレート", "note": "ディレクトリに応じたテンプレートを表示する" },
-        { "type": "references", "target": "保存エンドポイント", "note": "確定時に呼び出す" }
+        { "type": "references", "target": "保存エンドポイント", "note": "記事作成の確定時に呼び出す" },
+        { "type": "references", "target": "アップロードエンドポイント", "note": "画像追加の確定時に呼び出す" },
+        { "type": "references", "target": "画像ライブラリ", "note": "画像の追加導線を提供する" }
       ],
       "src": "packages/editor/js/editor.js"
     },
@@ -1184,13 +1187,14 @@
       "en": "ImageLibrary",
       "context": "editor",
       "domain": "application",
-      "definition": "エディタUIから `src/image/` 配下の画像を一覧・確認・追加・削除・改名できる機能。記事編集を経由しない画像操作の窓口。",
+      "definition": "エディタUIから `src/image/` 配下の画像を一覧・確認・追加・削除・移動（パスの付け替え。改名はその特殊な場合）できる機能。記事編集を経由しない画像操作の窓口。",
       "relations": [
         { "type": "references", "target": "画像参照", "note": "一覧・詳細に参照情報を表示する" },
-        { "type": "references", "target": "ローカル参照", "note": "削除・改名時の参照記事提示に使う" },
-        { "type": "references", "target": "参照更新", "note": "削除・改名で発生しうる" },
+        { "type": "references", "target": "ローカル参照", "note": "削除・移動時の参照記事提示に使う" },
+        { "type": "references", "target": "参照更新", "note": "削除・移動で発生しうる" },
         { "type": "references", "target": "検出外参照宣言", "note": "宣言の付与・解除のUI導線を提供する" },
-        { "type": "references", "target": "ディレクトリツリー", "note": "一覧表示に既存のツリー装置を転用する" }
+        { "type": "references", "target": "ディレクトリツリー", "note": "一覧表示に既存のツリー装置を転用する" },
+        { "type": "references", "target": "画像移動エンドポイント", "note": "移動の実行を担う" }
       ]
     },
     {
@@ -1398,19 +1402,6 @@
       "src": "packages/editor/server/delete_image.js"
     },
     {
-      "name": "画像改名エンドポイント",
-      "en": "ImageRenameEndpoint",
-      "context": "editor",
-      "domain": "solution",
-      "definition": "参照の扱いの指定にもとづいて画像を改名するエンドポイント。改名先のファイル名が既存の画像と重複する場合は実行しない。「更新」なら参照更新器で参照を新しいパスに書き換える。",
-      "relations": [
-        { "type": "references", "target": "参照記事逆引き器", "note": "" },
-        { "type": "references", "target": "参照更新器", "note": "" },
-        { "type": "references", "target": "画像台帳", "note": "改名に伴う台帳の更新に使う" }
-      ],
-      "src": "packages/editor/server/rename_image.js"
-    },
-    {
       "name": "確認ダイアログ",
       "en": "ConfirmDialog",
       "context": "editor",
@@ -1443,6 +1434,31 @@
         { "type": "references", "target": "画像詳細表示", "note": "URLからの再構成が利用する" }
       ],
       "src": "packages/editor/js/displayTargetResolver.js"
+    },
+    {
+      "name": "移動先検証器",
+      "en": "MoveDestinationValidator",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "移動先の配置パス（image/ 相対・階層可）が #画像ライブラリ の管理下にとどまるかを判定する装置。画像として扱える名前でない、または管理領域の外へ出る配置パスを受け付けないと判定する。",
+      "relations": [
+        { "type": "references", "target": "画像スキャナー", "note": "管理対象とする画像の判定基準を共有する" }
+      ],
+      "src": "packages/editor/server/moveDestinationValidator.js"
+    },
+    {
+      "name": "画像移動エンドポイント",
+      "en": "ImageMoveEndpoint",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "参照の扱いの指定にもとづいて画像を新しいパス（置き場所とファイル名）へ移動するエンドポイント。移動先が既存の画像と重複する場合、および管理下から外れるパスの場合は実行しない。「更新」なら #参照更新器 で参照を新しいパスに書き換える。改名（ファイル名だけの変更）は同じ置き場所への移動として包含する。",
+      "relations": [
+        { "type": "references", "target": "移動先検証器", "note": "" },
+        { "type": "references", "target": "参照記事逆引き器", "note": "" },
+        { "type": "references", "target": "参照更新器", "note": "" },
+        { "type": "references", "target": "画像台帳", "note": "移動に伴う台帳の付け替えに使う" }
+      ],
+      "src": "packages/editor/server/move_image.js"
     },
     {
       "name": "ネイティブアプリシェル",
@@ -1622,6 +1638,18 @@
         { "type": "references", "target": "サーバーライフサイクル連動", "note": "観測された出力を受け取る" }
       ],
       "src": "native/Sources/NativeShellCore/DiagnosticLogWriter.swift"
+    },
+    {
+      "name": "ファイル選択応答器",
+      "en": "FileSelectionResponder",
+      "context": "native-shell",
+      "domain": "solution",
+      "definition": "編集画面からのファイル選択要求に応じて、注入された手段で作成者にファイルを選ばせ、選択結果（選んだファイル群または取りやめ）を要求の条件（複数選択の可否）に整合させて要求元へ返すことができるもの",
+      "relations": [
+        { "type": "references", "target": "アプリウィンドウ", "note": "配線先。アプリウィンドウ内の編集操作からのファイル選択要求に応える" },
+        { "type": "references", "target": "コンテンツルート選択ダイアログ", "note": "同じ「選択の場の注入」パターンに従う" }
+      ],
+      "src": "native/Sources/NativeShellCore/FileSelectionResponder.swift"
     },
     {
       "name": "配布物",

@@ -10,4 +10,5 @@ runTests([
   ("ContentRootResolver", testContentRootResolver),
   ("ContentRootReselect", testContentRootReselect),
   ("ErrorVisibilityRoot", testErrorVisibilityRoot),
+  ("FileSelectionResponder", testFileSelectionResponder),
 ])

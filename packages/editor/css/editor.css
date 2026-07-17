@@ -125,26 +125,29 @@ main:not(.sidebar-close) .editor {
 #publicationStatus:not(:empty) {
   margin-left: 8px;
 }
-#imageRenameInput {
+#imageMoveInput {
   border: none;
+  /* 配置パス（階層つき）を編集するためファイル名入力より広くとる */
+  width: 30ch;
+  box-sizing: border-box;
   padding: 3px 10px;
   box-shadow: inset 0.1px 0.5px 6px 0px rgba(0, 0, 0, 0.1);
   height: var(--header-height);
   background: #eee;
   transition: background 0.2s;
 }
-#imageRenameInput:focus {
+#imageMoveInput:focus {
   background: #fff;
   transition: background 0.2s;
 }
-#imageRenameInput::placeholder {
+#imageMoveInput::placeholder {
   color: #aaa;
   font-size: 0.85em;
 }
 #publishBtn,
 #unpublishBtn,
 #deleteBtn,
-#imageRenameBtn,
+#imageMoveBtn,
 #imageDeleteBtn {
   height: var(--header-height);
   color: #ddd;
@@ -161,7 +164,7 @@ main:not(.sidebar-close) .editor {
 }
 #unpublishBtn,
 #deleteBtn,
-#imageRenameBtn,
+#imageMoveBtn,
 #imageDeleteBtn {
   background: #b4d68e;
   color: #555;
@@ -172,7 +175,7 @@ main:not(.sidebar-close) .editor {
 #publishBtn:hover,
 #unpublishBtn:hover,
 #deleteBtn:hover,
-#imageRenameBtn:hover,
+#imageMoveBtn:hover,
 #imageDeleteBtn:hover {
   background: var(--light-green);
   transition: background 0.2s, color 0.2s;
@@ -180,7 +183,7 @@ main:not(.sidebar-close) .editor {
 #publishBtn:disabled,
 #unpublishBtn:disabled,
 #deleteBtn:disabled,
-#imageRenameBtn:disabled,
+#imageMoveBtn:disabled,
 #imageDeleteBtn:disabled {
   background: #aaa;
   color: #1f1f1f;
@@ -189,7 +192,7 @@ main:not(.sidebar-close) .editor {
 #publishBtn:disabled:hover,
 #unpublishBtn:disabled:hover,
 #deleteBtn:disabled:hover,
-#imageRenameBtn:disabled:hover,
+#imageMoveBtn:disabled:hover,
 #imageDeleteBtn:disabled:hover {
   background: #aaa;
 }
