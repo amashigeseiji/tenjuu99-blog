@@ -1282,10 +1282,12 @@
       "en": "ImageLedger",
       "context": "editor",
       "domain": "solution",
-      "definition": "画像パスごとの追加日時を永続的に記録・取得する装置。エディタ経由で追加された画像のみ記録され、記録のない画像は追加日時「不明」として扱われる。",
+      "definition": "画像パスごとの追加日時・公開済み参照記事一覧・検出外参照宣言を永続的に記録・取得する装置。エディタ経由で追加された画像のみ追加日時が記録され、記録のない画像は追加日時「不明」として扱われる。公開済み参照は同期操作のタイミングでのみ更新される。",
       "relations": [
         { "type": "references", "target": "画像リストコレクター", "note": "に組み込まれる" },
-        { "type": "references", "target": "アップロードエンドポイント", "note": "画像アップロード時に記録される" }
+        { "type": "references", "target": "アップロードエンドポイント", "note": "画像アップロード時に記録される" },
+        { "type": "references", "target": "公開済み参照", "note": "保持するフィールドの一つ" },
+        { "type": "references", "target": "検出外参照宣言", "note": "保持するフィールドの一つ" }
       ],
       "src": "packages/editor/server/imageLedger.js"
     },
@@ -1459,6 +1461,32 @@
         { "type": "references", "target": "画像台帳", "note": "移動に伴う台帳の付け替えに使う" }
       ],
       "src": "packages/editor/server/move_image.js"
+    },
+    {
+      "name": "画像公開同期器",
+      "en": "ImagePublicationSyncer",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "記事の同期操作（公開・更新・非公開）ごとに、その記事が現在参照している画像集合と画像台帳の#公開済み参照との差分を取り、増分を反映しつつ、参照を失い#検出外参照宣言もない画像をリモートから取り除く（#画像公開状態のGC判定を実行する）装置",
+      "relations": [
+        { "type": "references", "target": "画像公開状態", "note": "GC判定の実行主体" },
+        { "type": "references", "target": "公開済み参照", "note": "差分の基準にする台帳フィールド" },
+        { "type": "references", "target": "検出外参照宣言", "note": "GC対象から除外する根拠" },
+        { "type": "references", "target": "画像台帳", "note": "読み取り・更新の対象" }
+      ],
+      "src": "packages/editor/server/imagePublicationSyncer.js"
+    },
+    {
+      "name": "検出外参照宣言エンドポイント",
+      "en": "UndetectedReferenceDeclarationEndpoint",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "画像への#検出外参照宣言の付与・解除を受け付け、画像台帳に反映するサーバーエンドポイント",
+      "relations": [
+        { "type": "references", "target": "検出外参照宣言", "note": "付与・解除の実行窓口" },
+        { "type": "references", "target": "画像台帳", "note": "反映先" }
+      ],
+      "src": "packages/editor/server/image_declaration.js"
     },
     {
       "name": "ネイティブアプリシェル",
