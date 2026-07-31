@@ -5,7 +5,10 @@ import os from 'node:os'
 import path from 'node:path'
 import { scanImages } from '../../packages/editor/server/imageScanner.js'
 import { readImageMetadata } from '../../packages/editor/server/imageMetadataReader.js'
-import { readLedger, recordAddition, getAddedAt, removeEntry, renameEntry } from '../../packages/editor/server/imageLedger.js'
+import {
+  readLedger, recordAddition, getAddedAt, removeEntry, renameEntry,
+  setPublishedReferredBy, getPublishedReferredBy, setDeclaration, isDeclared,
+} from '../../packages/editor/server/imageLedger.js'
 import { collectImageLibrary } from '../../packages/editor/server/imageLibraryCollector.js'
 import { handleImageUpload } from '../../packages/editor/server/image_upload.js'
 import { collectArticleReferences } from '../../packages/editor/server/articleReferenceCollector.js'
@@ -13,6 +16,8 @@ import { findReferencingArticles } from '../../packages/editor/server/referencin
 import { updateReference } from '../../packages/editor/server/referenceUpdater.js'
 import { deleteImage } from '../../packages/editor/server/delete_image.js'
 import { moveImage } from '../../packages/editor/server/move_image.js'
+import { syncImagePublicationState } from '../../packages/editor/server/imagePublicationSyncer.js'
+import { setImageDeclaration } from '../../packages/editor/server/image_declaration.js'
 
 // ─── ルートテスト（全ツリー green になるまで green にしない） ───────────────────────────────────────────────
 
@@ -802,5 +807,185 @@ describe('移動先検証器は移動先の配置パスが画像ライブラリ�
 // 引き継いだ箇所（上方）にある。
 
 describe('画像移動UIは新しい配置パスの入力を受け付け、参照記事があれば確認ダイアログを経て移動を実行し、移動後のURLを付け替えられる', () => {
+  it('TODO: DOM配線に依存するため受け入れテスト・手動確認で検証する', () => {})
+})
+
+// ─── 公開状態導出・宣言フェーズ（US-05 + US-06） ───────────────────────────────────────────────
+// ルートテスト（全ツリー green になるまで green にしない）
+
+describe('画像ライブラリ は 記事からの参照の有無（またはその宣言）に応じて画像の公開状態を自動的に導出し、同期操作（公開・更新・非公開）のたびにリモートへ反映することができる', () => {
+  it('参照を失うと更新公開のタイミングで画像もリモートから取り除かれ、非公開でも最後の参照の画像は道連れになる', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'image-publication-root-'))
+    const srcDir = path.join(tmpDir, 'src')
+    const pagesDir = path.join(srcDir, 'pages')
+    fs.mkdirSync(path.join(srcDir, 'image', 'post'), { recursive: true })
+    fs.mkdirSync(pagesDir, { recursive: true })
+    const ledgerPath = path.join(srcDir, 'image-library.json')
+    fs.writeFileSync(path.join(srcDir, 'image', 'post', 'cat.jpg'), Buffer.from('x'))
+    const markdownFile = `${srcDir}/pages/post/hello.md`
+    const imageFile = `${srcDir}/image/post/cat.jpg`
+
+    const remoteFiles = new Set()
+    let articleDirty = true
+    const means = {
+      remoteState: {
+        existsInRemote: async (f) => remoteFiles.has(f),
+        diffFromRemote: async (f) => (f === markdownFile && articleDirty) ? 'diff --git ...' : '',
+      },
+      reflect: async (files) => { files.forEach(f => remoteFiles.add(f)); articleDirty = false; return { success: true } },
+      remove: async (files) => { files.forEach(f => remoteFiles.delete(f)); return { success: true } },
+      deliverable: 'manuscript',
+    }
+
+    const { handlePublish } = await import('../../packages/editor/server/publish.js')
+    const { handleUnpublish } = await import('../../packages/editor/server/unpublish.js')
+
+    // 1. 画像を参照する記事を公開する: 記事・画像がともにリモートへ反映される（US-05 S1）
+    await handlePublish(
+      { filePath: 'post/hello.md', fileContent: '本文\n![猫](/image/post/cat.jpg)', srcDir, ledgerPath },
+      means
+    )
+    assert.strictEqual(remoteFiles.has(imageFile), true, '画像が公開される')
+    assert.deepStrictEqual(getPublishedReferredBy(ledgerPath, 'image/post/cat.jpg'), ['post/hello.md'])
+
+    // 2. ローカルで参照を消してから更新を公開する: 唯一の参照だった画像がリモートから取り除かれる（US-05 S2）
+    articleDirty = true
+    await handlePublish(
+      { filePath: 'post/hello.md', fileContent: '本文（画像参照なし）', srcDir, ledgerPath },
+      means
+    )
+    assert.strictEqual(remoteFiles.has(imageFile), false, '参照を失った画像がリモートから取り除かれる')
+    assert.deepStrictEqual(getPublishedReferredBy(ledgerPath, 'image/post/cat.jpg'), [])
+    assert.strictEqual(remoteFiles.has(markdownFile), true, '記事自体はリモートに残る')
+
+    // 3. 画像参照を戻して再公開したのち、記事を非公開にする: 最後の参照だった画像も道連れに取り除かれる（US-05 S5）
+    articleDirty = true
+    await handlePublish(
+      { filePath: 'post/hello.md', fileContent: '本文\n![猫](/image/post/cat.jpg)', srcDir, ledgerPath },
+      means
+    )
+    assert.strictEqual(remoteFiles.has(imageFile), true, '画像が再び公開される')
+
+    await handleUnpublish({ filePath: 'post/hello.md', srcDir, ledgerPath }, means)
+    assert.strictEqual(remoteFiles.has(markdownFile), false, '記事がリモートから取り除かれる')
+    assert.strictEqual(remoteFiles.has(imageFile), false, '最後の参照だった画像も取り除かれる')
+    assert.deepStrictEqual(getPublishedReferredBy(ledgerPath, 'image/post/cat.jpg'), [])
+  })
+})
+
+describe('画像台帳は画像パスごとの公開済み参照記事一覧と検出外参照宣言を保持・更新できる', () => {
+  it('公開済み参照記事一覧を記録・取得できる。記録がない画像は空配列を返す', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ledger-published-'))
+    const ledgerPath = path.join(tmpDir, 'image-library.json')
+    assert.deepStrictEqual(getPublishedReferredBy(ledgerPath, 'image/post/a.jpg'), [])
+    setPublishedReferredBy(ledgerPath, 'image/post/a.jpg', ['post/hello.md', 'post/world.md'])
+    assert.deepStrictEqual(getPublishedReferredBy(ledgerPath, 'image/post/a.jpg'), ['post/hello.md', 'post/world.md'])
+  })
+
+  it('addedAt を保持したまま公開済み参照記事一覧を更新できる', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ledger-published-addedat-'))
+    const ledgerPath = path.join(tmpDir, 'image-library.json')
+    recordAddition(ledgerPath, 'image/post/a.jpg', '2026-07-01T00:00:00.000Z')
+    setPublishedReferredBy(ledgerPath, 'image/post/a.jpg', ['post/hello.md'])
+    assert.strictEqual(getAddedAt(ledgerPath, 'image/post/a.jpg'), '2026-07-01T00:00:00.000Z')
+    assert.deepStrictEqual(getPublishedReferredBy(ledgerPath, 'image/post/a.jpg'), ['post/hello.md'])
+  })
+
+  it('検出外参照宣言を付与・解除できる。記録がない画像は false を返す', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ledger-declared-'))
+    const ledgerPath = path.join(tmpDir, 'image-library.json')
+    assert.strictEqual(isDeclared(ledgerPath, 'image/post/a.jpg'), false)
+    setDeclaration(ledgerPath, 'image/post/a.jpg', true)
+    assert.strictEqual(isDeclared(ledgerPath, 'image/post/a.jpg'), true)
+    setDeclaration(ledgerPath, 'image/post/a.jpg', false)
+    assert.strictEqual(isDeclared(ledgerPath, 'image/post/a.jpg'), false)
+  })
+})
+
+describe('画像公開同期器は記事の同期操作の結果を画像台帳の公開済み参照へ反映し、参照を失い宣言もない画像をリモートから取り除くことができる', () => {
+  it('新しく参照するようになった画像を公開済み参照に加える（除去はしない）', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'syncer-add-'))
+    const srcDir = path.join(tmpDir, 'src')
+    fs.mkdirSync(srcDir, { recursive: true })
+    const ledgerPath = path.join(srcDir, 'image-library.json')
+    const removed = []
+    const means = { remove: async (files) => { removed.push(...files); return { success: true } } }
+    const result = await syncImagePublicationState(
+      'post/hello.md', [`${srcDir}/image/post/cat.jpg`], { srcDir, ledgerPath }, means
+    )
+    assert.deepStrictEqual(getPublishedReferredBy(ledgerPath, 'image/post/cat.jpg'), ['post/hello.md'])
+    assert.deepStrictEqual(removed, [])
+    assert.deepStrictEqual(result.removed, [])
+  })
+
+  it('参照を失い、他に参照する記事もなく、宣言もない画像はリモートから取り除く', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'syncer-gc-'))
+    const srcDir = path.join(tmpDir, 'src')
+    fs.mkdirSync(srcDir, { recursive: true })
+    const ledgerPath = path.join(srcDir, 'image-library.json')
+    setPublishedReferredBy(ledgerPath, 'image/post/cat.jpg', ['post/hello.md'])
+    const removed = []
+    const means = { remove: async (files) => { removed.push(...files); return { success: true } } }
+    const result = await syncImagePublicationState('post/hello.md', [], { srcDir, ledgerPath }, means)
+    assert.deepStrictEqual(removed, [`${srcDir}/image/post/cat.jpg`])
+    assert.deepStrictEqual(getPublishedReferredBy(ledgerPath, 'image/post/cat.jpg'), [])
+    assert.deepStrictEqual(result.removed, ['image/post/cat.jpg'])
+  })
+
+  it('他の記事がまだ参照している画像は取り除かない', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'syncer-keep-'))
+    const srcDir = path.join(tmpDir, 'src')
+    fs.mkdirSync(srcDir, { recursive: true })
+    const ledgerPath = path.join(srcDir, 'image-library.json')
+    setPublishedReferredBy(ledgerPath, 'image/post/cat.jpg', ['post/hello.md', 'post/world.md'])
+    const removed = []
+    const means = { remove: async (files) => { removed.push(...files); return { success: true } } }
+    await syncImagePublicationState('post/hello.md', [], { srcDir, ledgerPath }, means)
+    assert.deepStrictEqual(removed, [])
+    assert.deepStrictEqual(getPublishedReferredBy(ledgerPath, 'image/post/cat.jpg'), ['post/world.md'])
+  })
+
+  it('検出外参照宣言のある画像は参照を失っても取り除かない', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'syncer-declared-'))
+    const srcDir = path.join(tmpDir, 'src')
+    fs.mkdirSync(srcDir, { recursive: true })
+    const ledgerPath = path.join(srcDir, 'image-library.json')
+    setPublishedReferredBy(ledgerPath, 'image/post/cat.jpg', ['post/hello.md'])
+    setDeclaration(ledgerPath, 'image/post/cat.jpg', true)
+    const removed = []
+    const means = { remove: async (files) => { removed.push(...files); return { success: true } } }
+    await syncImagePublicationState('post/hello.md', [], { srcDir, ledgerPath }, means)
+    assert.deepStrictEqual(removed, [])
+  })
+})
+
+describe('公開ハンドラーは記事の公開・更新の成功後に画像公開同期器を呼び出せる', () => {
+  it('TODO: ルートテストの経路として検証済み（tests/editor/publish.test.js 側にも配線の単体テストを持つ）', () => {})
+})
+
+describe('非公開にするは記事の非公開の成功後に画像公開同期器を呼び出せる', () => {
+  it('TODO: ルートテストの経路として検証済み（tests/editor/sync-operations.test.js 側にも配線の単体テストを持つ）', () => {})
+})
+
+describe('検出外参照宣言エンドポイントは画像への宣言の付与・解除を受け付けて画像台帳に反映できる', () => {
+  it('宣言を付与できる', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'declaration-endpoint-'))
+    const ledgerPath = path.join(tmpDir, 'image-library.json')
+    const result = await setImageDeclaration({ imagePath: 'image/post/a.jpg', declared: true }, { ledgerPath })
+    assert.strictEqual(result.success, true)
+    assert.strictEqual(isDeclared(ledgerPath, 'image/post/a.jpg'), true)
+  })
+
+  it('宣言を解除できる', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'declaration-endpoint-off-'))
+    const ledgerPath = path.join(tmpDir, 'image-library.json')
+    setDeclaration(ledgerPath, 'image/post/a.jpg', true)
+    const result = await setImageDeclaration({ imagePath: 'image/post/a.jpg', declared: false }, { ledgerPath })
+    assert.strictEqual(result.success, true)
+    assert.strictEqual(isDeclared(ledgerPath, 'image/post/a.jpg'), false)
+  })
+})
+
+describe('画像詳細表示は宣言の付与・解除UIを表示し、宣言状態を画像台帳と同期できる', () => {
   it('TODO: DOM配線に依存するため受け入れテスト・手動確認で検証する', () => {})
 })

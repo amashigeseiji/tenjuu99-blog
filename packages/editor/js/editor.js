@@ -7,6 +7,7 @@ import { resolveDisplayTarget } from './displayTargetResolver.js'
 import { showImageDetail, renderReferencingArticles } from './imageDetailDisplay.js'
 import { initImageDelete } from './imageDeleteUI.js'
 import { initImageMove } from './imageMoveUI.js'
+import { initImageDeclaration } from './imageDeclarationUI.js'
 
 // @vocab: 確認ダイアログ
 // WKWebView は window.confirm() に応答しない（WKUIDelegate 未実装のため無反応になる）ので、
@@ -773,6 +774,8 @@ const openImageDetail = (imagePath) => {
   // 移動先入力には現在の配置パス（image/ 相対）をプリフィルし、編集して確定する
   const moveInput = document.querySelector('#imageMoveInput')
   if (moveInput) moveInput.value = entry.path.replace(/^image\//, '')
+  const declarationToggle = document.querySelector('#imageDeclarationToggle')
+  if (declarationToggle) declarationToggle.checked = !!entry.declared
   const imageFileNameEl = document.querySelector('#imageDetailFileName')
   if (imageFileNameEl) {
     imageFileNameEl.textContent = entry.path
@@ -850,6 +853,17 @@ initImageMove(
     await initImageLibrary()
     if (referenceHandling === 'update') await reloadCurrentArticle()
     openImageDetail(newPath)
+  }
+)
+initImageDeclaration(
+  document.querySelector('#imageDeclarationToggle'),
+  () => _currentImageDetailEntry,
+  setImageOperationFeedback,
+  (imagePath, declared) => {
+    const entry = _imageLibraryEntries.find(e => e.path === imagePath)
+    if (entry) entry.declared = declared
+    if (_currentImageDetailEntry?.path === imagePath) _currentImageDetailEntry.declared = declared
+    setImageOperationFeedback(declared ? '宣言を付与しました' : '宣言を解除しました')
   }
 )
 

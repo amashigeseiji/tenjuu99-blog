@@ -4,7 +4,7 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs'
  * @vocab: 画像台帳
  * @test tests/editor/image-library.test.js
  * @param {string} ledgerPath
- * @returns {Object.<string, { addedAt: string }>}
+ * @returns {Object.<string, { addedAt: string, publishedReferredBy?: string[], protected?: boolean }>}
  */
 export function readLedger(ledgerPath) {
   if (!existsSync(ledgerPath)) return {}
@@ -72,4 +72,58 @@ export function renameEntry(ledgerPath, oldImagePath, newImagePath) {
   ledger[newImagePath] = ledger[oldImagePath]
   delete ledger[oldImagePath]
   writeFileSync(ledgerPath, JSON.stringify(ledger, null, 2))
+}
+
+/**
+ * @vocab: 画像台帳
+ * @test tests/editor/image-library.test.js
+ * 画像パスの #公開済み参照 （記事パスの配列）を記録する。呼び出しごとに丸ごと置き換える。
+ * @param {string} ledgerPath
+ * @param {string} imagePath
+ * @param {string[]} articlePaths
+ * @returns {void}
+ */
+export function setPublishedReferredBy(ledgerPath, imagePath, articlePaths) {
+  const ledger = readLedger(ledgerPath)
+  ledger[imagePath] = { ...(ledger[imagePath] ?? {}), publishedReferredBy: articlePaths }
+  writeFileSync(ledgerPath, JSON.stringify(ledger, null, 2))
+}
+
+/**
+ * @vocab: 画像台帳
+ * @test tests/editor/image-library.test.js
+ * 記録がない画像パスに対しては空配列を返す。
+ * @param {string} ledgerPath
+ * @param {string} imagePath
+ * @returns {string[]}
+ */
+export function getPublishedReferredBy(ledgerPath, imagePath) {
+  return readLedger(ledgerPath)[imagePath]?.publishedReferredBy ?? []
+}
+
+/**
+ * @vocab: 画像台帳
+ * @test tests/editor/image-library.test.js
+ * 画像パスへ #検出外参照宣言 を付与・解除する。
+ * @param {string} ledgerPath
+ * @param {string} imagePath
+ * @param {boolean} declared
+ * @returns {void}
+ */
+export function setDeclaration(ledgerPath, imagePath, declared) {
+  const ledger = readLedger(ledgerPath)
+  ledger[imagePath] = { ...(ledger[imagePath] ?? {}), protected: declared }
+  writeFileSync(ledgerPath, JSON.stringify(ledger, null, 2))
+}
+
+/**
+ * @vocab: 画像台帳
+ * @test tests/editor/image-library.test.js
+ * 記録がない画像パスに対しては false を返す。
+ * @param {string} ledgerPath
+ * @param {string} imagePath
+ * @returns {boolean}
+ */
+export function isDeclared(ledgerPath, imagePath) {
+  return readLedger(ledgerPath)[imagePath]?.protected ?? false
 }

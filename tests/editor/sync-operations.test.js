@@ -1,8 +1,9 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert'
-import { mkdtempSync, writeFileSync, existsSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, writeFileSync, existsSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import nodePath from 'node:path'
+import { setPublishedReferredBy, getPublishedReferredBy } from '../../packages/editor/server/imageLedger.js'
 
 // ツリー全体は plans/sync-operations/test-tree.md を参照。
 // ルート（同期）と publishing コンテキストのノードは tests/publishing/sync.test.js にある。
@@ -33,6 +34,40 @@ describe('非公開にするは公開済みの記事をリモートから取り�
     const result = await unpublish(['src/pages/post/a.md'], means)
     assert.strictEqual(result.success, false)
     assert.ok(result.error)
+  })
+
+  describe('非公開にするは記事の非公開の成功後に画像公開同期器を呼び出せる', () => {
+    it('最後の参照だった画像も道連れにリモートから取り除く', async () => {
+      const { handleUnpublish } = await import('../../packages/editor/server/unpublish.js')
+      const dir = mkdtempSync(nodePath.join(tmpdir(), 'unpublish-syncer-'))
+      const srcDir = nodePath.join(dir, 'src')
+      mkdirSync(srcDir, { recursive: true })
+      const ledgerPath = nodePath.join(srcDir, 'image-library.json')
+      setPublishedReferredBy(ledgerPath, 'image/post/cat.jpg', ['post/hello.md'])
+      const removed = []
+      const means = {
+        remoteState: { existsInRemote: async () => true, diffFromRemote: async () => '' },
+        remove: async (files) => { removed.push(...files); return { success: true } }
+      }
+      await handleUnpublish({ filePath: 'post/hello.md', srcDir, ledgerPath }, means)
+      assert.deepStrictEqual(getPublishedReferredBy(ledgerPath, 'image/post/cat.jpg'), [])
+      assert.ok(removed.includes(`${srcDir}/image/post/cat.jpg`))
+    })
+
+    it('反映（除去）に失敗したときは画像公開同期器を呼び出さない', async () => {
+      const { handleUnpublish } = await import('../../packages/editor/server/unpublish.js')
+      const dir = mkdtempSync(nodePath.join(tmpdir(), 'unpublish-syncer-fail-'))
+      const srcDir = nodePath.join(dir, 'src')
+      mkdirSync(srcDir, { recursive: true })
+      const ledgerPath = nodePath.join(srcDir, 'image-library.json')
+      setPublishedReferredBy(ledgerPath, 'image/post/cat.jpg', ['post/hello.md'])
+      const means = {
+        remoteState: { existsInRemote: async () => true, diffFromRemote: async () => '' },
+        remove: async () => ({ success: false, error: '反映に失敗しました' })
+      }
+      await handleUnpublish({ filePath: 'post/hello.md', srcDir, ledgerPath }, means)
+      assert.deepStrictEqual(getPublishedReferredBy(ledgerPath, 'image/post/cat.jpg'), ['post/hello.md'])
+    })
   })
 })
 
