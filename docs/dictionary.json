@@ -1195,7 +1195,17 @@
         { "type": "references", "target": "検出外参照宣言", "note": "宣言の付与・解除のUI導線を提供する" },
         { "type": "references", "target": "ディレクトリツリー", "note": "一覧表示に既存のツリー装置を転用する" },
         { "type": "references", "target": "画像移動エンドポイント", "note": "移動の実行を担う" }
-      ]
+      ],
+      "affordances": [
+        "一覧表示",
+        "詳細表示",
+        "追加",
+        "削除",
+        "移動",
+        "検出外参照宣言の付与・解除",
+        "公開状態の確認"
+      ],
+      "src": null
     },
     {
       "name": "参照更新",
@@ -1487,6 +1497,17 @@
         { "type": "references", "target": "画像台帳", "note": "反映先" }
       ],
       "src": "packages/editor/server/image_declaration.js"
+    },
+    {
+      "name": "作成者",
+      "en": "Author",
+      "context": "editor",
+      "domain": "actor",
+      "definition": "ターミナルを使わず、エディタのブラウザ画面だけでコンテンツ（記事・画像）を作成・管理する役割",
+      "relations": [
+        { "type": "references", "target": "画像ライブラリ", "note": "画像ライブラリを操作する役割" }
+      ],
+      "src": null
     },
     {
       "name": "ネイティブアプリシェル",
