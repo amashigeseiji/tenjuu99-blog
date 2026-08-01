@@ -685,15 +685,15 @@ describe('画像リスト表示は選択中の画像が識別できるリンク�
   it('画像をリンクのツリーとして描画し、選択中の画像が識別できる', async () => {
     const { renderImageListHtml } = await import('../../packages/editor/js/imageListDisplay.js')
     const entries = [
-      { path: 'image/post/shiba.png' },
-      { path: 'image/other.jpg' },
+      { path: 'image/post/shiba.png', published: true },
+      { path: 'image/other.jpg', published: false },
     ]
     const html = renderImageListHtml(entries, 'image/post/shiba.png')
     // ディレクトリは開いた状態で描画される（従来の見た目を維持）
     assert.match(html, /<details data-image-dir="post" open>/)
     // 選択中の画像は active、他はそうでない。既存の受け入れテストが使う .image-node / data-image-path は維持
-    assert.match(html, /<a href="\/editor\?image=image%2Fpost%2Fshiba\.png" class="image-node active" data-image-path="image\/post\/shiba\.png">shiba\.png<\/a>/)
-    assert.match(html, /<a href="\/editor\?image=image%2Fother\.jpg" class="image-node" data-image-path="image\/other\.jpg">other\.jpg<\/a>/)
+    assert.match(html, /<a href="\/editor\?image=image%2Fpost%2Fshiba\.png" class="image-node active" data-status="published" data-image-path="image\/post\/shiba\.png">shiba\.png<\/a>/)
+    assert.match(html, /<a href="\/editor\?image=image%2Fother\.jpg" class="image-node" data-status="new" data-image-path="image\/other\.jpg">other\.jpg<\/a>/)
   })
 
   it('画像が1枚もなければ空状態のHTMLを返す', async () => {
@@ -987,5 +987,64 @@ describe('検出外参照宣言エンドポイントは画像への宣言の付�
 })
 
 describe('画像詳細表示は宣言の付与・解除UIを表示し、宣言状態を画像台帳と同期できる', () => {
+  it('TODO: DOM配線に依存するため受け入れテスト・手動確認で検証する', () => {})
+})
+
+// --- 画像自身の公開状態可視化・UI整理フェーズ（成層ツリー実験） ---
+// root（作成者は…できる）と行為層（役割主語）はスケルトン化の対象外（実験ルール10）。
+// 能力層（装置主語）のみをここに列挙する。
+
+describe('画像リストコレクターは画像ごとの公開状態(リモートに存在するか)を算出して返せる', () => {
+  it('公開済み参照が1件でもあれば published: true になる', async () => {
+    const tmpSrc = fs.mkdtempSync(path.join(os.tmpdir(), 'image-library-published-'))
+    const ledgerPath = path.join(tmpSrc, 'image-library.json')
+    fs.mkdirSync(path.join(tmpSrc, 'image', 'post'), { recursive: true })
+    fs.writeFileSync(path.join(tmpSrc, 'image', 'post', 'a.jpg'), Buffer.from('fake'))
+    setPublishedReferredBy(ledgerPath, 'image/post/a.jpg', ['post/hello.md'])
+
+    const result = await collectImageLibrary({ srcDir: tmpSrc, ledgerPath })
+
+    assert.strictEqual(result.find(e => e.path === 'image/post/a.jpg').published, true)
+    fs.rmSync(tmpSrc, { recursive: true })
+  })
+
+  it('公開済み参照が空、または記録がなければ published: false になる', async () => {
+    const tmpSrc = fs.mkdtempSync(path.join(os.tmpdir(), 'image-library-unpublished-'))
+    const ledgerPath = path.join(tmpSrc, 'image-library.json')
+    fs.mkdirSync(path.join(tmpSrc, 'image', 'post'), { recursive: true })
+    fs.writeFileSync(path.join(tmpSrc, 'image', 'post', 'a.jpg'), Buffer.from('fake'))
+    fs.writeFileSync(path.join(tmpSrc, 'image', 'post', 'b.jpg'), Buffer.from('fake'))
+    setPublishedReferredBy(ledgerPath, 'image/post/a.jpg', [])
+
+    const result = await collectImageLibrary({ srcDir: tmpSrc, ledgerPath })
+
+    assert.strictEqual(result.find(e => e.path === 'image/post/a.jpg').published, false)
+    assert.strictEqual(result.find(e => e.path === 'image/post/b.jpg').published, false, '台帳に記録のない画像も false になる')
+    fs.rmSync(tmpSrc, { recursive: true })
+  })
+})
+
+describe('画像リスト表示は一覧の各画像に公開状態を記号で示せる', () => {
+  it('published: true の画像には data-status="published" が付き、false には "new" が付く（記事一覧と同じ記号方式を流用）', async () => {
+    const { renderImageListHtml } = await import('../../packages/editor/js/imageListDisplay.js')
+    const entries = [
+      { path: 'image/post/a.jpg', published: true },
+      { path: 'image/post/b.jpg', published: false },
+    ]
+    const html = renderImageListHtml(entries)
+    assert.match(html, /<a href="\/editor\?image=image%2Fpost%2Fa\.jpg" class="image-node" data-status="published" data-image-path="image\/post\/a\.jpg">a\.jpg<\/a>/)
+    assert.match(html, /<a href="\/editor\?image=image%2Fpost%2Fb\.jpg" class="image-node" data-status="new" data-image-path="image\/post\/b\.jpg">b\.jpg<\/a>/)
+  })
+})
+
+describe('画像詳細表示はファイル名・公開状態・参照記事・宣言・削除操作をひとつのメタデータ欄にまとめて示せる', () => {
+  it('TODO: DOM描画に依存するため受け入れテスト・手動確認で検証する', () => {})
+})
+
+describe('検出外参照宣言UIは宣言の効果が伝わる文言で表示される', () => {
+  it('TODO: DOM文言のみのため受け入れテスト・手動確認で検証する', () => {})
+})
+
+describe('インラインファイル名編集UIはクリックで編集フォームに切り替わり、保存で移動を実行し、取消でもとの表示に戻せる', () => {
   it('TODO: DOM配線に依存するため受け入れテスト・手動確認で検証する', () => {})
 })

@@ -13,6 +13,7 @@ import { readLedger } from './imageLedger.js'
  * @property {number|null} height - 解像度（高さ）。読み取れない場合は null
  * @property {string|null} addedAt - エディタ経由で追加された日時（ISO文字列）。記録がなければ null
  * @property {boolean} declared - #検出外参照宣言 が付与されているか
+ * @property {boolean} published - #画像公開状態 。公開済み参照が1件以上あるか
  */
 
 /**
@@ -38,6 +39,7 @@ export async function collectImageLibrary({ srcDir, ledgerPath = nodePath.join(s
       height: metadata.height,
       addedAt: ledger[imagePath]?.addedAt ?? null,
       declared: ledger[imagePath]?.protected ?? false,
+      published: (ledger[imagePath]?.publishedReferredBy ?? []).length > 0,
     }
   }))
 }

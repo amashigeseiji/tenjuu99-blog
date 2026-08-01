@@ -1,7 +1,7 @@
 /**
  * @vocab: 画像削除UI
  * @test tests/editor/image-library.test.js
- * 画像詳細表示（editor-options の右側）に削除操作を追加する。参照記事があれば
+ * 画像詳細表示のメタデータ欄に削除操作を追加する。参照記事があれば
  * 参照記事一覧エンドポイントで確認したうえで確認ダイアログ（3択）を経て削除を実行する。
  * DOM描画・イベント配線に依存するため自動テストを持たない（手動確認のみ）。
  * @param {HTMLButtonElement} deleteBtn

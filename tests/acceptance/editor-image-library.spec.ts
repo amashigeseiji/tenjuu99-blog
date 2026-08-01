@@ -207,7 +207,7 @@ test.describe('US-02: 画像の削除', () => {
     await gotoWithRetry(page, '/editor')
     await openImagesTab(page)
     await page.locator(`.image-node[data-image-path="${relPath}"]`).click()
-    await page.locator('#imageDeleteBtn').click()
+    await page.locator('.image-detail-delete-btn').click()
     // 参照なしの確認ダイアログ（OK/キャンセル）で「OK」を押す
     await page.locator('#confirmDialogActions button', { hasText: 'OK' }).click()
 
@@ -230,7 +230,7 @@ test.describe('US-02: 画像の削除', () => {
     await gotoWithRetry(page, '/editor')
     await openImagesTab(page)
     await page.locator(`.image-node[data-image-path="${relPath}"]`).click()
-    await page.locator('#imageDeleteBtn').click()
+    await page.locator('.image-detail-delete-btn').click()
 
     // Then: 削除は即座には実行されず、参照記事一覧（公開ステータス含む）が提示される
     await expect(page.locator('#confirmDialogMessage')).toContainText(mdFile)
@@ -255,7 +255,7 @@ test.describe('US-02: 画像の削除', () => {
     await gotoWithRetry(page, '/editor')
     await openImagesTab(page)
     await page.locator(`.image-node[data-image-path="${relPath}"]`).click()
-    await page.locator('#imageDeleteBtn').click()
+    await page.locator('.image-detail-delete-btn').click()
     await page.locator('#confirmDialogActions button', { hasText: '削除(参照も除去)' }).click()
 
     await expect(page.locator('#operationFeedback')).toHaveText('削除しました')
@@ -277,7 +277,7 @@ test.describe('US-02: 画像の削除', () => {
     await gotoWithRetry(page, '/editor')
     await openImagesTab(page)
     await page.locator(`.image-node[data-image-path="${relPath}"]`).click()
-    await page.locator('#imageDeleteBtn').click()
+    await page.locator('.image-detail-delete-btn').click()
     await page.locator('#confirmDialogActions button', { hasText: '中止' }).click()
 
     expect(fs.existsSync(absPath)).toBeTruthy()
@@ -287,7 +287,7 @@ test.describe('US-02: 画像の削除', () => {
 
 // ─── US-03: 画像の移動（パスの付け替え） ────────────────────────────────────────────────
 // 改名（ファイル名だけの変更）は同じ置き場所への移動の特殊な場合（問題定義 v5）。
-// 移動先入力（#imageMoveInput）は image/ 相対の配置パス（階層可）。
+// 移動先入力（.image-detail-filename-input、「編集」クリックで表示）は image/ 相対の配置パス（階層可）。
 
 test.describe('US-03: 画像の移動（パスの付け替え）', () => {
   test('シナリオ1: どの記事からも参照されていない画像を移動できる', async ({ page }) => {
@@ -305,8 +305,9 @@ test.describe('US-03: 画像の移動（パスの付け替え）', () => {
     await gotoWithRetry(page, '/editor')
     await openImagesTab(page)
     await page.locator(`.image-node[data-image-path="${relPath}"]`).click()
-    await page.locator('#imageMoveInput').fill('acceptance-image-library-move-dest/moved-unreferenced.png')
-    await page.locator('#imageMoveBtn').click()
+    await page.locator('.image-detail-filename-edit-btn').click()
+    await page.locator('.image-detail-filename-input').fill('acceptance-image-library-move-dest/moved-unreferenced.png')
+    await page.locator('.image-detail-filename-save-btn').click()
     await page.locator('#confirmDialogActions button', { hasText: 'OK' }).click()
 
     // Then: 画像ファイルが新しいパスに移り、一覧で新しいパスに表示される
@@ -329,8 +330,9 @@ test.describe('US-03: 画像の移動（パスの付け替え）', () => {
     await gotoWithRetry(page, '/editor')
     await openImagesTab(page)
     await page.locator(`.image-node[data-image-path="${relPath}"]`).click()
-    await page.locator('#imageMoveInput').fill('acceptance-image-library-move/renamed-only.png')
-    await page.locator('#imageMoveBtn').click()
+    await page.locator('.image-detail-filename-edit-btn').click()
+    await page.locator('.image-detail-filename-input').fill('acceptance-image-library-move/renamed-only.png')
+    await page.locator('.image-detail-filename-save-btn').click()
     await page.locator('#confirmDialogActions button', { hasText: 'OK' }).click()
 
     // Then: 画像ファイルが新しい名前に変更され、一覧に新しいファイル名で表示される
@@ -357,8 +359,9 @@ test.describe('US-03: 画像の移動（パスの付け替え）', () => {
     await gotoWithRetry(page, '/editor')
     await openImagesTab(page)
     await page.locator(`.image-node[data-image-path="${relPath}"]`).click()
-    await page.locator('#imageMoveInput').fill('acceptance-image-library-move-dest/moved-referenced.png')
-    await page.locator('#imageMoveBtn').click()
+    await page.locator('.image-detail-filename-edit-btn').click()
+    await page.locator('.image-detail-filename-input').fill('acceptance-image-library-move-dest/moved-referenced.png')
+    await page.locator('.image-detail-filename-save-btn').click()
 
     // Then: 移動は即座には実行されず、参照記事一覧が提示される
     await expect(page.locator('#confirmDialogMessage')).toContainText(mdFile)
@@ -386,8 +389,9 @@ test.describe('US-03: 画像の移動（パスの付け替え）', () => {
     await gotoWithRetry(page, '/editor')
     await openImagesTab(page)
     await page.locator(`.image-node[data-image-path="${relPath}"]`).click()
-    await page.locator('#imageMoveInput').fill('acceptance-image-library-move/renamed-referenced-keep.png')
-    await page.locator('#imageMoveBtn').click()
+    await page.locator('.image-detail-filename-edit-btn').click()
+    await page.locator('.image-detail-filename-input').fill('acceptance-image-library-move/renamed-referenced-keep.png')
+    await page.locator('.image-detail-filename-save-btn').click()
     await page.locator('#confirmDialogActions button', { hasText: /^移動$/ }).click()
 
     // Then: 画像は移動し、参照していた記事は変更されない
@@ -411,8 +415,9 @@ test.describe('US-03: 画像の移動（パスの付け替え）', () => {
     await gotoWithRetry(page, '/editor')
     await openImagesTab(page)
     await page.locator(`.image-node[data-image-path="${relPath}"]`).click()
-    await page.locator('#imageMoveInput').fill('should-not-be-used/cancel.png')
-    await page.locator('#imageMoveBtn').click()
+    await page.locator('.image-detail-filename-edit-btn').click()
+    await page.locator('.image-detail-filename-input').fill('should-not-be-used/cancel.png')
+    await page.locator('.image-detail-filename-save-btn').click()
     await page.locator('#confirmDialogActions button', { hasText: '中止' }).click()
 
     // Then: 画像ファイルのパスは変更されず、記事も変更されない
@@ -433,8 +438,9 @@ test.describe('US-03: 画像の移動（パスの付け替え）', () => {
     await gotoWithRetry(page, '/editor')
     await openImagesTab(page)
     await page.locator(`.image-node[data-image-path="${dir}/a.png"]`).click()
-    await page.locator('#imageMoveInput').fill('acceptance-image-library-move-dup/b.png')
-    await page.locator('#imageMoveBtn').click()
+    await page.locator('.image-detail-filename-edit-btn').click()
+    await page.locator('.image-detail-filename-input').fill('acceptance-image-library-move-dup/b.png')
+    await page.locator('.image-detail-filename-save-btn').click()
     await page.locator('#confirmDialogActions button', { hasText: 'OK' }).click()
 
     // Then: 移動は実行されず、パスが重複している旨がユーザーに伝わる
@@ -454,8 +460,9 @@ test.describe('US-03: 画像の移動（パスの付け替え）', () => {
     await gotoWithRetry(page, '/editor')
     await openImagesTab(page)
     await page.locator(`.image-node[data-image-path="${relPath}"]`).click()
-    await page.locator('#imageMoveInput').fill('acceptance-image-library-move/still-image.md')
-    await page.locator('#imageMoveBtn').click()
+    await page.locator('.image-detail-filename-edit-btn').click()
+    await page.locator('.image-detail-filename-input').fill('acceptance-image-library-move/still-image.md')
+    await page.locator('.image-detail-filename-save-btn').click()
     await page.locator('#confirmDialogActions button', { hasText: 'OK' }).click()
 
     // Then: 移動は実行されず、受け付けられない旨がユーザーに伝わる

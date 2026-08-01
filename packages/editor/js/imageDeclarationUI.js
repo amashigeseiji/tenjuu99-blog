@@ -1,7 +1,7 @@
 /**
  * @vocab: 画像詳細表示
  * @test tests/editor/image-library.test.js
- * 画像詳細表示（editor-options の右側）に #検出外参照宣言 の付与・解除トグルを追加する。
+ * 画像詳細表示のメタデータ欄に #検出外参照宣言 の付与・解除トグルを追加する。
  * DOM描画・イベント配線に依存するため自動テストを持たない（手動確認のみ）。
  * @param {HTMLInputElement} checkbox
  * @param {() => { path: string }|null} getEntry - 現在選択中の画像エントリを返す

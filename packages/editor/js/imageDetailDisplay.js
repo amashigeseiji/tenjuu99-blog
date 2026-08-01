@@ -23,12 +23,14 @@ function formatReferencingArticles(referencingArticles) {
  * @vocab: 画像詳細表示
  * @test tests/editor/image-library.test.js
  * #画像リスト表示 が保持済みのリストデータから選択された画像のエントリを受け取り、
- * プレビューとメタデータを表示する。ファイル名・サイズ・解像度・追加日時は追加のサーバー
- * リクエストなしに描画する。参照記事一覧のみ、既存の参照記事一覧エンドポイントから個別に
- * 取得する必要があるため（画像1件あたり記事横断のgit問い合わせを伴う）、呼び出し側
+ * プレビューとメタデータを表示する。ファイル名・公開状態・サイズ・解像度・追加日時は追加の
+ * サーバーリクエストなしに描画する。参照記事一覧のみ、既存の参照記事一覧エンドポイントから
+ * 個別に取得する必要があるため（画像1件あたり記事横断のgit問い合わせを伴う）、呼び出し側
  * （editor.js の openImageDetail）が別途取得して #renderReferencingArticles で反映する。
- * ファイルパス・操作ボタンは記事編集画面と共通の editor-options に表示するため、
- * このパネル自体はプレビューとメタデータのみを描画する。
+ * ファイル名変更（移動）・検出外参照宣言の付与解除・削除の操作は、ヘッダーではなくこの
+ * メタデータ欄にまとめて表示する（成層ツリー実験フェーズ F-03）。画像自身の公開状態
+ * （#画像公開状態）は、参照記事一覧の各記事が持つ公開状態と区別できるよう別の行・別のクラス名
+ * で表示する（同フェーズ US-08 S3）。
  * DOM描画に依存するため自動テストを持たない（手動確認のみ）。
  * @param {HTMLElement} panelEl
  * @param {import('../server/imageLibraryCollector.js').ImageLibraryEntry} entry
@@ -37,15 +39,31 @@ export function showImageDetail(panelEl, entry) {
   const resolution = entry.width != null && entry.height != null ? `${entry.width} × ${entry.height}` : '不明'
   const addedAt = entry.addedAt ? new Date(entry.addedAt).toLocaleString('ja-JP') : '不明'
   const fileName = entry.path.split('/').pop()
+  const publicationStatus = entry.published ? '公開済み' : '未公開'
+  const publicationStatusAttr = entry.published ? 'published' : 'new'
   panelEl.innerHTML = `
     <img class="image-detail-preview" src="${escapeHtml(entry.url)}" alt="${escapeHtml(fileName)}">
     <dl class="image-detail-meta">
-      <dt>ファイル名</dt><dd>${escapeHtml(fileName)}</dd>
+      <dt>ファイル名</dt>
+      <dd class="image-detail-filename">
+        <span class="image-detail-filename-display">${escapeHtml(fileName)}</span>
+        <button type="button" class="image-detail-filename-edit-btn">編集</button>
+        <span class="image-detail-filename-form" hidden>
+          <input type="text" class="image-detail-filename-input" autocomplete="off" placeholder="移動先（image/ 配下のパス）">
+          <button type="button" class="image-detail-filename-save-btn">保存</button>
+          <button type="button" class="image-detail-filename-cancel-btn">キャンセル</button>
+        </span>
+      </dd>
+      <dt>公開状態</dt>
+      <dd class="image-detail-publication-status" data-status="${publicationStatusAttr}">${publicationStatus}（このサイトのリモートに存在するかどうか）</dd>
       <dt>ファイルサイズ</dt><dd>${escapeHtml(formatBytes(entry.size))}</dd>
       <dt>解像度</dt><dd>${escapeHtml(resolution)}</dd>
       <dt>追加日時</dt><dd>${escapeHtml(addedAt)}</dd>
       <dt>参照記事</dt><dd class="image-detail-references">読み込み中...</dd>
+      <dt>検出外参照</dt>
+      <dd><label class="image-detail-declaration-label"><input type="checkbox" class="image-detail-declaration-toggle"> 参照がなくても非公開にしない</label></dd>
     </dl>
+    <button type="button" class="image-detail-delete-btn">削除する</button>
   `
 }
 

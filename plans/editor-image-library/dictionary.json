@@ -1,5 +1,42 @@
 {
   "version": "1",
   "contexts": [],
-  "entries": []
+  "entries": [
+    {
+      "name": "作成者",
+      "en": "Author",
+      "context": null,
+      "domain": "actor",
+      "definition": "ターミナルを使わず、エディタのブラウザ画面だけでコンテンツ（記事・画像）を作成・管理する役割",
+      "relations": [],
+      "src": null,
+      "wip": { "status": "new", "discovered": "tdd-run" }
+    },
+    {
+      "name": "画像ライブラリ",
+      "en": "ImageLibrary",
+      "context": "editor",
+      "domain": "application",
+      "definition": "エディタUIから `src/image/` 配下の画像を一覧・確認・追加・削除・移動（パスの付け替え。改名はその特殊な場合）できる機能。記事編集を経由しない画像操作の窓口。",
+      "relations": [
+        { "type": "references", "target": "画像参照", "note": "一覧・詳細に参照情報を表示する" },
+        { "type": "references", "target": "ローカル参照", "note": "削除・移動時の参照記事提示に使う" },
+        { "type": "references", "target": "参照更新", "note": "削除・移動で発生しうる" },
+        { "type": "references", "target": "検出外参照宣言", "note": "宣言の付与・解除のUI導線を提供する" },
+        { "type": "references", "target": "ディレクトリツリー", "note": "一覧表示に既存のツリー装置を転用する" },
+        { "type": "references", "target": "画像移動エンドポイント", "note": "移動の実行を担う" }
+      ],
+      "affordances": [
+        "一覧表示",
+        "詳細表示",
+        "追加",
+        "削除",
+        "移動",
+        "検出外参照宣言の付与・解除",
+        "公開状態の確認"
+      ],
+      "src": null,
+      "wip": { "status": "redefine", "discovered": "tdd-run" }
+    }
+  ]
 }

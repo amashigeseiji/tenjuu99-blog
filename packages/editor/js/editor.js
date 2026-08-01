@@ -8,6 +8,7 @@ import { showImageDetail, renderReferencingArticles } from './imageDetailDisplay
 import { initImageDelete } from './imageDeleteUI.js'
 import { initImageMove } from './imageMoveUI.js'
 import { initImageDeclaration } from './imageDeclarationUI.js'
+import { initInlineFileNameEdit } from './inlineFileNameEditUI.js'
 
 // @vocab: 確認ダイアログ
 // WKWebView は window.confirm() に応答しない（WKUIDelegate 未実装のため無反応になる）ので、
@@ -753,8 +754,9 @@ const initImageLibrary = async () => {
 }
 
 // @vocab: 画像詳細表示
-// 記事編集画面のヘッダー（editor-options）を流用する: 左側にファイルパスの
-// かわりに画像パスを、右側には記事の操作ボタンのかわりに画像の操作ボタン（削除・改名）を表示する。
+// 記事編集画面のヘッダー（editor-options）を流用する: 左側にファイルパスのかわりに画像パスを表示する。
+// 操作（ファイル名変更・公開状態確認・検出外参照宣言・削除）はヘッダーではなく、
+// showImageDetail が描画するメタデータ欄にまとめて表示する（成層ツリー実験フェーズ F-03）。
 let _currentImageDetailEntry = null
 const openImageDetail = (imagePath) => {
   const entry = _imageLibraryEntries.find(e => e.path === imagePath)
@@ -770,17 +772,15 @@ const openImageDetail = (imagePath) => {
   document.querySelector('.textareaAndPreview')?.setAttribute('hidden', '')
   document.querySelector('#fileStatus')?.setAttribute('hidden', '')
   document.querySelector('#articleOptionsRight')?.setAttribute('hidden', '')
-  document.querySelector('#imageDetailOptions')?.removeAttribute('hidden')
-  // 移動先入力には現在の配置パス（image/ 相対）をプリフィルし、編集して確定する
-  const moveInput = document.querySelector('#imageMoveInput')
-  if (moveInput) moveInput.value = entry.path.replace(/^image\//, '')
-  const declarationToggle = document.querySelector('#imageDeclarationToggle')
+  const declarationToggle = panel.querySelector('.image-detail-declaration-toggle')
   if (declarationToggle) declarationToggle.checked = !!entry.declared
   const imageFileNameEl = document.querySelector('#imageDetailFileName')
   if (imageFileNameEl) {
     imageFileNameEl.textContent = entry.path
     imageFileNameEl.hidden = false
   }
+  // メタデータ欄はshowImageDetailのたびに作り直されるため、操作の配線もそのたびにやり直す
+  wireImageDetailOperations(panel)
   // 参照記事一覧は画像1件ごとにgit問い合わせを伴うため、一覧取得時ではなく選択時に個別取得する
   fetch(`/get_image_references?imagePath=${encodeURIComponent(entry.path)}`)
     .then(res => res.json())
@@ -798,7 +798,6 @@ const closeImageDetail = () => {
   document.querySelector('.textareaAndPreview')?.removeAttribute('hidden')
   document.querySelector('#fileStatus')?.removeAttribute('hidden')
   document.querySelector('#articleOptionsRight')?.removeAttribute('hidden')
-  document.querySelector('#imageDetailOptions')?.setAttribute('hidden', '')
   document.querySelector('#imageDetailFileName')?.setAttribute('hidden', '')
 }
 
@@ -826,46 +825,52 @@ const setImageOperationFeedback = (message) => {
   const feedback = document.querySelector('#operationFeedback')
   if (feedback) feedback.textContent = message
 }
-initImageDelete(
-  document.querySelector('#imageDeleteBtn'),
-  () => _currentImageDetailEntry,
-  showConfirm,
-  setImageOperationFeedback,
-  async (deletedPath, referenceHandling) => {
-    // 削除された画像はもう表示対象にならないため、URLからも取り除く
-    leaveImageDetail()
-    await initImageLibrary()
-    if (referenceHandling === 'update') await reloadCurrentArticle()
-  }
-)
-initImageMove(
-  document.querySelector('#imageMoveBtn'),
-  () => _currentImageDetailEntry,
-  () => document.querySelector('#imageMoveInput')?.value.trim(),
-  showConfirm,
-  setImageOperationFeedback,
-  async (newPath, referenceHandling) => {
-    // 同じ資源が新しいパスになっただけなので、履歴を積まずにURLを付け替える
-    const newUrl = new URL(location)
-    newUrl.searchParams.set('image', newPath)
-    newUrl.searchParams.delete('md')
-    history.replaceState({}, '', newUrl)
-    await initImageLibrary()
-    if (referenceHandling === 'update') await reloadCurrentArticle()
-    openImageDetail(newPath)
-  }
-)
-initImageDeclaration(
-  document.querySelector('#imageDeclarationToggle'),
-  () => _currentImageDetailEntry,
-  setImageOperationFeedback,
-  (imagePath, declared) => {
-    const entry = _imageLibraryEntries.find(e => e.path === imagePath)
-    if (entry) entry.declared = declared
-    if (_currentImageDetailEntry?.path === imagePath) _currentImageDetailEntry.declared = declared
-    setImageOperationFeedback(declared ? '宣言を付与しました' : '宣言を解除しました')
-  }
-)
+
+// 画像詳細のメタデータ欄（ファイル名編集・公開状態・検出外参照宣言・削除）は
+// showImageDetail のたびに作り直されるため、要素への配線もそのたびにここから呼び直す。
+const wireImageDetailOperations = (panel) => {
+  initInlineFileNameEdit(panel, () => _currentImageDetailEntry)
+  initImageDelete(
+    panel.querySelector('.image-detail-delete-btn'),
+    () => _currentImageDetailEntry,
+    showConfirm,
+    setImageOperationFeedback,
+    async (deletedPath, referenceHandling) => {
+      // 削除された画像はもう表示対象にならないため、URLからも取り除く
+      leaveImageDetail()
+      await initImageLibrary()
+      if (referenceHandling === 'update') await reloadCurrentArticle()
+    }
+  )
+  initImageMove(
+    panel.querySelector('.image-detail-filename-save-btn'),
+    () => _currentImageDetailEntry,
+    () => panel.querySelector('.image-detail-filename-input')?.value.trim(),
+    showConfirm,
+    setImageOperationFeedback,
+    async (newPath, referenceHandling) => {
+      // 同じ資源が新しいパスになっただけなので、履歴を積まずにURLを付け替える
+      const newUrl = new URL(location)
+      newUrl.searchParams.set('image', newPath)
+      newUrl.searchParams.delete('md')
+      history.replaceState({}, '', newUrl)
+      await initImageLibrary()
+      if (referenceHandling === 'update') await reloadCurrentArticle()
+      openImageDetail(newPath)
+    }
+  )
+  initImageDeclaration(
+    panel.querySelector('.image-detail-declaration-toggle'),
+    () => _currentImageDetailEntry,
+    setImageOperationFeedback,
+    (imagePath, declared) => {
+      const entry = _imageLibraryEntries.find(e => e.path === imagePath)
+      if (entry) entry.declared = declared
+      if (_currentImageDetailEntry?.path === imagePath) _currentImageDetailEntry.declared = declared
+      setImageOperationFeedback(declared ? '宣言を付与しました' : '宣言を解除しました')
+    }
+  )
+}
 
 document.addEventListener('DOMContentLoaded', async (event) => {
   const url = new URL(location)

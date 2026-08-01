@@ -232,8 +232,8 @@ test.describe('US-06: 検出できない参照の宣言', () => {
     // When: その画像に「検出外参照」の宣言を付与する
     await openImagesTab(page)
     await page.locator('.image-node[data-image-path="image/post/us06-s1.png"]').click()
-    await expect(page.locator('#imageDeclarationToggle')).not.toBeChecked()
-    await page.locator('#imageDeclarationToggle').check()
+    await expect(page.locator('.image-detail-declaration-toggle')).not.toBeChecked()
+    await page.locator('.image-detail-declaration-toggle').check()
     await expect(page.locator('#operationFeedback')).toHaveText('宣言を付与しました')
 
     // Then: 宣言が保存される
@@ -251,8 +251,8 @@ test.describe('US-06: 検出できない参照の宣言', () => {
     // When: 宣言を解除する
     await openImagesTab(page)
     await page.locator('.image-node[data-image-path="image/post/us06-s1.png"]').click()
-    await expect(page.locator('#imageDeclarationToggle')).toBeChecked()
-    await page.locator('#imageDeclarationToggle').uncheck()
+    await expect(page.locator('.image-detail-declaration-toggle')).toBeChecked()
+    await page.locator('.image-detail-declaration-toggle').uncheck()
     await expect(page.locator('#operationFeedback')).toHaveText('宣言を解除しました')
     const ledgerAfterUndeclare = JSON.parse(fs.readFileSync(ledgerPath(), 'utf-8'))
     expect(ledgerAfterUndeclare['image/post/us06-s1.png'].protected).toBe(false)
@@ -267,6 +267,67 @@ test.describe('US-06: 検出できない参照の宣言', () => {
     await openArticle(page, filename)
     await publishAndExpectSuccess(page, 'modified')
     expect(pathInOrigin('image/post/us06-s1.png')).toBeFalsy()
+  })
+})
+
+test.describe('US-08: 画像自身の公開状態の確認', () => {
+  test('シナリオ1: 画像自身の公開状態が確認できる', async ({ page }) => {
+    // Given: 画像ライブラリに画像が表示されている
+    const filename = 'acceptance-us08-s1.md'
+    createImage('image/post/us08-s1.png')
+    fs.writeFileSync(articlePath(filename), '---\ntitle: us08-s1\n---\n![alt](/image/post/us08-s1.png)\n')
+    await openArticle(page, filename)
+    await publishAndExpectSuccess(page)
+
+    // When: 画像を確認する
+    await openImagesTab(page)
+    await page.locator('.image-node[data-image-path="image/post/us08-s1.png"]').click()
+
+    // Then: その画像がリモートに存在するかどうかが画面から確認できる
+    await expect(page.locator('.image-detail-publication-status')).toHaveAttribute('data-status', 'published')
+    await expect(page.locator('.image-detail-publication-status')).toContainText('公開済み')
+  })
+
+  test('シナリオ2: 記事の公開・非公開の結果が画像の公開状態に反映されて見える', async ({ page }) => {
+    // Given: 画像を参照する記事があり、その画像の公開状態を確認できる状態にある
+    const filename = 'acceptance-us08-s2.md'
+    createImage('image/post/us08-s2.png')
+    fs.writeFileSync(articlePath(filename), '---\ntitle: us08-s2\n---\n![alt](/image/post/us08-s2.png)\n')
+    await openArticle(page, filename)
+    await publishAndExpectSuccess(page)
+    await openImagesTab(page)
+    await page.locator('.image-node[data-image-path="image/post/us08-s2.png"]').click()
+    await expect(page.locator('.image-detail-publication-status')).toHaveAttribute('data-status', 'published')
+
+    // When: その記事を非公開にする
+    await openArticle(page, filename)
+    await page.locator('#unpublishBtn').click()
+    await expect(page.locator('#operationFeedback')).toHaveText('非公開にしました')
+    await openImagesTab(page)
+    await page.locator('.image-node[data-image-path="image/post/us08-s2.png"]').click()
+
+    // Then: 画像の公開状態の表示が、その結果を反映して変化する
+    await expect(page.locator('.image-detail-publication-status')).toHaveAttribute('data-status', 'new')
+    await expect(page.locator('.image-detail-publication-status')).toContainText('未公開')
+  })
+
+  test('シナリオ3: 画像自身の公開状態と、参照記事の公開状態を混同しない', async ({ page }) => {
+    // Given: 画像の詳細に、参照している記事の一覧とその公開状態が表示されている
+    const filename = 'acceptance-us08-s3.md'
+    createImage('image/post/us08-s3.png')
+    fs.writeFileSync(articlePath(filename), '---\ntitle: us08-s3\n---\n![alt](/image/post/us08-s3.png)\n')
+    await openArticle(page, filename)
+    await publishAndExpectSuccess(page)
+    await openImagesTab(page)
+    await page.locator('.image-node[data-image-path="image/post/us08-s3.png"]').click()
+
+    // When: 画像自身の公開状態を確認する
+    // Then: 参照記事の公開状態とは区別して、画像自身の公開状態が分かる（別のdt/ddで表示される）
+    await expect(page.locator('.image-detail-publication-status')).toHaveAttribute('data-status', 'published')
+    await expect(page.locator('.image-detail-references')).toContainText(filename)
+    await expect(page.locator('.image-detail-references')).toContainText('（公開済み）')
+    // 画像自身の公開状態は参照記事一覧の要素とは別のdd
+    await expect(page.locator('.image-detail-publication-status')).not.toHaveText(await page.locator('.image-detail-references').textContent() ?? '__never__')
   })
 })
 
