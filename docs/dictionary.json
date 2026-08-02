@@ -796,7 +796,7 @@
         { "type": "references", "target": "コンバーターファクトリー", "note": "読み込まれる" },
         { "type": "references", "target": "変換ドライバー", "note": "の具体的な実装形態" }
       ],
-      "src": "src-sample/converters/webp.js"
+      "src": "packages/editor/server/createConverter.js"
     },
     {
       "name": "ビルトインコンバーター",

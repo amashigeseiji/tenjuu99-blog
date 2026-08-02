@@ -15,9 +15,6 @@ export const ext = 'webp'
 /**
  * 変換関数をデフォルトエクスポート、出力拡張子を `ext` としてエクスポートする形。
  * `blog.json` の `image_converter` にこのファイルへのパスを指定すると解決される。
- *
- * @vocab: ユーザー提供コンバーターモジュール
- * @test: tests/editor/editor-image-upload.test.js
  */
 export default async function convert(buffer) {
   return await sharp(buffer)
