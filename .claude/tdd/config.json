@@ -1,4 +1,8 @@
 {
+  "vocab_scan": {
+    "extensions": [".js", ".ts", ".mjs", ".cjs", ".jsx", ".tsx", ".swift"],
+    "exclude": ["dist-app", "tests/acceptance"]
+  },
   "depgraph": {
     "regen": ".claude/tdd/depgraph-regen.sh",
     "graph": ".claude/tdd/dependency-graph.json",

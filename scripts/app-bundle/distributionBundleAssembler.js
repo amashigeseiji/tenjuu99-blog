@@ -4,7 +4,11 @@ import { resolve as resolveManifest } from './bundleManifestResolver.js'
 import { write as writeBundle } from './bundleWriter.js'
 
 /**
+ * `manifestPath` から同梱対象（`entries`）と張り替えるシンボリックリンク（`symlinks`）を
+ * 読み込んで .app を組み立てる。マニフェスト自体は scripts/app-bundle/manifest.json。
+ *
  * @vocab: 配布物組み立て器
+ * @vocab: バンドルマニフェスト
  * @test: tests/app-bundle/distributionBundleAssembler.test.js
  * @param {{manifestPath: string, roots: Record<string, string>, appOutputPath: string}} options
  * @returns {Promise<void>}
