@@ -20,7 +20,8 @@ export function renderImageListHtml(entries, activeImagePath = '') {
     const dotIndex = withoutPrefix.lastIndexOf('.')
     const name = dotIndex === -1 ? withoutPrefix : withoutPrefix.slice(0, dotIndex)
     const filetype = dotIndex === -1 ? '' : withoutPrefix.slice(dotIndex + 1)
-    // @vocab: 公開ステータス — 記事一覧と同じ記号方式（data-status → CSS ::after）を流用する。
+    // @vocab: 公開ステータス
+    // 記事一覧と同じ記号方式（data-status → CSS ::after）を流用する。
     // 画像ツリーに並ぶのは 未公開／更新あり／公開済み／不明 の4状態。「リモートのみ」は
     // ローカルに実体がないためこのツリーには現れない（#リモートのみ画像表示 が別枠で担う）。
     statusMap[withoutPrefix] = entry.status ?? 'unknown'
