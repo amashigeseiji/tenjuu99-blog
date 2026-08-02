@@ -346,3 +346,183 @@ test.describe('US-04 シナリオ2: 追加しただけでは公開されない',
     expect(pathInOrigin('image/post/us04-s2.png')).toBeFalsy()
   })
 })
+
+// ---------------------------------------------------------------------------
+// US-09 / US-10（リモート未達の可視化・リモート残存の解消フェーズ）
+// ---------------------------------------------------------------------------
+
+// 画像詳細のメタデータ欄から移動（パスの付け替え）を行う。
+// 参照記事があるときは3択、無いときはOK/キャンセルの確認ダイアログを経る。
+async function moveImageViaUI(
+  page: Page,
+  imagePath: string,
+  destPath: string,
+  referenceHandling: 'none' | 'keep' | 'update' = 'none'
+) {
+  await openImagesTab(page)
+  await page.locator(`.image-node[data-image-path="${imagePath}"]`).click()
+  await page.locator('.image-detail-filename-edit-btn').click()
+  await page.locator('.image-detail-filename-input').fill(destPath)
+  await page.locator('.image-detail-filename-save-btn').click()
+  const choice = referenceHandling === 'update' ? '移動(参照も書き換え)'
+    : referenceHandling === 'keep' ? '移動'
+    : 'OK'
+  await page.locator('#confirmDialogActions button', { hasText: choice }).first().click()
+  await expect(page.locator('#operationFeedback')).toHaveText('移動しました')
+}
+
+async function openImageDetail(page: Page, imagePath: string) {
+  await openImagesTab(page)
+  await page.locator(`.image-node[data-image-path="${imagePath}"]`).click()
+}
+
+test.describe('US-09: リモートに届いていない変更が分かる公開状態', () => {
+  test('シナリオ1: 公開済みの画像を移動すると、届いていないことが分かる', async ({ page }) => {
+    // Given: 公開済みの画像がある
+    const filename = 'acceptance-us09-s1.md'
+    createImage('image/post/us09-s1.png')
+    fs.writeFileSync(articlePath(filename), '---\ntitle: us09-s1\n---\n![alt](/image/post/us09-s1.png)\n')
+    await openArticle(page, filename)
+    await publishAndExpectSuccess(page)
+    await openImageDetail(page, 'image/post/us09-s1.png')
+    await expect(page.locator('.image-detail-publication-status')).toHaveAttribute('data-status', 'published')
+
+    // When: その画像を移動する（参照はそのままにする）
+    await moveImageViaUI(page, 'image/post/us09-s1.png', 'post/us09-s1-moved.png', 'keep')
+
+    // Then: 画像の公開状態は「公開済み」のままではなくなり、
+    // And:  リモートにまだ届いていない変更として、単一のエントリの「更新あり」として読める
+    await openImageDetail(page, 'image/post/us09-s1-moved.png')
+    await expect(page.locator('.image-detail-publication-status')).toHaveAttribute('data-status', 'modified')
+    await expect(page.locator('.image-detail-publication-status')).toContainText('更新あり')
+    await expect(page.locator('.image-node[data-image-path="image/post/us09-s1.png"]')).toHaveCount(0)
+  })
+
+  test('シナリオ2: 同期すると、届いたことが分かる', async ({ page }) => {
+    // Given: 移動したがまだリモートに届いていない画像がある
+    const filename = 'acceptance-us09-s2.md'
+    createImage('image/post/us09-s2.png')
+    fs.writeFileSync(articlePath(filename), '---\ntitle: us09-s2\n---\n![alt](/image/post/us09-s2.png)\n')
+    await openArticle(page, filename)
+    await publishAndExpectSuccess(page)
+    await moveImageViaUI(page, 'image/post/us09-s2.png', 'post/us09-s2-moved.png', 'update')
+    await openImageDetail(page, 'image/post/us09-s2-moved.png')
+    await expect(page.locator('.image-detail-publication-status')).toHaveAttribute('data-status', 'modified')
+
+    // When: その画像を参照する記事の同期操作（更新の公開）を行う
+    await openArticle(page, filename)
+    await publishAndExpectSuccess(page, 'modified')
+
+    // Then: 画像の公開状態が「公開済み」になり、リモートの実体がローカルの実体と対応している
+    await openImageDetail(page, 'image/post/us09-s2-moved.png')
+    await expect(page.locator('.image-detail-publication-status')).toHaveAttribute('data-status', 'published')
+    await expect(page.locator('.image-detail-publication-status')).toContainText('公開済み')
+    expect(pathInOrigin('image/post/us09-s2-moved.png')).toBeTruthy()
+  })
+
+  test('シナリオ3: 移動以外の食い違いでも同じ区別が働く', async ({ page }) => {
+    // Given: 公開済みの画像がある
+    const filename = 'acceptance-us09-s3.md'
+    createImage('image/post/us09-s3.png')
+    fs.writeFileSync(articlePath(filename), '---\ntitle: us09-s3\n---\n![alt](/image/post/us09-s3.png)\n')
+    await openArticle(page, filename)
+    await publishAndExpectSuccess(page)
+    await openImageDetail(page, 'image/post/us09-s3.png')
+    await expect(page.locator('.image-detail-publication-status')).toHaveAttribute('data-status', 'published')
+
+    // When: 同じパスに別の内容の画像を置き直す（移動を伴わない食い違い）
+    fs.appendFileSync(path.join(projectDir, 'src-sample', 'image/post/us09-s3.png'), Buffer.from([0x00, 0x01]))
+
+    // Then: リモートにまだ届いていない変更があることが分かる
+    await openImageDetail(page, 'image/post/us09-s3.png')
+    await expect(page.locator('.image-detail-publication-status')).toHaveAttribute('data-status', 'modified')
+    await expect(page.locator('.image-detail-publication-status')).toContainText('更新あり')
+  })
+
+  test('シナリオ4: 記事と同じ理解のされ方をする', async ({ page }) => {
+    // Given: 記事と画像がそれぞれ表示されている
+    const filename = 'acceptance-us09-s4.md'
+    createImage('image/post/us09-s4.png')
+    fs.writeFileSync(articlePath(filename), '---\ntitle: us09-s4\n---\n![alt](/image/post/us09-s4.png)\n')
+    await openArticle(page, filename)
+    await expect(page.locator('#publicationStatus')).toHaveText('(未公開)')
+
+    // When: 双方の公開状態を見る
+    await openImageDetail(page, 'image/post/us09-s4.png')
+
+    // Then: 画像の公開状態は、記事の公開ステータスと同じ言葉・同じ記号で理解できる
+    await expect(page.locator('.image-detail-publication-status')).toContainText('未公開')
+    await expect(page.locator('.image-node[data-image-path="image/post/us09-s4.png"]')).toHaveAttribute('data-status', 'new')
+    await openArticle(page, filename)
+    await publishAndExpectSuccess(page)
+    await expect(page.locator('#publicationStatus')).toHaveText('(公開済み)')
+    await openImageDetail(page, 'image/post/us09-s4.png')
+    await expect(page.locator('.image-detail-publication-status')).toContainText('公開済み')
+    await expect(page.locator('.image-node[data-image-path="image/post/us09-s4.png"]')).toHaveAttribute('data-status', 'published')
+  })
+})
+
+test.describe('US-10: リモートにのみ存在する画像の解消', () => {
+  test('シナリオ1: 移動で使われなくなった旧パスは、次の同期でリモートから取り除かれる', async ({ page }) => {
+    // Given: 公開済みの画像があり、それを参照する公開済みの記事がある
+    const filename = 'acceptance-us10-s1.md'
+    createImage('image/post/us10-s1.png')
+    fs.writeFileSync(articlePath(filename), '---\ntitle: us10-s1\n---\n![alt](/image/post/us10-s1.png)\n')
+    await openArticle(page, filename)
+    await publishAndExpectSuccess(page)
+    expect(pathInOrigin('image/post/us10-s1.png')).toBeTruthy()
+
+    // When: その画像を移動し、参照も新しいパスに書き換えて、記事の更新を公開する
+    await moveImageViaUI(page, 'image/post/us10-s1.png', 'post/us10-s1-moved.png', 'update')
+    await openArticle(page, filename)
+    await publishAndExpectSuccess(page, 'modified')
+
+    // Then: 新しいパスの画像がリモートに存在し、旧パスの画像はリモートから取り除かれている
+    expect(pathInOrigin('image/post/us10-s1-moved.png')).toBeTruthy()
+    expect(pathInOrigin('image/post/us10-s1.png')).toBeFalsy()
+  })
+
+  test('シナリオ2: リモートにのみ存在する画像が画面で確認できる', async ({ page }) => {
+    // Given: ローカルに実体がなく、リモートにのみ存在する画像がある
+    // （公開したあとエディタの外でローカルの実体だけを失った状態）
+    const filename = 'acceptance-us10-s2.md'
+    createImage('image/post/us10-s2.png')
+    fs.writeFileSync(articlePath(filename), '---\ntitle: us10-s2\n---\n![alt](/image/post/us10-s2.png)\n')
+    await openArticle(page, filename)
+    await publishAndExpectSuccess(page)
+    expect(pathInOrigin('image/post/us10-s2.png')).toBeTruthy()
+    fs.rmSync(path.join(projectDir, 'src-sample', 'image/post/us10-s2.png'))
+
+    // When: 画像ライブラリを開く
+    await page.goto(`${BASE}/editor`)
+    await openImagesTab(page)
+
+    // Then: ローカルの画像ツリーとは別の枠から、その画像の存在が確認できる
+    await expect(page.locator('.remote-only-images')).toBeVisible()
+    await expect(page.locator('.remote-only-image-path')).toContainText('image/post/us10-s2.png')
+    // And: ローカルの実体がないことが分かる（画像ツリーには現れない）
+    await expect(page.locator('.image-node[data-image-path="image/post/us10-s2.png"]')).toHaveCount(0)
+  })
+
+  test('シナリオ3: リモートにのみ存在する画像を操作できる', async ({ page }) => {
+    // Given: リモートにのみ存在する画像が別枠に表示されている
+    const filename = 'acceptance-us10-s3.md'
+    createImage('image/post/us10-s3.png')
+    fs.writeFileSync(articlePath(filename), '---\ntitle: us10-s3\n---\n![alt](/image/post/us10-s3.png)\n')
+    await openArticle(page, filename)
+    await publishAndExpectSuccess(page)
+    fs.rmSync(path.join(projectDir, 'src-sample', 'image/post/us10-s3.png'))
+    await page.goto(`${BASE}/editor`)
+    await openImagesTab(page)
+    await expect(page.locator('.remote-only-image-remove-btn[data-image-path="image/post/us10-s3.png"]')).toBeVisible()
+
+    // When: その画像を取り除く
+    await page.locator('.remote-only-image-remove-btn[data-image-path="image/post/us10-s3.png"]').click()
+    await page.locator('#confirmDialogActions button', { hasText: '取り除く' }).click()
+
+    // Then: リモートからその画像が取り除かれ、別枠からも消える
+    await expect(page.locator('#operationFeedback')).toContainText('取り除きました')
+    expect(pathInOrigin('image/post/us10-s3.png')).toBeFalsy()
+    await expect(page.locator('.remote-only-image-path', { hasText: 'image/post/us10-s3.png' })).toHaveCount(0)
+  })
+})

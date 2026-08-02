@@ -1,5 +1,5 @@
 import nodePath from 'node:path'
-import { readLedger, setPublishedReferredBy, isDeclared } from './imageLedger.js'
+import { readLedger, setPublishedReferredBy, isDeclared, clearMovedFrom } from './imageLedger.js'
 
 /**
  * @vocab: 画像公開同期器
@@ -27,6 +27,7 @@ export async function syncImagePublicationState(articlePath, currentImageRefs, d
   const toEvaluate = new Set([...previouslyReferenced, ...currentLedgerKeys])
 
   const removed = []
+  const removedMovedFrom = []
   for (const imagePath of toEvaluate) {
     const before = ledger[imagePath]?.publishedReferredBy ?? []
     const withoutArticle = before.filter(a => a !== articlePath)
@@ -37,8 +38,19 @@ export async function syncImagePublicationState(articlePath, currentImageRefs, d
       const fullPath = nodePath.join(imageDir, imagePath.slice('image/'.length))
       await means.remove([fullPath])
       removed.push(imagePath)
+      continue
+    }
+
+    // 移動した画像が新しいパスで届いたなら、リモートに残る #移動元パス はもう誰も参照しない。
+    // 記事がまだ旧パスを参照している（参照を書き換えずに移動した）場合はこの条件に入らないため、
+    // 公開中のサイトが参照しているパスを取り除いてしまうことはない。
+    const movedFrom = ledger[imagePath]?.movedFrom
+    if (movedFrom && currentLedgerKeys.has(imagePath)) {
+      await means.remove([nodePath.join(imageDir, movedFrom.slice('image/'.length))])
+      clearMovedFrom(ledgerPath, imagePath)
+      removedMovedFrom.push(movedFrom)
     }
   }
 
-  return { removed }
+  return { removed, removedMovedFrom }
 }

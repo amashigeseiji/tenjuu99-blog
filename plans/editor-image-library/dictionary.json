@@ -1,5 +1,197 @@
 {
   "version": "1",
   "contexts": [],
-  "entries": []
+  "entries": [
+    {
+      "name": "移動元パス",
+      "en": "MovedFromPath",
+      "context": "editor",
+      "domain": "application",
+      "definition": "移動した画像について、 #リモート が既に知っている移動前のパス。移動を「別の画像が現れた」ではなく「同じ画像の未同期の変更」として読むための同一性の手がかりであり、移動が #リモート へ届いた時点で失われる。",
+      "relations": [
+        { "type": "references", "target": "画像台帳", "note": "記録される場所" },
+        { "type": "references", "target": "公開ステータス", "note": "「更新あり」と読む根拠" },
+        { "type": "references", "target": "除去", "context": "publishing", "note": "同期時にリモートから取り除く対象" }
+      ],
+      "src": "packages/editor/server/imageLedger.js",
+      "wip": { "status": "new", "discovered": "tdd-run" }
+    },
+    {
+      "name": "公開ステータスラベル",
+      "en": "PublicationStatusLabel",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "#公開ステータス の各状態に対応する作成者向けの表示語（未公開・更新あり・公開済み・リモートのみ）を一か所から与える装置。記事と画像が同じ言葉で状態を示すことを保証する。",
+      "relations": [
+        { "type": "references", "target": "公開ステータス", "note": "表示語を与える対象" }
+      ],
+      "src": "packages/editor/js/publicationStatusLabel.js",
+      "wip": { "status": "new", "discovered": "tdd-run" }
+    },
+    {
+      "name": "画像除去エンドポイント",
+      "en": "ImageRemovalEndpoint",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "指定した画像を #リモート から取り除くHTTPハンドラ。 #公開ステータス が「リモートのみ」の画像に対する #除去 の実行を担い、ローカルには関与しない。",
+      "relations": [
+        { "type": "references", "target": "除去", "context": "publishing", "note": "リモート向きの除去の実行" },
+        { "type": "references", "target": "公開ステータス", "note": "「リモートのみ」の状態に対して働く" },
+        { "type": "references", "target": "画像ライブラリ", "note": "操作の受け口" }
+      ],
+      "src": "packages/editor/server/remove_remote_image.js",
+      "wip": { "status": "new", "discovered": "tdd-run" }
+    },
+    {
+      "name": "リモートのみ画像表示",
+      "en": "RemoteOnlyImageDisplay",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "ローカルに実体がなく #リモート にのみ存在する画像を、ローカルの画像ツリーとは別の枠に一覧し、取り除く操作を提供する装置。ローカルのファイルシステムを模したツリーには混ぜない。",
+      "relations": [
+        { "type": "references", "target": "画像リストコレクター", "note": "一覧の供給元" },
+        { "type": "references", "target": "画像除去エンドポイント", "note": "取り除く操作の実行先" },
+        { "type": "references", "target": "画像ライブラリ", "note": "表示先" }
+      ],
+      "src": "packages/editor/js/remoteOnlyImageDisplay.js",
+      "wip": { "status": "new", "discovered": "tdd-run" }
+    },
+    {
+      "name": "画像公開状態",
+      "en": "ImagePublicationState",
+      "context": "editor",
+      "domain": "application",
+      "definition": "画像が公開されるべきかどうかを、記事からの #公開済み参照 または #検出外参照宣言 の有無から導出する方針。画像に対する独立した公開操作は存在しない。導出の結果として現に #リモート に存在するか（ローカルとリモートの対応）は #公開ステータス が表す。",
+      "relations": [
+        { "type": "references", "target": "公開済み参照", "note": "導出根拠" },
+        { "type": "references", "target": "検出外参照宣言", "note": "導出の例外" },
+        { "type": "references", "target": "除去", "context": "publishing", "note": "非公開化（GC）はリモートからの除去にあたる" },
+        { "type": "references", "target": "同期", "context": "publishing", "note": "判定・反映のタイミング" },
+        { "type": "references", "target": "公開ステータス", "note": "導出の結果が現れる先。方針と実体の対応を分ける" }
+      ],
+      "src": null,
+      "wip": { "status": "redefine", "previous_definition": "画像の公開・非公開が、記事からの参照の有無（#公開済み参照 または #検出外参照宣言 ）から自動的に導出される状態。画像に対する独立した公開操作は存在しない。", "reason": "「状態」として表示の役割まで担っていたため、移動などでローカルとリモートが食い違う場面を表せなかった（findings 2026-08-01 F-01）。公開されるべきかの導出方針に限定し、実体の対応は #公開ステータス に委ねる", "impact": "画像リストコレクターが返す表示用の値が二値の published から #公開ステータス に変わる。GC判定のロジック自体は変わらない" }
+    },
+    {
+      "name": "画像台帳",
+      "en": "ImageLedger",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "画像パスごとの追加日時・公開済み参照記事一覧・検出外参照宣言・ #移動元パス を永続的に記録・取得する装置。エディタ経由で追加された画像のみ追加日時が記録され、記録のない画像は追加日時「不明」として扱われる。 #公開済み参照 は同期操作のタイミングでのみ更新される。 #移動元パス は移動の時点で記録され、移動が #リモート へ届いた時点で消される。",
+      "relations": [
+        { "type": "references", "target": "画像リストコレクター", "note": "に組み込まれる" },
+        { "type": "references", "target": "アップロードエンドポイント", "note": "画像アップロード時に記録される" },
+        { "type": "references", "target": "公開済み参照", "note": "保持するフィールドの一つ" },
+        { "type": "references", "target": "検出外参照宣言", "note": "保持するフィールドの一つ" },
+        { "type": "references", "target": "移動元パス", "note": "保持するフィールドの一つ" }
+      ],
+      "src": "packages/editor/server/imageLedger.js",
+      "wip": { "status": "redefine", "previous_definition": "画像パスごとの追加日時・公開済み参照記事一覧・検出外参照宣言を永続的に記録・取得する装置。エディタ経由で追加された画像のみ追加日時が記録され、記録のない画像は追加日時「不明」として扱われる。公開済み参照は同期操作のタイミングでのみ更新される。", "reason": "移動を「同じ画像の未同期の変更」として読むために #移動元パス の記録が必要になった", "impact": "renameEntry が移動元パスを記録するようになり、画像公開同期器が同期成功時にそれを消す" }
+    },
+    {
+      "name": "画像リストコレクター",
+      "en": "ImageListCollector",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "#画像スキャナー ・ #画像メタデータ読み取り器 ・ #画像台帳 を組み合わせ、 #画像ライブラリ が表示する画像リスト（パス・サイズ・解像度・追加日時）を組み立てる装置。各画像には #ファイルステータスコレクター から取得した #公開ステータス を添える。 #移動元パス が #リモート に在る画像は「更新あり」と読む。ローカルに実体がなくリモートにのみ存在する画像は、ローカルの一覧とは別に返す。",
+      "relations": [
+        { "type": "references", "target": "画像スキャナー", "note": "組み込む" },
+        { "type": "references", "target": "画像メタデータ読み取り器", "note": "組み込む" },
+        { "type": "references", "target": "画像台帳", "note": "組み込む" },
+        { "type": "references", "target": "画像ライブラリ", "note": "結果を提供する" },
+        { "type": "references", "target": "ファイルステータスコレクター", "note": "公開ステータスの収集を委ねる" },
+        { "type": "references", "target": "公開ステータス", "note": "各画像に添える値" },
+        { "type": "references", "target": "移動元パス", "note": "「更新あり」と読むための手がかり" }
+      ],
+      "src": "packages/editor/server/imageLibraryCollector.js",
+      "wip": { "status": "redefine", "previous_definition": "#画像スキャナー ・ #画像メタデータ読み取り器 ・ #画像台帳 を組み合わせ、 #画像ライブラリ が表示する画像リスト（パス・サイズ・解像度・追加日時）を組み立てる装置。", "reason": "画像の公開状態をリモートの実体との対応として示すため、台帳由来の二値ではなく #公開ステータス を添える必要が生じた（US-09）。リモートにのみ存在する画像も別枠表示のために収集する（US-10 S2）", "impact": "画像1件あたりリモートへの問い合わせが発生する。返り値がローカルの一覧とリモートのみの一覧の二つに分かれる" }
+    },
+    {
+      "name": "画像公開同期器",
+      "en": "ImagePublicationSyncer",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "記事の同期操作（公開・更新・非公開）ごとに、その記事が現在参照している画像集合と #画像台帳 の #公開済み参照 との差分を取り、増分を反映しつつ、参照を失い #検出外参照宣言 もない画像を #リモート から取り除く（ #画像公開状態 のGC判定を実行する）装置。公開された画像に #移動元パス があれば、そのパスもリモートから取り除いて記録を消す。",
+      "relations": [
+        { "type": "references", "target": "画像公開状態", "note": "GC判定の実行主体" },
+        { "type": "references", "target": "公開済み参照", "note": "差分の基準にする台帳フィールド" },
+        { "type": "references", "target": "検出外参照宣言", "note": "GC対象から除外する根拠" },
+        { "type": "references", "target": "画像台帳", "note": "読み取り・更新の対象" },
+        { "type": "references", "target": "移動元パス", "note": "公開が届いた時点でリモートから取り除く対象" }
+      ],
+      "src": "packages/editor/server/imagePublicationSyncer.js",
+      "wip": { "status": "redefine", "previous_definition": "記事の同期操作（公開・更新・非公開）ごとに、その記事が現在参照している画像集合と画像台帳の#公開済み参照との差分を取り、増分を反映しつつ、参照を失い#検出外参照宣言もない画像をリモートから取り除く（#画像公開状態のGC判定を実行する）装置", "reason": "移動で使われなくなった旧パスが評価対象から落ちてリモートに残り続けていた（findings 2026-08-01 F-02）", "impact": "移動を伴う公開・更新で、旧パスの除去が1件追加で発生する" }
+    },
+    {
+      "name": "公開ステータス",
+      "en": "PublicationStatus",
+      "context": "editor",
+      "domain": "application",
+      "definition": "ファイルごとのローカル/リモート間の反映状態を表す状態機械。未公開（ローカルのみ存在）・更新あり（リモートと差分あり）・公開済み（ローカルとリモートが一致）・リモートのみ（ローカルに欠如し、リモートに存在する）の4ステートをとる。 #内容差分 の読み（一致・不一致・欠如）の現れにあたる。対象は記事に限らず、 #画像ライブラリ が扱う画像にも同じ読みで適用される。",
+      "states": [
+        "未公開",
+        "更新あり",
+        "公開済み",
+        "リモートのみ"
+      ],
+      "relations": [
+        { "type": "references", "target": "公開する", "note": "未公開 → 公開済み の遷移アクション" },
+        { "type": "references", "target": "更新する", "note": "更新あり → 公開済み の遷移アクション" },
+        { "type": "references", "target": "非公開にする", "note": "公開済み/更新あり → 未公開 の遷移アクション" },
+        { "type": "references", "target": "削除する", "note": "未公開 → 未存在 の遷移アクション" },
+        { "type": "references", "target": "取り込む", "context": "publishing", "note": "リモートのみ → 公開済み の遷移アクション" },
+        { "type": "references", "target": "公開ステータス判定器", "note": "現在のステートを導出する" },
+        { "type": "references", "target": "内容差分", "context": "publishing", "note": "この読みの現れ" },
+        { "type": "references", "target": "リモート状態", "context": "publishing", "note": "判定器を介して導出元とする" },
+        { "type": "references", "target": "公開ステータスラベル", "note": "各ステートの表示語を与える" }
+      ],
+      "src": null,
+      "wip": { "status": "redefine", "previous_definition": "ファイルごとのローカル/リモート間の反映状態を表す状態機械。未公開（ローカルのみ存在）・更新あり（リモートと差分あり）・公開済み（ローカルとリモートが一致）・リモートのみ（ローカルに欠如し、リモートに存在する）の4ステートをとる。 #内容差分 の読み（一致・不一致・欠如）の現れにあたる。", "reason": "画像除去エンドポイント・リモートのみ画像表示が「リモートのみ」の状態のときだけ意味をなすため states を明示する。あわせて適用対象が記事に限らないことを明記する", "impact": "定義の骨格は変わらない。states フィールドの追加と、画像への適用の明記のみ" }
+    },
+    {
+      "name": "画像ライブラリ",
+      "en": "ImageLibrary",
+      "context": "editor",
+      "domain": "application",
+      "definition": "エディタUIから `src/image/` 配下の画像を一覧・確認・追加・削除・移動（パスの付け替え。改名はその特殊な場合）できる機能。記事編集を経由しない画像操作の窓口。ローカルに実体がなく #リモート にのみ残る画像は、ローカルの画像ツリーとは別の枠に示し、そこから取り除ける。",
+      "affordances": [
+        "一覧表示",
+        "詳細表示",
+        "追加",
+        "削除",
+        "移動",
+        "検出外参照宣言の付与・解除",
+        "公開状態の確認",
+        "リモートからの取り除き"
+      ],
+      "relations": [
+        { "type": "references", "target": "画像参照", "note": "一覧・詳細に参照情報を表示する" },
+        { "type": "references", "target": "ローカル参照", "note": "削除・移動時の参照記事提示に使う" },
+        { "type": "references", "target": "参照更新", "note": "削除・移動で発生しうる" },
+        { "type": "references", "target": "検出外参照宣言", "note": "宣言の付与・解除のUI導線を提供する" },
+        { "type": "references", "target": "ディレクトリツリー", "note": "一覧表示に既存のツリー装置を転用する" },
+        { "type": "references", "target": "画像移動エンドポイント", "note": "移動の実行を担う" },
+        { "type": "references", "target": "画像除去エンドポイント", "note": "リモートからの取り除きの実行を担う" },
+        { "type": "references", "target": "リモートのみ画像表示", "note": "リモートにのみ残る画像の別枠表示を担う" }
+      ],
+      "src": null,
+      "wip": { "status": "redefine", "previous_definition": "エディタUIから `src/image/` 配下の画像を一覧・確認・追加・削除・移動（パスの付け替え。改名はその特殊な場合）できる機能。記事編集を経由しない画像操作の窓口。", "reason": "リモートにのみ残る画像を別枠で知覚し取り除く操作が加わった（US-10）", "impact": "affordances に「リモートからの取り除き」が加わる。サイドバーの画像ツリーとは別の表示枠が増える" }
+    },
+    {
+      "name": "画像ライブラリエントリ",
+      "en": "ImageLibraryEntry",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "#画像リストコレクター が返す画像1件分のデータ（パス・URL・バイト数・解像度・追加日時・ #公開ステータス ）。 #画像リスト表示 ・ #画像詳細表示 ・ #リモートのみ画像表示 の間で受け渡される共通の形。ローカルに実体がない（公開ステータスが「リモートのみ」の）画像も同じ形で表され、そのときバイト数・解像度・追加日時は読めないものとして欠ける。",
+      "relations": [
+        { "type": "references", "target": "画像リストコレクター", "note": "この装置が生成する" },
+        { "type": "references", "target": "画像リスト表示", "note": "この形で受け渡される" },
+        { "type": "references", "target": "画像詳細表示", "note": "この形で受け渡される" },
+        { "type": "references", "target": "リモートのみ画像表示", "note": "この形で受け渡される" },
+        { "type": "references", "target": "公開ステータス", "note": "各エントリが持つ状態" }
+      ],
+      "src": "packages/editor/server/imageLibraryCollector.js",
+      "wip": { "status": "redefine", "discovered": "tdd-run" }
+    }
+  ]
 }

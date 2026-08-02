@@ -205,16 +205,83 @@ main:not(.sidebar-close) .editor {
   background: #ff8d8d;
   color: #222222;
   margin-top: 8px;
+  /* パネルは flex column のため、指定がないとボタンが幅いっぱいに伸びる。
+     文言に見合った幅で左寄せに収める */
+  align-self: flex-start;
 }
 .image-detail-delete-btn:hover {
   background: #c14040;
   color: #fff;
 }
-.image-detail-publication-status[data-status="published"] {
+/* 公開状態の欄は、状態そのものと「非公開にしない」の断りを縦に並べる */
+.image-detail-publication-status {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.image-detail-declaration-label {
+  font-size: 0.85em;
+  color: #555;
+}
+.image-detail-publication-status[data-status="published"] .image-detail-publication-status-label {
   color: #888;
 }
-.image-detail-publication-status[data-status="new"] {
+.image-detail-publication-status[data-status="new"] .image-detail-publication-status-label {
   color: #e06c00;
+}
+.image-detail-publication-status[data-status="modified"] .image-detail-publication-status-label {
+  color: #b58900;
+}
+.image-detail-publication-status[data-status="unknown"] .image-detail-publication-status-label {
+  color: #999;
+}
+
+/* リモートにのみ残る画像の別枠（ローカルのファイルシステムを模した画像ツリーには混ぜない） */
+.remote-only-images {
+  margin-top: 16px;
+  padding-top: 8px;
+  border-top: 1px solid #666;
+}
+.remote-only-images-title {
+  font-size: 0.9em;
+  margin: 0 0 2px;
+  color: var(--sidebar-file, #ccc);
+}
+.remote-only-images-description {
+  font-size: 0.75em;
+  margin: 0 0 6px;
+  color: #999;
+}
+.remote-only-images-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.remote-only-image {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 4px;
+}
+.remote-only-image-path {
+  font-size: 0.8em;
+  word-break: break-all;
+  color: var(--sidebar-file, #ccc);
+}
+.remote-only-image-remove-btn {
+  background: #ff8d8d;
+  color: #222;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75em;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+.remote-only-image-remove-btn:hover {
+  background: #c14040;
+  color: #fff;
 }
 
 #newFileDialog {

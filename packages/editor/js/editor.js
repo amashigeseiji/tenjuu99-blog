@@ -2,7 +2,9 @@ import { initAutoPreview } from './autoPreviewInitializer.js'
 import { initAutoSave } from './autoSaveInitializer.js'
 import { matchTemplate, buildFrontmatterString, loadFrontmatterTemplate } from './frontmatter_template.js'
 import { publishAvailability, resolveOperations } from './publishAvailability.js'
+import { labelFor } from './publicationStatusLabel.js'
 import { renderImageList } from './imageListDisplay.js'
+import { renderRemoteOnlyImages } from './remoteOnlyImageDisplay.js'
 import { resolveDisplayTarget } from './displayTargetResolver.js'
 import { showImageDetail, renderReferencingArticles } from './imageDetailDisplay.js'
 import { initImageDelete } from './imageDeleteUI.js'
@@ -134,7 +136,6 @@ const onloadFunction = async (e) => {
     publishWithFeedback(form)
   })
 
-  const statusLabels = { new: '未公開', modified: '更新あり', published: '公開済み', 'remote-only': 'リモートのみ' }
   // @vocab: 公開可否判定器
   // 記事の状態に応じて、公開・非公開・削除の各操作の提供を切り替える
   const applyPublishAvailability = (status) => {
@@ -156,7 +157,8 @@ const onloadFunction = async (e) => {
   }
   const renderPublicationStatus = (statusEl, filePath, status) => {
     const { label } = publishAvailability(status)
-    statusEl.textContent = label ?? (statusLabels[status] ? `(${statusLabels[status]})` : '')
+    const statusLabel = labelFor(status)
+    statusEl.textContent = label ?? (statusLabel ? `(${statusLabel})` : '')
     statusEl.dataset.status = status
     applyPublishAvailability(status)
     // サイドバーリンクの data-status も同期する
@@ -738,6 +740,7 @@ const initDropReceiver = (textarea, getMdFile, onUpdate, cancelPendingDebounce) 
 let _imageLibraryEntries = []
 const initImageLibrary = async () => {
   const container = document.querySelector('.sidebar-images')
+  const remoteOnlyContainer = document.querySelector('.sidebar-remote-only-images')
   if (!container) return
   try {
     const res = await fetch('/get_image_library')
@@ -747,10 +750,60 @@ const initImageLibrary = async () => {
     // 選択中の画像はURLから導出する（表示はURLから再構成される）
     const target = resolveDisplayTarget(new URL(location))
     renderImageList(container, _imageLibraryEntries, target?.type === 'image' ? target.path : '')
+    // ローカルに実体がない画像はツリーに混ぜず、別枠に出す
+    if (remoteOnlyContainer) {
+      renderRemoteOnlyImages(remoteOnlyContainer, json.remoteOnly || [])
+      wireRemoteOnlyImageRemoval(remoteOnlyContainer)
+    }
+    // 開いている詳細は取得前のエントリで描かれているため、再取得が届いた時点で描き直す
+    // （公開ステータスはリモートへの問い合わせを伴い、一覧より遅れて確定する）。
+    // ファイル名を編集中のときは入力を捨てないよう、そのままにする。
+    const openDetailPath = _currentImageDetailEntry?.path
+    const editing = document.querySelector('#imageDetailPanel .image-detail-filename-form:not([hidden])')
+    if (openDetailPath && !editing && _imageLibraryEntries.some(e => e.path === openDetailPath)) {
+      openImageDetail(openDetailPath)
+    }
   } catch (e) {
     _imageLibraryEntries = []
     container.innerHTML = '<p class="image-library-error">画像一覧を取得できませんでした</p>'
+    if (remoteOnlyContainer) remoteOnlyContainer.innerHTML = ''
   }
+}
+
+// @vocab: リモートのみ画像表示
+// 別枠の各画像に付いた「取り除く」操作を #画像除去エンドポイント につなぐ。
+// 一覧は描画のたびに作り直されるため、配線もそのたびにやり直す。
+const wireRemoteOnlyImageRemoval = (container) => {
+  container.querySelectorAll('.remote-only-image-remove-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const imagePath = btn.dataset.imagePath
+      const confirmed = await showConfirm(
+        `${imagePath} を公開先から取り除きます。手元にファイルはないため、元に戻せません。`,
+        [{ label: '取り除く', value: true }, { label: '中止', value: null }]
+      )
+      if (confirmed !== true) return
+      btn.disabled = true
+      setImageOperationFeedback('取り除いています...')
+      try {
+        const res = await fetch('/remove_remote_image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imagePath }),
+        })
+        const json = await res.json().catch(() => ({}))
+        if (!res.ok || !json.success) {
+          setImageOperationFeedback(`取り除けませんでした: ${json.error ?? 'サーバーに接続できませんでした'}`)
+          btn.disabled = false
+          return
+        }
+        setImageOperationFeedback(`${imagePath} を取り除きました`)
+        await initImageLibrary()
+      } catch (e) {
+        setImageOperationFeedback(`取り除けませんでした: ${e.message}`)
+        btn.disabled = false
+      }
+    })
+  })
 }
 
 // @vocab: 画像詳細表示
