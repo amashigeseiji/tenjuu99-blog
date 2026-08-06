@@ -122,6 +122,27 @@ describe('エディタは編集内容を公開・更新できる', () => {
         )
         assert.deepStrictEqual(getPublishedReferredBy(ledgerPath, 'image/post/cat.jpg'), [])
       })
+
+      it('台帳パスを渡さないときは、渡された srcDir から導く', async () => {
+        const { handlePublish } = await import('../../packages/editor/server/publish.js')
+        const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'publish-syncer-default-ledger-'))
+        const srcDir = path.join(tmpDir, 'src')
+        fs.mkdirSync(srcDir, { recursive: true })
+        const means = {
+          remoteState: { existsInRemote: async () => false, diffFromRemote: async () => '' },
+          reflect: async () => ({ success: true }),
+          remove: async () => ({ success: true }),
+          deliverable: 'manuscript'
+        }
+        await handlePublish(
+          { filePath: 'post/hello.md', fileContent: '本文\n![猫](/image/post/cat.jpg)', srcDir },
+          means
+        )
+        assert.deepStrictEqual(
+          getPublishedReferredBy(path.join(srcDir, 'image-library.json'), 'image/post/cat.jpg'),
+          ['post/hello.md']
+        )
+      })
     })
 
     describe('変更反映器は公開手段を介してリモートに反映できる', () => {

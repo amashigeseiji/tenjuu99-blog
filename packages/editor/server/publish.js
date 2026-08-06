@@ -16,12 +16,19 @@ export const imageLedgerPath = nodePath.join(srcDir, 'image-library.json')
  * @vocab: 公開ハンドラー
  * @test tests/editor/publish.test.js
  * 公開・更新に成功したときは #画像公開同期器 を呼び出し、この記事が今参照している画像集合を
- * 画像台帳の公開済み参照へ反映する。
+ * 画像台帳の公開済み参照へ反映する。同期器がリモートから取り除けなかった画像があっても記事の
+ * 公開そのものは成立しているため、失敗にはせず warning として伝える。
+ * ledgerPath の既定は srcDir から導く（srcDir を差し替えたなら台帳も同じ基準で決まる）。
  * @param {{ filePath: string, fileContent: string, srcDir?: string, ledgerPath?: string }} options
  * @param {import('@tenjuu99/blog/lib/publishing/publicationMeans.js').PublicationMeans} means
- * @returns {Promise<{ success: boolean, error?: string }>}
+ * @returns {Promise<{ success: boolean, error?: string, warning?: string }>}
  */
-export async function handlePublish({ filePath, fileContent, srcDir: srcDirParam = 'src', ledgerPath = imageLedgerPath }, means) {
+export async function handlePublish({
+  filePath,
+  fileContent,
+  srcDir: srcDirParam = config.src_dir,
+  ledgerPath = nodePath.join(srcDirParam, 'image-library.json'),
+}, means) {
   const target = collectTarget(filePath, fileContent, srcDirParam)
   const files = [target.markdownFile, ...target.imageFiles]
   const state = await getPublicationStatus(target.markdownFile, means.remoteState)
@@ -32,7 +39,10 @@ export async function handlePublish({ filePath, fileContent, srcDir: srcDirParam
   else result = { success: true } // published 状態はローカルとリモートが一致しているため操作不要
 
   if (result.success && (state === 'new' || state === 'modified')) {
-    await syncImagePublicationState(filePath, target.imageFiles, { srcDir: srcDirParam, ledgerPath }, means)
+    const synced = await syncImagePublicationState(filePath, target.imageFiles, { srcDir: srcDirParam, ledgerPath }, means)
+    if (synced.failed.length > 0) {
+      return { ...result, warning: `リモートから取り除けなかった画像があります: ${synced.failed.join(', ')}` }
+    }
   }
   return result
 }
@@ -70,7 +80,7 @@ export const post = async (req, res) => {
     }
     const means = await resolvePublicationMeans({ means: config.publish?.means, cwd: rootDir })
     const result = await handlePublish(
-      { filePath, fileContent: content, srcDir: config.src_dir },
+      { filePath, fileContent: content, srcDir: config.src_dir, ledgerPath: imageLedgerPath },
       means
     )
     console.log(styleText(result.success ? 'green' : 'red', `[publish] ${filePath} ${result.success ? 'ok' : result.error}`))

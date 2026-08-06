@@ -17,19 +17,28 @@ const NOT_YET_PUBLISHED_ERROR = 'まだ公開されていない記事のため�
  * @test tests/editor/sync-operations.test.js
  * 公開済み・更新ありの記事をリモートから取り除く。原稿には関与しない。除去に成功したときは
  * #画像公開同期器 を呼び出し、この記事の参照が失われたことを画像台帳の公開済み参照へ反映する
- * （最後の参照だった画像も道連れにリモートから取り除かれる）。
+ * （最後の参照だった画像も道連れにリモートから取り除かれる）。同期器がリモートから取り除け
+ * なかった画像があっても記事の非公開そのものは成立しているため、失敗にはせず warning として伝える。
+ * ledgerPath の既定は srcDir から導く（srcDir を差し替えたなら台帳も同じ基準で決まる）。
  * @param {{ filePath: string, srcDir?: string, ledgerPath?: string }} options
  * @param {import('@tenjuu99/blog/lib/publishing/publicationMeans.js').PublicationMeans} means
- * @returns {Promise<{ success: boolean, error?: string }>}
+ * @returns {Promise<{ success: boolean, error?: string, warning?: string }>}
  */
-export async function handleUnpublish({ filePath, srcDir: srcDirParam = config.src_dir, ledgerPath = imageLedgerPath }, means) {
+export async function handleUnpublish({
+  filePath,
+  srcDir: srcDirParam = config.src_dir,
+  ledgerPath = nodePath.join(srcDirParam, 'image-library.json'),
+}, means) {
   const target = `${srcDirParam}/pages/${filePath}`
   const status = await getPublicationStatus(target, means.remoteState)
   if (status === 'unknown') return { success: false, error: 'リモートへの接続に失敗しました（upstream branch が未設定の可能性があります）' }
   if (status === 'new') return { success: false, error: NOT_YET_PUBLISHED_ERROR }
   const result = await unpublish([target], means)
   if (result.success) {
-    await syncImagePublicationState(filePath, [], { srcDir: srcDirParam, ledgerPath }, means)
+    const synced = await syncImagePublicationState(filePath, [], { srcDir: srcDirParam, ledgerPath }, means)
+    if (synced.failed.length > 0) {
+      return { ...result, warning: `リモートから取り除けなかった画像があります: ${synced.failed.join(', ')}` }
+    }
   }
   return result
 }
@@ -60,7 +69,7 @@ export const post = async (req, res) => {
       return true
     }
     const means = await resolvePublicationMeans({ means: config.publish?.means, cwd: rootDir })
-    const result = await handleUnpublish({ filePath }, means)
+    const result = await handleUnpublish({ filePath, srcDir: config.src_dir, ledgerPath: imageLedgerPath }, means)
     console.log(styleText(result.success ? 'green' : 'red', `[unpublish] ${filePath} ${result.success ? 'ok' : result.error}`))
     const httpStatus = result.success ? 200 : result.error === NOT_YET_PUBLISHED_ERROR ? 400 : 500
     res.writeHead(httpStatus, { 'content-type': 'application/json' })

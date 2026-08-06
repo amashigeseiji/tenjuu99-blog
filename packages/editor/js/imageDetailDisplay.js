@@ -43,8 +43,8 @@ export function showImageDetail(panelEl, entry) {
   const resolution = entry.width != null && entry.height != null ? `${entry.width} × ${entry.height}` : '不明'
   const addedAt = entry.addedAt ? new Date(entry.addedAt).toLocaleString('ja-JP') : '不明'
   const fileName = entry.path.split('/').pop()
-  const publicationStatus = labelFor(entry.status)
   const publicationStatusAttr = entry.status ?? 'unknown'
+  const publicationStatus = labelFor(publicationStatusAttr)
   panelEl.innerHTML = `
     <img class="image-detail-preview" src="${escapeHtml(entry.url)}" alt="${escapeHtml(fileName)}">
     <dl class="image-detail-meta">

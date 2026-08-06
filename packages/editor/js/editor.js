@@ -200,7 +200,9 @@ const onloadFunction = async (e) => {
         return
       }
       const json = await publishRes.json()
-      feedback.textContent = json.success ? '公開しました' : `公開失敗: ${json.error ?? '不明なエラー'}`
+      feedback.textContent = json.success
+        ? `公開しました${json.warning ? `（${json.warning}）` : ''}`
+        : `公開失敗: ${json.error ?? '不明なエラー'}`
       if (json.success) fetchPublicationStatus(filePath)
     } catch (e) {
       feedback.textContent = 'サーバーに接続できませんでした。しばらくしてからお試しください。'
@@ -223,7 +225,9 @@ const onloadFunction = async (e) => {
         body: JSON.stringify({ filePath })
       })
       const json = await res.json().catch(() => ({}))
-      feedback.textContent = json.success ? '非公開にしました' : `非公開にできませんでした: ${json.error ?? '不明なエラー'}`
+      feedback.textContent = json.success
+        ? `非公開にしました${json.warning ? `（${json.warning}）` : ''}`
+        : `非公開にできませんでした: ${json.error ?? '不明なエラー'}`
       if (json.success) {
         fetchPublicationStatus(filePath)
         refreshSidebar()

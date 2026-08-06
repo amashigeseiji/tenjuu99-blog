@@ -25,7 +25,7 @@ export const imageLedgerPath = nodePath.join(srcDir, 'image-library.json')
 export async function removeRemoteImage({ imagePath }, deps, means) {
   const resolvedSrcDir = nodePath.resolve(deps.srcDir)
   const imageDir = nodePath.join(resolvedSrcDir, 'image')
-  const fullPath = nodePath.resolve(deps.srcDir, imagePath)
+  const fullPath = nodePath.resolve(resolvedSrcDir, imagePath)
   if (!fullPath.startsWith(imageDir + nodePath.sep)) {
     return { success: false, error: '不正な画像パスです' }
   }

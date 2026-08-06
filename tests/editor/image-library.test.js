@@ -882,6 +882,46 @@ describe('画像公開同期器は記事の同期操作の結果を画像台帳�
     await syncImagePublicationState('post/hello.md', [], { srcDir, ledgerPath }, means)
     assert.deepStrictEqual(removed, [])
   })
+
+  it('除去に失敗した画像は公開済み参照を消さず、失敗として返す', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'syncer-gc-fail-'))
+    const srcDir = path.join(tmpDir, 'src')
+    fs.mkdirSync(srcDir, { recursive: true })
+    const ledgerPath = path.join(srcDir, 'image-library.json')
+    setPublishedReferredBy(ledgerPath, 'image/post/cat.jpg', ['post/hello.md'])
+    const means = { remove: async () => ({ success: false, error: '除去に失敗しました' }) }
+    const result = await syncImagePublicationState('post/hello.md', [], { srcDir, ledgerPath }, means)
+    assert.deepStrictEqual(result.removed, [])
+    assert.deepStrictEqual(result.failed, ['image/post/cat.jpg'])
+    assert.deepStrictEqual(
+      getPublishedReferredBy(ledgerPath, 'image/post/cat.jpg'),
+      ['post/hello.md'],
+      'リモートに残っている以上、公開済み参照も残す'
+    )
+  })
+
+  it('除去に失敗した画像は、次の同期でもう一度取り除こうとする', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'syncer-gc-retry-'))
+    const srcDir = path.join(tmpDir, 'src')
+    fs.mkdirSync(srcDir, { recursive: true })
+    const ledgerPath = path.join(srcDir, 'image-library.json')
+    setPublishedReferredBy(ledgerPath, 'image/post/cat.jpg', ['post/hello.md'])
+    let succeed = false
+    const removed = []
+    const means = {
+      remove: async (files) => {
+        if (!succeed) return { success: false, error: '除去に失敗しました' }
+        removed.push(...files)
+        return { success: true }
+      }
+    }
+    await syncImagePublicationState('post/hello.md', [], { srcDir, ledgerPath }, means)
+    succeed = true
+    const result = await syncImagePublicationState('post/hello.md', [], { srcDir, ledgerPath }, means)
+    assert.deepStrictEqual(removed, [`${srcDir}/image/post/cat.jpg`])
+    assert.deepStrictEqual(result.removed, ['image/post/cat.jpg'])
+    assert.deepStrictEqual(getPublishedReferredBy(ledgerPath, 'image/post/cat.jpg'), [])
+  })
 })
 
 describe('検出外参照宣言エンドポイントは画像への宣言の付与・解除を受け付けて画像台帳に反映できる', () => {
@@ -900,6 +940,17 @@ describe('検出外参照宣言エンドポイントは画像への宣言の付�
     const result = await setImageDeclaration({ imagePath: 'image/post/a.jpg', declared: false }, { ledgerPath })
     assert.strictEqual(result.success, true)
     assert.strictEqual(isDeclared(ledgerPath, 'image/post/a.jpg'), false)
+  })
+
+  it('画像の置き場所の外を指すパスは台帳に書き込まない', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'declaration-endpoint-outside-'))
+    const ledgerPath = path.join(tmpDir, 'image-library.json')
+    for (const imagePath of ['pages/post/a.md', 'image/../pages/post/a.md', '../secret.txt']) {
+      const result = await setImageDeclaration({ imagePath, declared: true }, { ledgerPath })
+      assert.strictEqual(result.success, false, imagePath)
+      assert.ok(result.error, imagePath)
+    }
+    assert.deepStrictEqual(readLedger(ledgerPath), {}, '台帳は書き換えられない')
   })
 })
 
@@ -1141,6 +1192,38 @@ describe('画像公開同期器は取り除いた移動元パスの記録を消�
     removed.length = 0
     await syncImagePublicationState('post/hello.md', refs, { srcDir, ledgerPath }, means)
     assert.deepStrictEqual(removed, [])
+  })
+
+  it('旧パスの除去に失敗したら記録を消さず、次の同期でもう一度取り除こうとする', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'syncer-movedfrom-fail-'))
+    const srcDir = path.join(tmpDir, 'src')
+    fs.mkdirSync(srcDir, { recursive: true })
+    const ledgerPath = path.join(srcDir, 'image-library.json')
+    setPublishedReferredBy(ledgerPath, 'image/post/a.jpg', ['post/hello.md'])
+    renameEntry(ledgerPath, 'image/post/a.jpg', 'image/post/b.jpg')
+    let succeed = false
+    const removed = []
+    const means = {
+      remove: async (files) => {
+        if (!succeed) return { success: false, error: '除去に失敗しました' }
+        removed.push(...files)
+        return { success: true }
+      }
+    }
+    const refs = [`${srcDir}/image/post/b.jpg`]
+
+    const failedResult = await syncImagePublicationState('post/hello.md', refs, { srcDir, ledgerPath }, means)
+    assert.deepStrictEqual(failedResult.failed, ['image/post/a.jpg'])
+    assert.strictEqual(
+      getMovedFrom(ledgerPath, 'image/post/b.jpg'),
+      'image/post/a.jpg',
+      'リモートに残っている以上、移動元パスの記録も残す'
+    )
+
+    succeed = true
+    await syncImagePublicationState('post/hello.md', refs, { srcDir, ledgerPath }, means)
+    assert.deepStrictEqual(removed, [`${srcDir}/image/post/a.jpg`])
+    assert.strictEqual(getMovedFrom(ledgerPath, 'image/post/b.jpg'), null)
   })
 })
 

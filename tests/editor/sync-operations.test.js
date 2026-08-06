@@ -68,6 +68,21 @@ describe('非公開にするは公開済みの記事をリモートから取り�
       await handleUnpublish({ filePath: 'post/hello.md', srcDir, ledgerPath }, means)
       assert.deepStrictEqual(getPublishedReferredBy(ledgerPath, 'image/post/cat.jpg'), ['post/hello.md'])
     })
+
+    it('台帳パスを渡さないときは、渡された srcDir から導く', async () => {
+      const { handleUnpublish } = await import('../../packages/editor/server/unpublish.js')
+      const dir = mkdtempSync(nodePath.join(tmpdir(), 'unpublish-syncer-default-ledger-'))
+      const srcDir = nodePath.join(dir, 'src')
+      mkdirSync(srcDir, { recursive: true })
+      const ledgerPath = nodePath.join(srcDir, 'image-library.json')
+      setPublishedReferredBy(ledgerPath, 'image/post/cat.jpg', ['post/hello.md'])
+      const means = {
+        remoteState: { existsInRemote: async () => true, diffFromRemote: async () => '' },
+        remove: async () => ({ success: true })
+      }
+      await handleUnpublish({ filePath: 'post/hello.md', srcDir }, means)
+      assert.deepStrictEqual(getPublishedReferredBy(ledgerPath, 'image/post/cat.jpg'), [])
+    })
   })
 })
 
