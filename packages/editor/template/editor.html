@@ -46,6 +46,7 @@
       </div>
       <div class="sidebar-tab-content" data-tab="images" role="tabpanel" id="sidebar-tabpanel-images" aria-labelledby="sidebar-tab-images" hidden>
         <div class="sidebar-images"></div>
+        <div class="sidebar-remote-only-images"></div>
       </div>
       <div class="sidebar-sync">
         <button type="button" id="pullBtn" disabled>リモートから取り込む</button>
@@ -63,11 +64,6 @@
           <button type="button" id="unpublishBtn" disabled>非公開にする</button>
           <button type="button" id="deleteBtn" hidden>削除する</button>
           <input type="submit" value="公開する" data-url="/publish" id="publishBtn">
-        </div>
-        <div class="editor-options-right" id="imageDetailOptions" hidden>
-          <input type="text" id="imageMoveInput" placeholder="移動先（image/ 配下のパス）" autocomplete="off">
-          <button type="button" id="imageMoveBtn">移動する</button>
-          <button type="button" id="imageDeleteBtn">削除する</button>
         </div>
       </div>
       <div class="textareaAndPreview">

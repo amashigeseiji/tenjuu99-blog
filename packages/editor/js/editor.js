@@ -2,11 +2,15 @@ import { initAutoPreview } from './autoPreviewInitializer.js'
 import { initAutoSave } from './autoSaveInitializer.js'
 import { matchTemplate, buildFrontmatterString, loadFrontmatterTemplate } from './frontmatter_template.js'
 import { publishAvailability, resolveOperations } from './publishAvailability.js'
+import { labelFor } from './publicationStatusLabel.js'
 import { renderImageList } from './imageListDisplay.js'
+import { renderRemoteOnlyImages } from './remoteOnlyImageDisplay.js'
 import { resolveDisplayTarget } from './displayTargetResolver.js'
 import { showImageDetail, renderReferencingArticles } from './imageDetailDisplay.js'
 import { initImageDelete } from './imageDeleteUI.js'
 import { initImageMove } from './imageMoveUI.js'
+import { initImageDeclaration } from './imageDeclarationUI.js'
+import { initInlineFileNameEdit } from './inlineFileNameEditUI.js'
 
 // @vocab: 確認ダイアログ
 // WKWebView は window.confirm() に応答しない（WKUIDelegate 未実装のため無反応になる）ので、
@@ -132,7 +136,6 @@ const onloadFunction = async (e) => {
     publishWithFeedback(form)
   })
 
-  const statusLabels = { new: '未公開', modified: '更新あり', published: '公開済み', 'remote-only': 'リモートのみ' }
   // @vocab: 公開可否判定器
   // 記事の状態に応じて、公開・非公開・削除の各操作の提供を切り替える
   const applyPublishAvailability = (status) => {
@@ -154,7 +157,8 @@ const onloadFunction = async (e) => {
   }
   const renderPublicationStatus = (statusEl, filePath, status) => {
     const { label } = publishAvailability(status)
-    statusEl.textContent = label ?? (statusLabels[status] ? `(${statusLabels[status]})` : '')
+    const statusLabel = labelFor(status)
+    statusEl.textContent = label ?? (statusLabel ? `(${statusLabel})` : '')
     statusEl.dataset.status = status
     applyPublishAvailability(status)
     // サイドバーリンクの data-status も同期する
@@ -196,7 +200,9 @@ const onloadFunction = async (e) => {
         return
       }
       const json = await publishRes.json()
-      feedback.textContent = json.success ? '公開しました' : `公開失敗: ${json.error ?? '不明なエラー'}`
+      feedback.textContent = json.success
+        ? `公開しました${json.warning ? `（${json.warning}）` : ''}`
+        : `公開失敗: ${json.error ?? '不明なエラー'}`
       if (json.success) fetchPublicationStatus(filePath)
     } catch (e) {
       feedback.textContent = 'サーバーに接続できませんでした。しばらくしてからお試しください。'
@@ -219,7 +225,9 @@ const onloadFunction = async (e) => {
         body: JSON.stringify({ filePath })
       })
       const json = await res.json().catch(() => ({}))
-      feedback.textContent = json.success ? '非公開にしました' : `非公開にできませんでした: ${json.error ?? '不明なエラー'}`
+      feedback.textContent = json.success
+        ? `非公開にしました${json.warning ? `（${json.warning}）` : ''}`
+        : `非公開にできませんでした: ${json.error ?? '不明なエラー'}`
       if (json.success) {
         fetchPublicationStatus(filePath)
         refreshSidebar()
@@ -736,6 +744,7 @@ const initDropReceiver = (textarea, getMdFile, onUpdate, cancelPendingDebounce) 
 let _imageLibraryEntries = []
 const initImageLibrary = async () => {
   const container = document.querySelector('.sidebar-images')
+  const remoteOnlyContainer = document.querySelector('.sidebar-remote-only-images')
   if (!container) return
   try {
     const res = await fetch('/get_image_library')
@@ -745,15 +754,66 @@ const initImageLibrary = async () => {
     // 選択中の画像はURLから導出する（表示はURLから再構成される）
     const target = resolveDisplayTarget(new URL(location))
     renderImageList(container, _imageLibraryEntries, target?.type === 'image' ? target.path : '')
+    // ローカルに実体がない画像はツリーに混ぜず、別枠に出す
+    if (remoteOnlyContainer) {
+      renderRemoteOnlyImages(remoteOnlyContainer, json.remoteOnly || [])
+      wireRemoteOnlyImageRemoval(remoteOnlyContainer)
+    }
+    // 開いている詳細は取得前のエントリで描かれているため、再取得が届いた時点で描き直す
+    // （公開ステータスはリモートへの問い合わせを伴い、一覧より遅れて確定する）。
+    // ファイル名を編集中のときは入力を捨てないよう、そのままにする。
+    const openDetailPath = _currentImageDetailEntry?.path
+    const editing = document.querySelector('#imageDetailPanel .image-detail-filename-form:not([hidden])')
+    if (openDetailPath && !editing && _imageLibraryEntries.some(e => e.path === openDetailPath)) {
+      openImageDetail(openDetailPath)
+    }
   } catch (e) {
     _imageLibraryEntries = []
     container.innerHTML = '<p class="image-library-error">画像一覧を取得できませんでした</p>'
+    if (remoteOnlyContainer) remoteOnlyContainer.innerHTML = ''
   }
 }
 
+// @vocab: リモートのみ画像表示
+// 別枠の各画像に付いた「取り除く」操作を #画像除去エンドポイント につなぐ。
+// 一覧は描画のたびに作り直されるため、配線もそのたびにやり直す。
+const wireRemoteOnlyImageRemoval = (container) => {
+  container.querySelectorAll('.remote-only-image-remove-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const imagePath = btn.dataset.imagePath
+      const confirmed = await showConfirm(
+        `${imagePath} を公開先から取り除きます。手元にファイルはないため、元に戻せません。`,
+        [{ label: '取り除く', value: true }, { label: '中止', value: null }]
+      )
+      if (confirmed !== true) return
+      btn.disabled = true
+      setImageOperationFeedback('取り除いています...')
+      try {
+        const res = await fetch('/remove_remote_image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imagePath }),
+        })
+        const json = await res.json().catch(() => ({}))
+        if (!res.ok || !json.success) {
+          setImageOperationFeedback(`取り除けませんでした: ${json.error ?? 'サーバーに接続できませんでした'}`)
+          btn.disabled = false
+          return
+        }
+        setImageOperationFeedback(`${imagePath} を取り除きました`)
+        await initImageLibrary()
+      } catch (e) {
+        setImageOperationFeedback(`取り除けませんでした: ${e.message}`)
+        btn.disabled = false
+      }
+    })
+  })
+}
+
 // @vocab: 画像詳細表示
-// 記事編集画面のヘッダー（editor-options）を流用する: 左側にファイルパスの
-// かわりに画像パスを、右側には記事の操作ボタンのかわりに画像の操作ボタン（削除・改名）を表示する。
+// 記事編集画面のヘッダー（editor-options）を流用する: 左側にファイルパスのかわりに画像パスを表示する。
+// 操作（ファイル名変更・公開状態確認・検出外参照宣言・削除）はヘッダーではなく、
+// showImageDetail が描画するメタデータ欄にまとめて表示する（成層ツリー実験フェーズ F-03）。
 let _currentImageDetailEntry = null
 const openImageDetail = (imagePath) => {
   const entry = _imageLibraryEntries.find(e => e.path === imagePath)
@@ -769,15 +829,15 @@ const openImageDetail = (imagePath) => {
   document.querySelector('.textareaAndPreview')?.setAttribute('hidden', '')
   document.querySelector('#fileStatus')?.setAttribute('hidden', '')
   document.querySelector('#articleOptionsRight')?.setAttribute('hidden', '')
-  document.querySelector('#imageDetailOptions')?.removeAttribute('hidden')
-  // 移動先入力には現在の配置パス（image/ 相対）をプリフィルし、編集して確定する
-  const moveInput = document.querySelector('#imageMoveInput')
-  if (moveInput) moveInput.value = entry.path.replace(/^image\//, '')
+  const declarationToggle = panel.querySelector('.image-detail-declaration-toggle')
+  if (declarationToggle) declarationToggle.checked = !!entry.declared
   const imageFileNameEl = document.querySelector('#imageDetailFileName')
   if (imageFileNameEl) {
     imageFileNameEl.textContent = entry.path
     imageFileNameEl.hidden = false
   }
+  // メタデータ欄はshowImageDetailのたびに作り直されるため、操作の配線もそのたびにやり直す
+  wireImageDetailOperations(panel)
   // 参照記事一覧は画像1件ごとにgit問い合わせを伴うため、一覧取得時ではなく選択時に個別取得する
   fetch(`/get_image_references?imagePath=${encodeURIComponent(entry.path)}`)
     .then(res => res.json())
@@ -795,7 +855,6 @@ const closeImageDetail = () => {
   document.querySelector('.textareaAndPreview')?.removeAttribute('hidden')
   document.querySelector('#fileStatus')?.removeAttribute('hidden')
   document.querySelector('#articleOptionsRight')?.removeAttribute('hidden')
-  document.querySelector('#imageDetailOptions')?.setAttribute('hidden', '')
   document.querySelector('#imageDetailFileName')?.setAttribute('hidden', '')
 }
 
@@ -823,35 +882,52 @@ const setImageOperationFeedback = (message) => {
   const feedback = document.querySelector('#operationFeedback')
   if (feedback) feedback.textContent = message
 }
-initImageDelete(
-  document.querySelector('#imageDeleteBtn'),
-  () => _currentImageDetailEntry,
-  showConfirm,
-  setImageOperationFeedback,
-  async (deletedPath, referenceHandling) => {
-    // 削除された画像はもう表示対象にならないため、URLからも取り除く
-    leaveImageDetail()
-    await initImageLibrary()
-    if (referenceHandling === 'update') await reloadCurrentArticle()
-  }
-)
-initImageMove(
-  document.querySelector('#imageMoveBtn'),
-  () => _currentImageDetailEntry,
-  () => document.querySelector('#imageMoveInput')?.value.trim(),
-  showConfirm,
-  setImageOperationFeedback,
-  async (newPath, referenceHandling) => {
-    // 同じ資源が新しいパスになっただけなので、履歴を積まずにURLを付け替える
-    const newUrl = new URL(location)
-    newUrl.searchParams.set('image', newPath)
-    newUrl.searchParams.delete('md')
-    history.replaceState({}, '', newUrl)
-    await initImageLibrary()
-    if (referenceHandling === 'update') await reloadCurrentArticle()
-    openImageDetail(newPath)
-  }
-)
+
+// 画像詳細のメタデータ欄（ファイル名編集・公開状態・検出外参照宣言・削除）は
+// showImageDetail のたびに作り直されるため、要素への配線もそのたびにここから呼び直す。
+const wireImageDetailOperations = (panel) => {
+  initInlineFileNameEdit(panel, () => _currentImageDetailEntry)
+  initImageDelete(
+    panel.querySelector('.image-detail-delete-btn'),
+    () => _currentImageDetailEntry,
+    showConfirm,
+    setImageOperationFeedback,
+    async (deletedPath, referenceHandling) => {
+      // 削除された画像はもう表示対象にならないため、URLからも取り除く
+      leaveImageDetail()
+      await initImageLibrary()
+      if (referenceHandling === 'update') await reloadCurrentArticle()
+    }
+  )
+  initImageMove(
+    panel.querySelector('.image-detail-filename-save-btn'),
+    () => _currentImageDetailEntry,
+    () => panel.querySelector('.image-detail-filename-input')?.value.trim(),
+    showConfirm,
+    setImageOperationFeedback,
+    async (newPath, referenceHandling) => {
+      // 同じ資源が新しいパスになっただけなので、履歴を積まずにURLを付け替える
+      const newUrl = new URL(location)
+      newUrl.searchParams.set('image', newPath)
+      newUrl.searchParams.delete('md')
+      history.replaceState({}, '', newUrl)
+      await initImageLibrary()
+      if (referenceHandling === 'update') await reloadCurrentArticle()
+      openImageDetail(newPath)
+    }
+  )
+  initImageDeclaration(
+    panel.querySelector('.image-detail-declaration-toggle'),
+    () => _currentImageDetailEntry,
+    setImageOperationFeedback,
+    (imagePath, declared) => {
+      const entry = _imageLibraryEntries.find(e => e.path === imagePath)
+      if (entry) entry.declared = declared
+      if (_currentImageDetailEntry?.path === imagePath) _currentImageDetailEntry.declared = declared
+      setImageOperationFeedback(declared ? '宣言を付与しました' : '宣言を解除しました')
+    }
+  )
+}
 
 document.addEventListener('DOMContentLoaded', async (event) => {
   const url = new URL(location)

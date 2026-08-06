@@ -14,15 +14,21 @@ export function renderImageListHtml(entries, activeImagePath = '') {
   if (entries.length === 0) {
     return '<p class="image-library-empty">画像がありません</p>'
   }
+  const statusMap = {}
   const files = entries.map(entry => {
     const withoutPrefix = entry.path.replace(/^image\//, '')
     const dotIndex = withoutPrefix.lastIndexOf('.')
     const name = dotIndex === -1 ? withoutPrefix : withoutPrefix.slice(0, dotIndex)
     const filetype = dotIndex === -1 ? '' : withoutPrefix.slice(dotIndex + 1)
+    // @vocab: 公開ステータス
+    // 記事一覧と同じ記号方式（data-status → CSS ::after）を流用する。
+    // 画像ツリーに並ぶのは 未公開／更新あり／公開済み／不明 の4状態。「リモートのみ」は
+    // ローカルに実体がないためこのツリーには現れない（#リモートのみ画像表示 が別枠で担う）。
+    statusMap[withoutPrefix] = entry.status ?? 'unknown'
     return { name, __filetype: filetype }
   })
   const tree = buildTree(files)
-  return renderTreeHtml(tree, activeImagePath.replace(/^image\//, ''), {}, '', {
+  return renderTreeHtml(tree, activeImagePath.replace(/^image\//, ''), statusMap, '', {
     buildHref: path => `/editor?image=${encodeURIComponent(`image/${path}`)}`,
     linkClass: 'image-node',
     fileAttrs: file => ` data-image-path="${escapeHtml(`image/${file.path}`)}"`,

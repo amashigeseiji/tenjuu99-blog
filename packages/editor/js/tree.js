@@ -7,8 +7,10 @@
  * @returns {TreeNode}
  */
 // @vocab: ツリービルダー
+// @vocab: ネスト変換
 // @vocab: ファイルリスト
 // @vocab: ディレクトリツリー
+// @vocab: ディレクトリ
 // @test: tests/editor/editor-sidebar.test.js
 export function buildTree(files) {
   const root = { dirs: {}, files: [] }

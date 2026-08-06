@@ -2,6 +2,10 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert'
 import { publish, update } from '../../packages/editor/server/changeReflector.js'
 import { getPublicationStatus } from '../../packages/editor/server/publicationStatus.js'
+import { getPublishedReferredBy } from '../../packages/editor/server/imageLedger.js'
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 
 describe('エディタは編集内容を公開・更新できる', () => {
   describe('公開ボタンはリクエストを送信してフィードバックを表示できる', () => {
@@ -11,14 +15,16 @@ describe('エディタは編集内容を公開・更新できる', () => {
   describe('公開ハンドラーは公開手段を通じて記事の公開・更新ができる', () => {
     it('状態が未公開のとき「公開する」遷移で公開手段に反映を委ねる', async () => {
       const { handlePublish } = await import('../../packages/editor/server/publish.js')
+      const ledgerPath = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'publish-')), 'image-library.json')
       const reflected = []
       const means = {
         remoteState: { existsInRemote: async () => false, diffFromRemote: async () => '' },
         reflect: async (files) => { reflected.push(...files); return { success: true } },
+        remove: async () => ({ success: true }),
         deliverable: 'manuscript'
       }
       const result = await handlePublish(
-        { filePath: 'post/hello.md', fileContent: '本文\n![猫](/image/post/cat.jpg)', srcDir: 'src' },
+        { filePath: 'post/hello.md', fileContent: '本文\n![猫](/image/post/cat.jpg)', srcDir: 'src', ledgerPath },
         means
       )
       assert.deepStrictEqual(reflected, ['src/pages/post/hello.md', 'src/image/post/cat.jpg'])
@@ -26,14 +32,16 @@ describe('エディタは編集内容を公開・更新できる', () => {
     })
     it('状態が更新ありのとき「更新する」遷移で公開手段に反映を委ねる', async () => {
       const { handlePublish } = await import('../../packages/editor/server/publish.js')
+      const ledgerPath = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'publish-')), 'image-library.json')
       const reflected = []
       const means = {
         remoteState: { existsInRemote: async () => true, diffFromRemote: async () => 'diff --git ...' },
         reflect: async (files) => { reflected.push(...files); return { success: true } },
+        remove: async () => ({ success: true }),
         deliverable: 'manuscript'
       }
       const result = await handlePublish(
-        { filePath: 'post/hello.md', fileContent: '本文', srcDir: 'src' },
+        { filePath: 'post/hello.md', fileContent: '本文', srcDir: 'src', ledgerPath },
         means
       )
       assert.deepStrictEqual(reflected, ['src/pages/post/hello.md'])
@@ -41,14 +49,16 @@ describe('エディタは編集内容を公開・更新できる', () => {
     })
     it('状態が公開済みのときは反映なしで成功を返す', async () => {
       const { handlePublish } = await import('../../packages/editor/server/publish.js')
+      const ledgerPath = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'publish-')), 'image-library.json')
       const reflected = []
       const means = {
         remoteState: { existsInRemote: async () => true, diffFromRemote: async () => '' },
         reflect: async (files) => { reflected.push(...files); return { success: true } },
+        remove: async () => ({ success: true }),
         deliverable: 'manuscript'
       }
       const result = await handlePublish(
-        { filePath: 'post/hello.md', fileContent: '本文', srcDir: 'src' },
+        { filePath: 'post/hello.md', fileContent: '本文', srcDir: 'src', ledgerPath },
         means
       )
       assert.deepStrictEqual(reflected, [])
@@ -56,20 +66,83 @@ describe('エディタは編集内容を公開・更新できる', () => {
     })
     it('リモートの内容が参照できないときは公開せずエラーを返す', async () => {
       const { handlePublish } = await import('../../packages/editor/server/publish.js')
+      const ledgerPath = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'publish-')), 'image-library.json')
       const means = {
         remoteState: {
           existsInRemote: async () => { throw new Error('upstream not set') },
           diffFromRemote: async () => { throw new Error('upstream not set') }
         },
         reflect: async () => { throw new Error('参照できないときに反映してはいけない') },
+        remove: async () => { throw new Error('参照できないときに除去してはいけない') },
         deliverable: 'manuscript'
       }
       const result = await handlePublish(
-        { filePath: 'post/hello.md', fileContent: '本文', srcDir: 'src' },
+        { filePath: 'post/hello.md', fileContent: '本文', srcDir: 'src', ledgerPath },
         means
       )
       assert.strictEqual(result.success, false)
       assert.ok(result.error)
+    })
+
+    describe('公開ハンドラーは記事の公開・更新の成功後に画像公開同期器を呼び出せる', () => {
+      it('画像を参照する記事を新規公開すると、画像台帳の公開済み参照に記事が記録される', async () => {
+        const { handlePublish } = await import('../../packages/editor/server/publish.js')
+        const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'publish-syncer-'))
+        const srcDir = path.join(tmpDir, 'src')
+        fs.mkdirSync(srcDir, { recursive: true })
+        const ledgerPath = path.join(srcDir, 'image-library.json')
+        const means = {
+          remoteState: { existsInRemote: async () => false, diffFromRemote: async () => '' },
+          reflect: async () => ({ success: true }),
+          remove: async () => ({ success: true }),
+          deliverable: 'manuscript'
+        }
+        await handlePublish(
+          { filePath: 'post/hello.md', fileContent: '本文\n![猫](/image/post/cat.jpg)', srcDir, ledgerPath },
+          means
+        )
+        assert.deepStrictEqual(getPublishedReferredBy(ledgerPath, 'image/post/cat.jpg'), ['post/hello.md'])
+      })
+
+      it('反映に失敗したときは画像公開同期器を呼び出さない', async () => {
+        const { handlePublish } = await import('../../packages/editor/server/publish.js')
+        const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'publish-syncer-fail-'))
+        const srcDir = path.join(tmpDir, 'src')
+        fs.mkdirSync(srcDir, { recursive: true })
+        const ledgerPath = path.join(srcDir, 'image-library.json')
+        const means = {
+          remoteState: { existsInRemote: async () => false, diffFromRemote: async () => '' },
+          reflect: async () => ({ success: false, error: '反映に失敗しました' }),
+          remove: async () => ({ success: true }),
+          deliverable: 'manuscript'
+        }
+        await handlePublish(
+          { filePath: 'post/hello.md', fileContent: '本文\n![猫](/image/post/cat.jpg)', srcDir, ledgerPath },
+          means
+        )
+        assert.deepStrictEqual(getPublishedReferredBy(ledgerPath, 'image/post/cat.jpg'), [])
+      })
+
+      it('台帳パスを渡さないときは、渡された srcDir から導く', async () => {
+        const { handlePublish } = await import('../../packages/editor/server/publish.js')
+        const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'publish-syncer-default-ledger-'))
+        const srcDir = path.join(tmpDir, 'src')
+        fs.mkdirSync(srcDir, { recursive: true })
+        const means = {
+          remoteState: { existsInRemote: async () => false, diffFromRemote: async () => '' },
+          reflect: async () => ({ success: true }),
+          remove: async () => ({ success: true }),
+          deliverable: 'manuscript'
+        }
+        await handlePublish(
+          { filePath: 'post/hello.md', fileContent: '本文\n![猫](/image/post/cat.jpg)', srcDir },
+          means
+        )
+        assert.deepStrictEqual(
+          getPublishedReferredBy(path.join(srcDir, 'image-library.json'), 'image/post/cat.jpg'),
+          ['post/hello.md']
+        )
+      })
     })
 
     describe('変更反映器は公開手段を介してリモートに反映できる', () => {

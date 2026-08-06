@@ -6,25 +6,45 @@ import { rootDir, srcDir } from '@tenjuu99/blog/lib/dir.js'
 import { collectTarget } from './publishTargetCollector.js'
 import { publish, update } from './changeReflector.js'
 import { getPublicationStatus } from './publicationStatus.js'
+import { syncImagePublicationState } from './imagePublicationSyncer.js'
 import { resolvePublicationMeans } from '@tenjuu99/blog/lib/publishing/publicationMeansResolver.js'
 import { parseJsonBody } from '@tenjuu99/blog/lib/server/helper/parseRequestBody.js'
+
+export const imageLedgerPath = nodePath.join(srcDir, 'image-library.json')
 
 /**
  * @vocab: 公開ハンドラー
  * @test tests/editor/publish.test.js
- * @param {{ filePath: string, fileContent: string, srcDir?: string }} options
+ * 公開・更新に成功したときは #画像公開同期器 を呼び出し、この記事が今参照している画像集合を
+ * 画像台帳の公開済み参照へ反映する。同期器がリモートから取り除けなかった画像があっても記事の
+ * 公開そのものは成立しているため、失敗にはせず warning として伝える。
+ * ledgerPath の既定は srcDir から導く（srcDir を差し替えたなら台帳も同じ基準で決まる）。
+ * @param {{ filePath: string, fileContent: string, srcDir?: string, ledgerPath?: string }} options
  * @param {import('@tenjuu99/blog/lib/publishing/publicationMeans.js').PublicationMeans} means
- * @returns {Promise<{ success: boolean, error?: string }>}
+ * @returns {Promise<{ success: boolean, error?: string, warning?: string }>}
  */
-export async function handlePublish({ filePath, fileContent, srcDir: srcDirParam = 'src' }, means) {
+export async function handlePublish({
+  filePath,
+  fileContent,
+  srcDir: srcDirParam = config.src_dir,
+  ledgerPath = nodePath.join(srcDirParam, 'image-library.json'),
+}, means) {
   const target = collectTarget(filePath, fileContent, srcDirParam)
   const files = [target.markdownFile, ...target.imageFiles]
   const state = await getPublicationStatus(target.markdownFile, means.remoteState)
-  if (state === 'new') return await publish(files, means)
-  if (state === 'modified') return await update(files, means)
-  if (state === 'unknown') return { success: false, error: 'リモートへの接続に失敗しました（upstream branch が未設定の可能性があります）' }
-  // published 状態はローカルとリモートが一致しているため操作不要
-  return { success: true }
+  let result
+  if (state === 'new') result = await publish(files, means)
+  else if (state === 'modified') result = await update(files, means)
+  else if (state === 'unknown') return { success: false, error: 'リモートへの接続に失敗しました（upstream branch が未設定の可能性があります）' }
+  else result = { success: true } // published 状態はローカルとリモートが一致しているため操作不要
+
+  if (result.success && (state === 'new' || state === 'modified')) {
+    const synced = await syncImagePublicationState(filePath, target.imageFiles, { srcDir: srcDirParam, ledgerPath }, means)
+    if (synced.failed.length > 0) {
+      return { ...result, warning: `リモートから取り除けなかった画像があります: ${synced.failed.join(', ')}` }
+    }
+  }
+  return result
 }
 
 export const path = '/publish'
@@ -60,7 +80,7 @@ export const post = async (req, res) => {
     }
     const means = await resolvePublicationMeans({ means: config.publish?.means, cwd: rootDir })
     const result = await handlePublish(
-      { filePath, fileContent: content, srcDir: config.src_dir },
+      { filePath, fileContent: content, srcDir: config.src_dir, ledgerPath: imageLedgerPath },
       means
     )
     console.log(styleText(result.success ? 'green' : 'red', `[publish] ${filePath} ${result.success ? 'ok' : result.error}`))

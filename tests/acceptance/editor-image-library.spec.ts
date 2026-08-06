@@ -48,7 +48,8 @@ const TINY_PNG = Buffer.from(
 )
 
 // ─── US-01: 画像の一覧・プレビュー・メタデータ確認 ────────────────────────────────────────────────
-// US-05〜US-06（公開状態導出・宣言）は未実装のため対象外。
+// US-05〜US-06（公開状態導出・宣言）は実 git 操作を伴うため、専用の同期フィクスチャを持つ
+// tests/acceptance/editor-image-library-publication-state.spec.ts で扱う。
 
 test.describe('US-01: 画像の一覧・プレビュー・メタデータ確認', () => {
   test('シナリオ 1: 画像一覧を開くと全画像が表示される', async ({ page }) => {
@@ -206,7 +207,7 @@ test.describe('US-02: 画像の削除', () => {
     await gotoWithRetry(page, '/editor')
     await openImagesTab(page)
     await page.locator(`.image-node[data-image-path="${relPath}"]`).click()
-    await page.locator('#imageDeleteBtn').click()
+    await page.locator('.image-detail-delete-btn').click()
     // 参照なしの確認ダイアログ（OK/キャンセル）で「OK」を押す
     await page.locator('#confirmDialogActions button', { hasText: 'OK' }).click()
 
@@ -229,7 +230,7 @@ test.describe('US-02: 画像の削除', () => {
     await gotoWithRetry(page, '/editor')
     await openImagesTab(page)
     await page.locator(`.image-node[data-image-path="${relPath}"]`).click()
-    await page.locator('#imageDeleteBtn').click()
+    await page.locator('.image-detail-delete-btn').click()
 
     // Then: 削除は即座には実行されず、参照記事一覧（公開ステータス含む）が提示される
     await expect(page.locator('#confirmDialogMessage')).toContainText(mdFile)
@@ -254,7 +255,7 @@ test.describe('US-02: 画像の削除', () => {
     await gotoWithRetry(page, '/editor')
     await openImagesTab(page)
     await page.locator(`.image-node[data-image-path="${relPath}"]`).click()
-    await page.locator('#imageDeleteBtn').click()
+    await page.locator('.image-detail-delete-btn').click()
     await page.locator('#confirmDialogActions button', { hasText: '削除(参照も除去)' }).click()
 
     await expect(page.locator('#operationFeedback')).toHaveText('削除しました')
@@ -276,7 +277,7 @@ test.describe('US-02: 画像の削除', () => {
     await gotoWithRetry(page, '/editor')
     await openImagesTab(page)
     await page.locator(`.image-node[data-image-path="${relPath}"]`).click()
-    await page.locator('#imageDeleteBtn').click()
+    await page.locator('.image-detail-delete-btn').click()
     await page.locator('#confirmDialogActions button', { hasText: '中止' }).click()
 
     expect(fs.existsSync(absPath)).toBeTruthy()
@@ -286,7 +287,7 @@ test.describe('US-02: 画像の削除', () => {
 
 // ─── US-03: 画像の移動（パスの付け替え） ────────────────────────────────────────────────
 // 改名（ファイル名だけの変更）は同じ置き場所への移動の特殊な場合（問題定義 v5）。
-// 移動先入力（#imageMoveInput）は image/ 相対の配置パス（階層可）。
+// 移動先入力（.image-detail-filename-input、「編集」クリックで表示）は image/ 相対の配置パス（階層可）。
 
 test.describe('US-03: 画像の移動（パスの付け替え）', () => {
   test('シナリオ1: どの記事からも参照されていない画像を移動できる', async ({ page }) => {
@@ -304,8 +305,9 @@ test.describe('US-03: 画像の移動（パスの付け替え）', () => {
     await gotoWithRetry(page, '/editor')
     await openImagesTab(page)
     await page.locator(`.image-node[data-image-path="${relPath}"]`).click()
-    await page.locator('#imageMoveInput').fill('acceptance-image-library-move-dest/moved-unreferenced.png')
-    await page.locator('#imageMoveBtn').click()
+    await page.locator('.image-detail-filename-edit-btn').click()
+    await page.locator('.image-detail-filename-input').fill('acceptance-image-library-move-dest/moved-unreferenced.png')
+    await page.locator('.image-detail-filename-save-btn').click()
     await page.locator('#confirmDialogActions button', { hasText: 'OK' }).click()
 
     // Then: 画像ファイルが新しいパスに移り、一覧で新しいパスに表示される
@@ -328,8 +330,9 @@ test.describe('US-03: 画像の移動（パスの付け替え）', () => {
     await gotoWithRetry(page, '/editor')
     await openImagesTab(page)
     await page.locator(`.image-node[data-image-path="${relPath}"]`).click()
-    await page.locator('#imageMoveInput').fill('acceptance-image-library-move/renamed-only.png')
-    await page.locator('#imageMoveBtn').click()
+    await page.locator('.image-detail-filename-edit-btn').click()
+    await page.locator('.image-detail-filename-input').fill('acceptance-image-library-move/renamed-only.png')
+    await page.locator('.image-detail-filename-save-btn').click()
     await page.locator('#confirmDialogActions button', { hasText: 'OK' }).click()
 
     // Then: 画像ファイルが新しい名前に変更され、一覧に新しいファイル名で表示される
@@ -356,8 +359,9 @@ test.describe('US-03: 画像の移動（パスの付け替え）', () => {
     await gotoWithRetry(page, '/editor')
     await openImagesTab(page)
     await page.locator(`.image-node[data-image-path="${relPath}"]`).click()
-    await page.locator('#imageMoveInput').fill('acceptance-image-library-move-dest/moved-referenced.png')
-    await page.locator('#imageMoveBtn').click()
+    await page.locator('.image-detail-filename-edit-btn').click()
+    await page.locator('.image-detail-filename-input').fill('acceptance-image-library-move-dest/moved-referenced.png')
+    await page.locator('.image-detail-filename-save-btn').click()
 
     // Then: 移動は即座には実行されず、参照記事一覧が提示される
     await expect(page.locator('#confirmDialogMessage')).toContainText(mdFile)
@@ -385,8 +389,9 @@ test.describe('US-03: 画像の移動（パスの付け替え）', () => {
     await gotoWithRetry(page, '/editor')
     await openImagesTab(page)
     await page.locator(`.image-node[data-image-path="${relPath}"]`).click()
-    await page.locator('#imageMoveInput').fill('acceptance-image-library-move/renamed-referenced-keep.png')
-    await page.locator('#imageMoveBtn').click()
+    await page.locator('.image-detail-filename-edit-btn').click()
+    await page.locator('.image-detail-filename-input').fill('acceptance-image-library-move/renamed-referenced-keep.png')
+    await page.locator('.image-detail-filename-save-btn').click()
     await page.locator('#confirmDialogActions button', { hasText: /^移動$/ }).click()
 
     // Then: 画像は移動し、参照していた記事は変更されない
@@ -410,8 +415,9 @@ test.describe('US-03: 画像の移動（パスの付け替え）', () => {
     await gotoWithRetry(page, '/editor')
     await openImagesTab(page)
     await page.locator(`.image-node[data-image-path="${relPath}"]`).click()
-    await page.locator('#imageMoveInput').fill('should-not-be-used/cancel.png')
-    await page.locator('#imageMoveBtn').click()
+    await page.locator('.image-detail-filename-edit-btn').click()
+    await page.locator('.image-detail-filename-input').fill('should-not-be-used/cancel.png')
+    await page.locator('.image-detail-filename-save-btn').click()
     await page.locator('#confirmDialogActions button', { hasText: '中止' }).click()
 
     // Then: 画像ファイルのパスは変更されず、記事も変更されない
@@ -432,8 +438,9 @@ test.describe('US-03: 画像の移動（パスの付け替え）', () => {
     await gotoWithRetry(page, '/editor')
     await openImagesTab(page)
     await page.locator(`.image-node[data-image-path="${dir}/a.png"]`).click()
-    await page.locator('#imageMoveInput').fill('acceptance-image-library-move-dup/b.png')
-    await page.locator('#imageMoveBtn').click()
+    await page.locator('.image-detail-filename-edit-btn').click()
+    await page.locator('.image-detail-filename-input').fill('acceptance-image-library-move-dup/b.png')
+    await page.locator('.image-detail-filename-save-btn').click()
     await page.locator('#confirmDialogActions button', { hasText: 'OK' }).click()
 
     // Then: 移動は実行されず、パスが重複している旨がユーザーに伝わる
@@ -453,8 +460,9 @@ test.describe('US-03: 画像の移動（パスの付け替え）', () => {
     await gotoWithRetry(page, '/editor')
     await openImagesTab(page)
     await page.locator(`.image-node[data-image-path="${relPath}"]`).click()
-    await page.locator('#imageMoveInput').fill('acceptance-image-library-move/still-image.md')
-    await page.locator('#imageMoveBtn').click()
+    await page.locator('.image-detail-filename-edit-btn').click()
+    await page.locator('.image-detail-filename-input').fill('acceptance-image-library-move/still-image.md')
+    await page.locator('.image-detail-filename-save-btn').click()
     await page.locator('#confirmDialogActions button', { hasText: 'OK' }).click()
 
     // Then: 移動は実行されず、受け付けられない旨がユーザーに伝わる
@@ -509,11 +517,9 @@ test.describe('US-04: 画像ライブラリからの画像追加', () => {
   })
 
   // シナリオ 2「追加しただけでは公開されない」: 公開・同期は実 git 操作を伴うため、この共有フィクスチャ
-  // では検証できない（sync-operations.spec.ts と同様の使い捨てリポジトリフィクスチャが必要）。
-  // 参照に連動した公開状態の導出は US-05 のスコープであり、その受け入れテストで同期フィクスチャごと扱う。
-  // 現実装では追加は /upload-image で完結し、リモートに触れる経路は同期操作のみ・公開対象コレクターは
-  // 記事の参照からのみ画像を収集する（tests/editor/publish.test.js で検証済み）。
-  test.skip('シナリオ 2: 追加しただけでは公開されない（同期フィクスチャが必要なため US-05 の受け入れテストで扱う）', async () => {})
+  // では検証できない。tests/acceptance/editor-image-library-publication-state.spec.ts の
+  // 「US-04 シナリオ2」で同期フィクスチャを使って検証済み。
+  test.skip('シナリオ 2: 追加しただけでは公開されない（同期フィクスチャを使う editor-image-library-publication-state.spec.ts で検証済み）', async () => {})
 })
 
 // ─── US-07: 画像も記事と同じナビゲーションで扱える ────────────────────────────────────────────────

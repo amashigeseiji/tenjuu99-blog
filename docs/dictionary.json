@@ -200,7 +200,7 @@
         { "type": "references", "target": "テンプレート" },
         { "type": "references", "target": "SSGスクリプト" }
       ],
-      "src": "lib/filter.js, lib/replaceVariablesFilter.js, lib/includeFilter.js"
+      "src": "lib/filter.js"
     },
     {
       "name": "ビルド画像配布器",
@@ -459,7 +459,13 @@
       "en": "PublicationStatus",
       "context": "editor",
       "domain": "application",
-      "definition": "ファイルごとのローカル/リモート間の反映状態を表す状態機械。未公開（ローカルのみ存在）・更新あり（リモートと差分あり）・公開済み（ローカルとリモートが一致）・リモートのみ（ローカルに欠如し、リモートに存在する）の4ステートをとる。#内容差分 の読み（一致・不一致・欠如）の現れにあたる。",
+      "definition": "ファイルごとのローカル/リモート間の反映状態を表す状態機械。未公開（ローカルのみ存在）・更新あり（リモートと差分あり）・公開済み（ローカルとリモートが一致）・リモートのみ（ローカルに欠如し、リモートに存在する）の4ステートをとる。 #内容差分 の読み（一致・不一致・欠如）の現れにあたる。対象は記事に限らず、 #画像ライブラリ が扱う画像にも同じ読みで適用される。",
+      "states": [
+        "未公開",
+        "更新あり",
+        "公開済み",
+        "リモートのみ"
+      ],
       "relations": [
         { "type": "references", "target": "公開する", "note": "未公開 → 公開済み の遷移アクション" },
         { "type": "references", "target": "更新する", "note": "更新あり → 公開済み の遷移アクション" },
@@ -468,7 +474,8 @@
         { "type": "references", "target": "取り込む", "context": "publishing", "note": "リモートのみ → 公開済み の遷移アクション" },
         { "type": "references", "target": "公開ステータス判定器", "note": "現在のステートを導出する" },
         { "type": "references", "target": "内容差分", "context": "publishing", "note": "この読みの現れ" },
-        { "type": "references", "target": "リモート状態", "context": "publishing", "note": "判定器を介して導出元とする" }
+        { "type": "references", "target": "リモート状態", "context": "publishing", "note": "判定器を介して導出元とする" },
+        { "type": "references", "target": "公開ステータスラベル", "note": "各ステートの表示語を与える" }
       ],
       "src": null
     },
@@ -650,7 +657,7 @@
         { "type": "references", "target": "テンプレートマッチャー" },
         { "type": "references", "target": "テンプレートインジェクター" }
       ],
-      "src": "packages/editor/js/frontmatter_template.js loadFrontmatterTemplate(filePath, templates)"
+      "src": "packages/editor/js/frontmatter_template.js"
     },
     {
       "name": "テンプレートマッチャー",
@@ -662,7 +669,7 @@
         { "type": "references", "target": "テンプレート設定" },
         { "type": "references", "target": "フロントマターテンプレート" }
       ],
-      "src": "packages/editor/js/frontmatter_template.js matchTemplate(filePath, templates)"
+      "src": "packages/editor/js/frontmatter_template.js"
     },
     {
       "name": "テンプレートレゾルバー",
@@ -674,7 +681,7 @@
         { "type": "references", "target": "テンプレート設定" },
         { "type": "references", "target": "テンプレートマッチャー" }
       ],
-      "src": "packages/editor/js/editor.js initFrontmatterTemplate() / packages/editor/server/get_frontmatter_templates.js"
+      "src": "packages/editor/js/editor.js"
     },
     {
       "name": "テンプレートインジェクター",
@@ -685,7 +692,7 @@
       "relations": [
         { "type": "references", "target": "フロントマターテンプレート" }
       ],
-      "src": "packages/editor/js/frontmatter_template.js buildFrontmatterString(template, baseName)"
+      "src": "packages/editor/js/frontmatter_template.js"
     },
     {
       "name": "ドロップレシーバー",
@@ -726,7 +733,7 @@
         { "type": "references", "target": "画像保存先パス", "note": "レスポンスで返す" },
         { "type": "references", "target": "画像ライブラリ", "note": "記事に紐づかない追加の受け口" }
       ],
-      "src": "packages/editor/server/image_upload.js post / handleImageUpload"
+      "src": "packages/editor/server/image_upload.js"
     },
     {
       "name": "パスリゾルバー",
@@ -738,7 +745,7 @@
         { "type": "references", "target": "アップロードエンドポイント", "note": "呼び出される" },
         { "type": "references", "target": "画像保存先パス", "note": "具現化する" }
       ],
-      "src": "packages/editor/server/image_upload.js resolveImagePath / resolveLibraryImagePath"
+      "src": "packages/editor/server/image_upload.js"
     },
     {
       "name": "コンバーターファクトリー",
@@ -752,7 +759,7 @@
         { "type": "references", "target": "画像コンバーター", "note": "生成して返す" },
         { "type": "references", "target": "ユーザー提供コンバーターモジュール", "note": "パス指定時に読み込む" }
       ],
-      "src": "packages/editor/server/createConverter.js createConverter"
+      "src": "packages/editor/server/createConverter.js"
     },
     {
       "name": "画像コンバーター",
@@ -765,7 +772,7 @@
         { "type": "references", "target": "アップロードエンドポイント", "note": "使用される" },
         { "type": "references", "target": "変換ドライバー", "note": "注入される" }
       ],
-      "src": "packages/editor/server/createConverter.js createConverter の返り値 fn"
+      "src": "packages/editor/server/createConverter.js"
     },
     {
       "name": "変換ドライバー",
@@ -789,7 +796,7 @@
         { "type": "references", "target": "コンバーターファクトリー", "note": "読み込まれる" },
         { "type": "references", "target": "変換ドライバー", "note": "の具体的な実装形態" }
       ],
-      "src": "src-sample/converters/webp.js（サンプル実装）"
+      "src": "packages/editor/server/createConverter.js"
     },
     {
       "name": "ビルトインコンバーター",
@@ -812,7 +819,7 @@
       "relations": [
         { "type": "references", "target": "画像アップローダー", "note": "画像パスを受け取った後に呼び出す" }
       ],
-      "src": "packages/editor/js/image_upload.js insertImageMarkdown"
+      "src": "packages/editor/js/image_upload.js"
     },
     {
       "name": "ファイルライター",
@@ -824,7 +831,7 @@
         { "type": "references", "target": "アップロードエンドポイント", "note": "呼び出される" },
         { "type": "references", "target": "画像保存先パス", "note": "パスを受け取り書き込む" }
       ],
-      "src": "packages/editor/server/image_upload.js writeImageFile"
+      "src": "packages/editor/server/image_upload.js"
     },
     {
       "name": "プレビュー自動更新器",
@@ -837,7 +844,7 @@
         { "type": "references", "target": "ドロップレシーバー拡張", "note": "協調してプレビューの自動更新を実現する" },
         { "type": "references", "target": "リアルタイムプレビュー更新", "note": "を実現する" }
       ],
-      "src": "packages/editor/js/autoPreviewInitializer.js initAutoPreview"
+      "src": "packages/editor/js/autoPreviewInitializer.js"
     },
     {
       "name": "デバウンサー",
@@ -849,7 +856,7 @@
         { "type": "references", "target": "プレビュー自動更新器", "note": "に組み込まれる" },
         { "type": "references", "target": "テキスト入力", "note": "テキスト入力の停止を検知する" }
       ],
-      "src": "packages/editor/js/debouncer.js createDebounce"
+      "src": "packages/editor/js/debouncer.js"
     },
     {
       "name": "ドロップレシーバー拡張",
@@ -861,7 +868,7 @@
         { "type": "references", "target": "ドロップレシーバー", "note": "ドロップレシーバーの拡張" },
         { "type": "references", "target": "リアルタイムプレビュー更新", "note": "即時トリガー経路を担う" }
       ],
-      "src": "packages/editor/js/editor.js initDropReceiver（修正）"
+      "src": "packages/editor/js/editor.js"
     },
     {
       "name": "公開ハンドラー",
@@ -1187,15 +1194,28 @@
       "en": "ImageLibrary",
       "context": "editor",
       "domain": "application",
-      "definition": "エディタUIから `src/image/` 配下の画像を一覧・確認・追加・削除・移動（パスの付け替え。改名はその特殊な場合）できる機能。記事編集を経由しない画像操作の窓口。",
+      "definition": "エディタUIから `src/image/` 配下の画像を一覧・確認・追加・削除・移動（パスの付け替え。改名はその特殊な場合）できる機能。記事編集を経由しない画像操作の窓口。ローカルに実体がなく #リモート にのみ残る画像は、ローカルの画像ツリーとは別の枠に示し、そこから取り除ける。",
+      "affordances": [
+        "一覧表示",
+        "詳細表示",
+        "追加",
+        "削除",
+        "移動",
+        "検出外参照宣言の付与・解除",
+        "公開状態の確認",
+        "リモートからの取り除き"
+      ],
       "relations": [
         { "type": "references", "target": "画像参照", "note": "一覧・詳細に参照情報を表示する" },
         { "type": "references", "target": "ローカル参照", "note": "削除・移動時の参照記事提示に使う" },
         { "type": "references", "target": "参照更新", "note": "削除・移動で発生しうる" },
         { "type": "references", "target": "検出外参照宣言", "note": "宣言の付与・解除のUI導線を提供する" },
         { "type": "references", "target": "ディレクトリツリー", "note": "一覧表示に既存のツリー装置を転用する" },
-        { "type": "references", "target": "画像移動エンドポイント", "note": "移動の実行を担う" }
-      ]
+        { "type": "references", "target": "画像移動エンドポイント", "note": "移動の実行を担う" },
+        { "type": "references", "target": "画像除去エンドポイント", "note": "リモートからの取り除きの実行を担う" },
+        { "type": "references", "target": "リモートのみ画像表示", "note": "リモートにのみ残る画像の別枠表示を担う" }
+      ],
+      "src": null
     },
     {
       "name": "参照更新",
@@ -1247,13 +1267,15 @@
       "en": "ImagePublicationState",
       "context": "editor",
       "domain": "application",
-      "definition": "画像の公開・非公開が、記事からの参照の有無（#公開済み参照 または #検出外参照宣言 ）から自動的に導出される状態。画像に対する独立した公開操作は存在しない。",
+      "definition": "画像が公開されるべきかどうかを、記事からの #公開済み参照 または #検出外参照宣言 の有無から導出する方針。画像に対する独立した公開操作は存在しない。導出の結果として現に #リモート に存在するか（ローカルとリモートの対応）は #公開ステータス が表す。",
       "relations": [
         { "type": "references", "target": "公開済み参照", "note": "導出根拠" },
         { "type": "references", "target": "検出外参照宣言", "note": "導出の例外" },
         { "type": "references", "target": "除去", "context": "publishing", "note": "非公開化（GC）はリモートからの除去にあたる" },
-        { "type": "references", "target": "同期", "context": "publishing", "note": "判定・反映のタイミング" }
-      ]
+        { "type": "references", "target": "同期", "context": "publishing", "note": "判定・反映のタイミング" },
+        { "type": "references", "target": "公開ステータス", "note": "導出の結果が現れる先。方針と実体の対応を分ける" }
+      ],
+      "src": null
     },
     {
       "name": "画像スキャナー",
@@ -1282,10 +1304,13 @@
       "en": "ImageLedger",
       "context": "editor",
       "domain": "solution",
-      "definition": "画像パスごとの追加日時を永続的に記録・取得する装置。エディタ経由で追加された画像のみ記録され、記録のない画像は追加日時「不明」として扱われる。",
+      "definition": "画像パスごとの追加日時・公開済み参照記事一覧・検出外参照宣言・ #移動元パス を永続的に記録・取得する装置。エディタ経由で追加された画像のみ追加日時が記録され、記録のない画像は追加日時「不明」として扱われる。 #公開済み参照 は同期操作のタイミングでのみ更新される。 #移動元パス は移動の時点で記録され、移動が #リモート へ届いた時点で消される。",
       "relations": [
         { "type": "references", "target": "画像リストコレクター", "note": "に組み込まれる" },
-        { "type": "references", "target": "アップロードエンドポイント", "note": "画像アップロード時に記録される" }
+        { "type": "references", "target": "アップロードエンドポイント", "note": "画像アップロード時に記録される" },
+        { "type": "references", "target": "公開済み参照", "note": "保持するフィールドの一つ" },
+        { "type": "references", "target": "検出外参照宣言", "note": "保持するフィールドの一つ" },
+        { "type": "references", "target": "移動元パス", "note": "保持するフィールドの一つ" }
       ],
       "src": "packages/editor/server/imageLedger.js"
     },
@@ -1294,12 +1319,15 @@
       "en": "ImageListCollector",
       "context": "editor",
       "domain": "solution",
-      "definition": "#画像スキャナー ・ #画像メタデータ読み取り器 ・ #画像台帳 を組み合わせ、#画像ライブラリ が表示する画像リスト（パス・サイズ・解像度・追加日時）を組み立てる装置。",
+      "definition": "#画像スキャナー ・ #画像メタデータ読み取り器 ・ #画像台帳 を組み合わせ、 #画像ライブラリ が表示する画像リスト（パス・サイズ・解像度・追加日時）を組み立てる装置。各画像には #ファイルステータスコレクター から取得した #公開ステータス を添える。 #移動元パス が #リモート に在る画像は「更新あり」と読む。ローカルに実体がなくリモートにのみ存在する画像は、ローカルの一覧とは別に返す。",
       "relations": [
         { "type": "references", "target": "画像スキャナー", "note": "組み込む" },
         { "type": "references", "target": "画像メタデータ読み取り器", "note": "組み込む" },
         { "type": "references", "target": "画像台帳", "note": "組み込む" },
-        { "type": "references", "target": "画像ライブラリ", "note": "結果を提供する" }
+        { "type": "references", "target": "画像ライブラリ", "note": "結果を提供する" },
+        { "type": "references", "target": "ファイルステータスコレクター", "note": "公開ステータスの収集を委ねる" },
+        { "type": "references", "target": "公開ステータス", "note": "各画像に添える値" },
+        { "type": "references", "target": "移動元パス", "note": "「更新あり」と読むための手がかり" }
       ],
       "src": "packages/editor/server/imageLibraryCollector.js"
     },
@@ -1333,11 +1361,13 @@
       "en": "ImageLibraryEntry",
       "context": "editor",
       "domain": "solution",
-      "definition": "#画像リストコレクター が返す画像1件分のデータ（パス・URL・バイト数・解像度・追加日時）。#画像リスト表示 と #画像詳細表示 の間で受け渡される共通の形。",
+      "definition": "#画像リストコレクター が返す画像1件分のデータ（パス・URL・バイト数・解像度・追加日時・ #公開ステータス ）。 #画像リスト表示 ・ #画像詳細表示 ・ #リモートのみ画像表示 の間で受け渡される共通の形。ローカルに実体がない（公開ステータスが「リモートのみ」の）画像も同じ形で表され、そのときバイト数・解像度・追加日時は読めないものとして欠ける。",
       "relations": [
         { "type": "references", "target": "画像リストコレクター", "note": "この装置が生成する" },
         { "type": "references", "target": "画像リスト表示", "note": "この形で受け渡される" },
-        { "type": "references", "target": "画像詳細表示", "note": "この形で受け渡される" }
+        { "type": "references", "target": "画像詳細表示", "note": "この形で受け渡される" },
+        { "type": "references", "target": "リモートのみ画像表示", "note": "この形で受け渡される" },
+        { "type": "references", "target": "公開ステータス", "note": "各エントリが持つ状態" }
       ],
       "src": "packages/editor/server/imageLibraryCollector.js"
     },
@@ -1459,6 +1489,132 @@
         { "type": "references", "target": "画像台帳", "note": "移動に伴う台帳の付け替えに使う" }
       ],
       "src": "packages/editor/server/move_image.js"
+    },
+    {
+      "name": "画像公開同期器",
+      "en": "ImagePublicationSyncer",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "記事の同期操作（公開・更新・非公開）ごとに、その記事が現在参照している画像集合と #画像台帳 の #公開済み参照 との差分を取り、増分を反映しつつ、参照を失い #検出外参照宣言 もない画像を #リモート から取り除く（ #画像公開状態 のGC判定を実行する）装置。公開された画像に #移動元パス があれば、そのパスもリモートから取り除いて記録を消す。",
+      "relations": [
+        { "type": "references", "target": "画像公開状態", "note": "GC判定の実行主体" },
+        { "type": "references", "target": "公開済み参照", "note": "差分の基準にする台帳フィールド" },
+        { "type": "references", "target": "検出外参照宣言", "note": "GC対象から除外する根拠" },
+        { "type": "references", "target": "画像台帳", "note": "読み取り・更新の対象" },
+        { "type": "references", "target": "移動元パス", "note": "公開が届いた時点でリモートから取り除く対象" }
+      ],
+      "src": "packages/editor/server/imagePublicationSyncer.js"
+    },
+    {
+      "name": "検出外参照宣言エンドポイント",
+      "en": "UndetectedReferenceDeclarationEndpoint",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "画像への#検出外参照宣言の付与・解除を受け付け、画像台帳に反映するサーバーエンドポイント",
+      "relations": [
+        { "type": "references", "target": "検出外参照宣言", "note": "付与・解除の実行窓口" },
+        { "type": "references", "target": "画像台帳", "note": "反映先" }
+      ],
+      "src": "packages/editor/server/image_declaration.js"
+    },
+    {
+      "name": "作成者",
+      "en": "Author",
+      "context": "editor",
+      "domain": "actor",
+      "definition": "ターミナルを使わず、エディタのブラウザ画面だけでコンテンツ（記事・画像）を作成・管理する役割",
+      "relations": [
+        { "type": "references", "target": "画像ライブラリ", "note": "画像ライブラリを操作する役割" }
+      ],
+      "src": null
+    },
+    {
+      "name": "移動元パス",
+      "en": "MovedFromPath",
+      "context": "editor",
+      "domain": "application",
+      "definition": "移動した画像について、 #リモート が既に知っている移動前のパス。移動を「別の画像が現れた」ではなく「同じ画像の未同期の変更」として読むための同一性の手がかりであり、移動が #リモート へ届いた時点で失われる。",
+      "relations": [
+        { "type": "references", "target": "画像台帳", "note": "記録される場所" },
+        { "type": "references", "target": "公開ステータス", "note": "「更新あり」と読む根拠" },
+        { "type": "references", "target": "除去", "context": "publishing", "note": "同期時にリモートから取り除く対象" }
+      ],
+      "src": "packages/editor/server/imageLedger.js"
+    },
+    {
+      "name": "公開ステータスラベル",
+      "en": "PublicationStatusLabel",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "#公開ステータス の各状態に対応する作成者向けの表示語（未公開・更新あり・公開済み・リモートのみ）を一か所から与える装置。記事と画像が同じ言葉で状態を示すことを保証する。",
+      "relations": [
+        { "type": "references", "target": "公開ステータス", "note": "表示語を与える対象" }
+      ],
+      "src": "packages/editor/js/publicationStatusLabel.js"
+    },
+    {
+      "name": "画像除去エンドポイント",
+      "en": "ImageRemovalEndpoint",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "指定した画像を #リモート から取り除くHTTPハンドラ。 #公開ステータス が「リモートのみ」の画像に対する #除去 の実行を担い、ローカルには関与しない。",
+      "relations": [
+        { "type": "references", "target": "除去", "context": "publishing", "note": "リモート向きの除去の実行" },
+        { "type": "references", "target": "公開ステータス", "note": "「リモートのみ」の状態に対して働く" },
+        { "type": "references", "target": "画像ライブラリ", "note": "操作の受け口" }
+      ],
+      "src": "packages/editor/server/remove_remote_image.js"
+    },
+    {
+      "name": "リモートのみ画像表示",
+      "en": "RemoteOnlyImageDisplay",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "ローカルに実体がなく #リモート にのみ存在する画像を、ローカルの画像ツリーとは別の枠に一覧し、取り除く操作を提供する装置。ローカルのファイルシステムを模したツリーには混ぜない。",
+      "relations": [
+        { "type": "references", "target": "画像リストコレクター", "note": "一覧の供給元" },
+        { "type": "references", "target": "画像除去エンドポイント", "note": "取り除く操作の実行先" },
+        { "type": "references", "target": "画像ライブラリ", "note": "表示先" }
+      ],
+      "src": "packages/editor/js/remoteOnlyImageDisplay.js"
+    },
+    {
+      "name": "画像削除UI",
+      "en": "ImageDeleteUI",
+      "context": "editor",
+      "domain": "ui",
+      "definition": "#画像詳細表示 から画像の削除を起動する操作ハンドル。 #参照記事一覧エンドポイント で参照記事を確かめ、 #確認ダイアログ で参照の扱い（そのまま／更新）を選ばせたうえで #画像削除エンドポイント を呼ぶ。",
+      "relations": [
+        { "type": "references", "target": "画像削除エンドポイント", "note": "削除を実行する" },
+        { "type": "references", "target": "参照記事一覧エンドポイント", "note": "実行前に参照記事を確認する" },
+        { "type": "references", "target": "確認ダイアログ", "note": "参照の扱いを選ばせる" },
+        { "type": "references", "target": "画像詳細表示", "note": "選択中の画像を対象にとる" }
+      ]
+    },
+    {
+      "name": "画像移動UI",
+      "en": "ImageMoveUI",
+      "context": "editor",
+      "domain": "ui",
+      "definition": "画像を新しい配置パスへ移す操作を起動する操作ハンドル。入力は `image/` 相対の配置パスで、改名は同じ置き場所への移動として同じ操作に含む。 #参照記事一覧エンドポイント で参照記事を確かめ、 #確認ダイアログ で参照の扱いを選ばせたうえで #画像移動エンドポイント を呼ぶ。",
+      "relations": [
+        { "type": "contains", "target": "インラインファイル名編集UI", "note": "入力欄の出し入れを担う部品ハンドル" },
+        { "type": "references", "target": "画像移動エンドポイント", "note": "移動を実行する" },
+        { "type": "references", "target": "参照記事一覧エンドポイント", "note": "実行前に参照記事を確認する" },
+        { "type": "references", "target": "確認ダイアログ", "note": "参照の扱いを選ばせる" },
+        { "type": "references", "target": "画像詳細表示", "note": "選択中の画像を対象にとる" }
+      ]
+    },
+    {
+      "name": "インラインファイル名編集UI",
+      "en": "InlineFileNameEditUI",
+      "context": "editor",
+      "domain": "ui",
+      "definition": "ファイル名の表示と入力フォームを切り替える操作ハンドル。保存の実行そのものは担わず #画像移動UI に委ねる。",
+      "relations": [
+        { "type": "belongs_to", "target": "画像移動UI", "note": "保存の実行を委ねる合成先" },
+        { "type": "references", "target": "画像詳細表示", "note": "切り替え対象のファイル名表示を持つ" }
+      ]
     },
     {
       "name": "ネイティブアプリシェル",

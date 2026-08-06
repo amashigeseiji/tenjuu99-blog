@@ -125,30 +125,9 @@ main:not(.sidebar-close) .editor {
 #publicationStatus:not(:empty) {
   margin-left: 8px;
 }
-#imageMoveInput {
-  border: none;
-  /* 配置パス（階層つき）を編集するためファイル名入力より広くとる */
-  width: 30ch;
-  box-sizing: border-box;
-  padding: 3px 10px;
-  box-shadow: inset 0.1px 0.5px 6px 0px rgba(0, 0, 0, 0.1);
-  height: var(--header-height);
-  background: #eee;
-  transition: background 0.2s;
-}
-#imageMoveInput:focus {
-  background: #fff;
-  transition: background 0.2s;
-}
-#imageMoveInput::placeholder {
-  color: #aaa;
-  font-size: 0.85em;
-}
 #publishBtn,
 #unpublishBtn,
-#deleteBtn,
-#imageMoveBtn,
-#imageDeleteBtn {
+#deleteBtn {
   height: var(--header-height);
   color: #ddd;
   border-radius: 0;
@@ -163,9 +142,7 @@ main:not(.sidebar-close) .editor {
   padding: 0;
 }
 #unpublishBtn,
-#deleteBtn,
-#imageMoveBtn,
-#imageDeleteBtn {
+#deleteBtn {
   background: #b4d68e;
   color: #555;
   /* 「非公開にする」の文言が収まり、かつ両ボタンが同じ幅になる固定幅 */
@@ -174,33 +151,135 @@ main:not(.sidebar-close) .editor {
 }
 #publishBtn:hover,
 #unpublishBtn:hover,
-#deleteBtn:hover,
-#imageMoveBtn:hover,
-#imageDeleteBtn:hover {
+#deleteBtn:hover {
   background: var(--light-green);
   transition: background 0.2s, color 0.2s;
 }
 #publishBtn:disabled,
 #unpublishBtn:disabled,
-#deleteBtn:disabled,
-#imageMoveBtn:disabled,
-#imageDeleteBtn:disabled {
+#deleteBtn:disabled {
   background: #aaa;
   color: #1f1f1f;
   cursor: not-allowed;
 }
 #publishBtn:disabled:hover,
 #unpublishBtn:disabled:hover,
-#deleteBtn:disabled:hover,
-#imageMoveBtn:disabled:hover,
-#imageDeleteBtn:disabled:hover {
+#deleteBtn:disabled:hover {
   background: #aaa;
 }
-#imageDeleteBtn {
+
+/* 画像詳細のメタデータ欄（ファイル名インライン編集・公開状態・宣言・削除） */
+.image-detail-filename-input {
+  border: 1px solid #ccc;
+  width: 30ch;
+  box-sizing: border-box;
+  padding: 3px 8px;
+}
+.image-detail-filename-edit-btn,
+.image-detail-filename-save-btn,
+.image-detail-filename-cancel-btn,
+.image-detail-delete-btn {
+  color: #555;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85em;
+  padding: 3px 10px;
+  transition: background 0.2s, color 0.2s;
+}
+.image-detail-filename-edit-btn,
+.image-detail-filename-save-btn {
+  background: #b4d68e;
+}
+.image-detail-filename-edit-btn:hover,
+.image-detail-filename-save-btn:hover {
+  background: var(--light-green);
+}
+.image-detail-filename-cancel-btn {
+  background: #eee;
+}
+.image-detail-filename-cancel-btn:hover {
+  background: #ddd;
+}
+.image-detail-delete-btn {
   background: #ff8d8d;
   color: #222222;
+  margin-top: 8px;
+  /* パネルは flex column のため、指定がないとボタンが幅いっぱいに伸びる。
+     文言に見合った幅で左寄せに収める */
+  align-self: flex-start;
 }
-#imageDeleteBtn:hover {
+.image-detail-delete-btn:hover {
+  background: #c14040;
+  color: #fff;
+}
+/* 公開状態の欄は、状態そのものと「非公開にしない」の断りを縦に並べる */
+.image-detail-publication-status {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.image-detail-declaration-label {
+  font-size: 0.85em;
+  color: #555;
+}
+.image-detail-publication-status[data-status="published"] .image-detail-publication-status-label {
+  color: #888;
+}
+.image-detail-publication-status[data-status="new"] .image-detail-publication-status-label {
+  color: #e06c00;
+}
+.image-detail-publication-status[data-status="modified"] .image-detail-publication-status-label {
+  color: #b58900;
+}
+.image-detail-publication-status[data-status="unknown"] .image-detail-publication-status-label {
+  color: #999;
+}
+
+/* リモートにのみ残る画像の別枠（ローカルのファイルシステムを模した画像ツリーには混ぜない） */
+.remote-only-images {
+  margin-top: 16px;
+  padding-top: 8px;
+  border-top: 1px solid #666;
+}
+.remote-only-images-title {
+  font-size: 0.9em;
+  margin: 0 0 2px;
+  color: var(--sidebar-file, #ccc);
+}
+.remote-only-images-description {
+  font-size: 0.75em;
+  margin: 0 0 6px;
+  color: #999;
+}
+.remote-only-images-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.remote-only-image {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 4px;
+}
+.remote-only-image-path {
+  font-size: 0.8em;
+  word-break: break-all;
+  color: var(--sidebar-file, #ccc);
+}
+.remote-only-image-remove-btn {
+  background: #ff8d8d;
+  color: #222;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75em;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+.remote-only-image-remove-btn:hover {
   background: #c14040;
   color: #fff;
 }

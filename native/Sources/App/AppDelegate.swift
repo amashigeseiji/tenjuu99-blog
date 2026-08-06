@@ -87,6 +87,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKUIDelegate {
   }
 
   /// コンテンツルート選択ダイアログ（手動検証のみ。単体テスト対象外）
+  /// @vocab コンテンツルート選択ダイアログ
   private static func presentContentRootPicker() -> URL? {
     let panel = NSOpenPanel()
     panel.canChooseDirectories = true

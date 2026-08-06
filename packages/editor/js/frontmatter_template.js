@@ -1,4 +1,11 @@
 /**
+ * `blog.json` の `frontmatter_templates` に並ぶ1件分。`path_prefix` が適用先のディレクトリ、
+ * `fields` が挿入されるフロントマターの雛形にあたる。
+ *
+ * @vocab: テンプレート設定
+ * @vocab: フロントマターテンプレート
+ * @vocab: ディレクトリ
+ *
  * @typedef {{ path_prefix: string, fields: Object.<string, string> }} FrontmatterTemplateConfig
  */
 
@@ -33,6 +40,7 @@ export function matchTemplate(filePath, templates) {
  * title はファイル名から自動生成する（fields に title がある場合でもファイル名を優先）。
  *
  * @vocab: テンプレートインジェクター
+ * @vocab: フロントマターテンプレート
  * @test: tests/editor/editor-frontmatter-template.test.js
  *
  * @param {FrontmatterTemplateConfig} template - マッチしたテンプレート設定

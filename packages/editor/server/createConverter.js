@@ -15,6 +15,9 @@ export async function createConverter(converterOrName = null) {
   try {
     let module
     if (converterOrName.startsWith('.') || nodePath.isAbsolute(converterOrName)) {
+      // ユーザーがプロジェクトに配置したモジュールをパスから解決する。
+      // 満たすべき契約（デフォルトエクスポート + ext）は下の取り出しが定めている。
+      // @vocab: ユーザー提供コンバーターモジュール
       module = await import(nodePath.resolve(rootDir, converterOrName))
     } else {
       module = await import(`./converters/${converterOrName}.js`)
