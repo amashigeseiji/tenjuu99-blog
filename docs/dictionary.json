@@ -1808,6 +1808,18 @@
       "src": "native/Sources/NativeShellCore/FileSelectionResponder.swift"
     },
     {
+      "name": "アプリ利用者",
+      "en": "AppUser",
+      "context": "native-shell",
+      "domain": "actor",
+      "definition": "配布された Mac アプリを、自分のコンテンツフォルダを選んで使う役割。ターミナルや開発環境の操作を前提としない",
+      "relations": [
+        { "type": "references", "target": "ネイティブアプリシェル", "note": "利用する対象" },
+        { "type": "references", "target": "配布物", "context": "app-bundle", "note": "受け取って使う対象" }
+      ],
+      "src": null
+    },
+    {
       "name": "配布物",
       "en": "DistributionBundle",
       "context": "app-bundle",
