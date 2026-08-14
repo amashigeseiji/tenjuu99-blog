@@ -140,6 +140,22 @@
       "claim": "実体の node_modules を持つ開発中プロジェクトを、中身を壊されずにコンテンツルートとして使える",
       "witness": { "acceptance": ["tests/acceptance/node-modules-destruction.spec.ts#US-01: 開発中のプロジェクトを壊されずにアプリで使う"] },
       "settled": { "date": "2026-07-08", "project": "node-modules-destruction", "retro": true }
+    },
+    {
+      "id": "act-0021",
+      "actor": "作成者",
+      "claim": "リモートの内容を手元に取り込める",
+      "context": "editor",
+      "witness": { "acceptance": ["tests/acceptance/sync-operations.spec.ts#US-03: リモートの内容を手元に取り込める"] },
+      "settled": { "date": "2026-07-14", "project": "sync-operations", "devices": ["公開手段", "git公開手段", "版の連なり", "公開可否判定器"], "unitTests": ["tests/publishing/sync.test.js#同期はローカルとリモートの内容を、除去と取り込みを含む両向きで揃えられる > 取り込むはリモートの内容を、手元の執筆内容を失わずにローカルへ反映できる"], "retro": true }
+    },
+    {
+      "id": "act-0022",
+      "actor": "作成者",
+      "claim": "検出できない参照を宣言して自動非公開から外せる",
+      "context": "editor",
+      "witness": { "acceptance": ["tests/acceptance/editor-image-library-publication-state.spec.ts#US-06: 検出できない参照の宣言"] },
+      "settled": { "date": "2026-08-02", "project": "editor-image-library", "devices": ["画像詳細表示", "画像台帳", "検出外参照宣言エンドポイント"], "unitTests": ["tests/editor/image-library.test.js#画像台帳は画像パスごとの公開済み参照記事一覧と検出外参照宣言を保持・更新できる", "tests/editor/image-library.test.js#検出外参照宣言エンドポイントは画像への宣言の付与・解除を受け付けて画像台帳に反映できる"], "retro": true }
     }
   ]
 }

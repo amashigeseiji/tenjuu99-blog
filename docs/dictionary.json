@@ -393,10 +393,11 @@
       "en": "Preview",
       "context": "editor",
       "domain": "application",
-      "definition": "テキストエリアの Markdown を HTML レンダリングしてリアルタイムに表示する領域。開発サーバーが生成した HTML が `<iframe>` 内に埋め込まれる。",
+      "definition": "テキストエリアの Markdown を、保存を経ずに専用の描画で HTML にして表示する領域。表示は外部参照なしに自己完結した形で `<iframe>` 内に埋め込まれる",
       "relations": [
-        { "type": "references", "target": "ページ", "context": "ssg-core" },
-        { "type": "references", "target": "テンプレート", "context": "ssg-core" }
+        { "type": "references", "target": "ページ", "context": "ssg-core", "note": "" },
+        { "type": "references", "target": "テンプレート", "context": "ssg-core", "note": "" },
+        { "type": "references", "target": "プレビュー自己完結化", "note": "自己完結の形への変換" }
       ],
       "src": null
     },
@@ -1615,6 +1616,135 @@
         { "type": "belongs_to", "target": "画像移動UI", "note": "保存の実行を委ねる合成先" },
         { "type": "references", "target": "画像詳細表示", "note": "切り替え対象のファイル名表示を持つ" }
       ]
+    },
+    {
+      "name": "URLナビゲーション",
+      "en": "UrlNavigation",
+      "context": "editor",
+      "domain": "application",
+      "definition": "リンククリック・戻る/進む・URL直打ち・リロードのいずれの経路でも、URLが #表示対象 を特定し、表示はURLから再構成されるという振る舞い。切り替えはページ全体の再読み込みではなく、その場の表示更新で行われる",
+      "relations": [
+        { "type": "references", "target": "表示対象", "note": "URLが特定する資源" },
+        { "type": "references", "target": "表示対象解決器", "note": "URLから表示対象を判別する装置" },
+        { "type": "references", "target": "サイドバー", "note": "遷移の起点。アクティブ状態がこの振る舞いに同期する" }
+      ],
+      "src": null
+    },
+    {
+      "name": "表示対象ナビゲーター",
+      "en": "DisplayTargetNavigator",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "#表示対象 の切り替えをURLに宣言し、URLから表示を再構成する装置。#URLナビゲーション の実現装置",
+      "relations": [
+        { "type": "references", "target": "URLナビゲーション", "note": "実現するアプリケーション概念" },
+        { "type": "references", "target": "表示対象解決器", "note": "URLからの判別を委ねる" },
+        { "type": "references", "target": "アクティブ状態同期器", "note": "表示切り替え時の同期を委ねる" }
+      ],
+      "src": "packages/editor/js/displayTargetNavigator.js"
+    },
+    {
+      "name": "記事読み込み器",
+      "en": "ArticleLoader",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "記事の内容を取得してエディタへ反映する装置。未存在の記事には #フロントマターテンプレート から初期内容を用意する",
+      "relations": [
+        { "type": "references", "target": "表示対象ナビゲーター", "note": "利用元" },
+        { "type": "references", "target": "フロントマターテンプレート", "note": "初期内容の源" }
+      ],
+      "src": "packages/editor/js/articleLoader.js"
+    },
+    {
+      "name": "プレビュー描画器",
+      "en": "PreviewRenderer",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "編集中の内容から描画結果を取得し #プレビュー の領域に反映する装置",
+      "relations": [
+        { "type": "references", "target": "プレビュー", "note": "反映先" },
+        { "type": "references", "target": "リアルタイムプレビュー更新", "note": "更新の実行部として使われる" }
+      ],
+      "src": "packages/editor/js/previewRenderer.js"
+    },
+    {
+      "name": "公開ステータス表示器",
+      "en": "PublicationStatusView",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "記事の #公開ステータス を取得し、ラベルと操作の可否に反映する装置",
+      "relations": [
+        { "type": "references", "target": "公開ステータス", "note": "取得・表示する対象" },
+        { "type": "references", "target": "公開可否判定器", "note": "操作可否の判定を委ねる" },
+        { "type": "references", "target": "公開ステータスラベル", "note": "表示文言の導出を委ねる" },
+        { "type": "references", "target": "アクティブ状態同期器", "note": "サイドバー側の反映を委ねる" }
+      ],
+      "src": "packages/editor/js/publicationStatusView.js"
+    },
+    {
+      "name": "操作実行器",
+      "en": "OperationExecutor",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "進行中の表示・結果の伝達・完了後の更新という一連の流れを一つの定型として実行する装置。#公開フィードバック の文言はここに一元化される",
+      "relations": [
+        { "type": "references", "target": "公開フィードバック", "note": "定型が表示する伝達" },
+        { "type": "references", "target": "公開する", "note": "利用元" },
+        { "type": "references", "target": "非公開にする", "note": "利用元" },
+        { "type": "references", "target": "削除する", "note": "利用元" },
+        { "type": "references", "target": "取り込む", "note": "利用元" }
+      ],
+      "src": "packages/editor/js/operationExecutor.js"
+    },
+    {
+      "name": "アクティブ状態同期器",
+      "en": "ActiveStateSynchronizer",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "#サイドバー のアクティブ表示を現在の #表示対象 に一致させる装置",
+      "relations": [
+        { "type": "references", "target": "サイドバー", "note": "同期先" },
+        { "type": "references", "target": "表示対象", "note": "同期の基準" },
+        { "type": "references", "target": "アクティブファイル", "note": "記事側のアクティブ概念" }
+      ],
+      "src": "packages/editor/js/activeStateSynchronizer.js"
+    },
+    {
+      "name": "画像ライブラリビュー",
+      "en": "ImageLibraryView",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "#画像ライブラリ の一覧を取得・保持し、一覧と詳細の表示を最新の状態に描き直す装置",
+      "relations": [
+        { "type": "references", "target": "画像ライブラリ", "note": "表示する対象" },
+        { "type": "references", "target": "画像リスト表示", "note": "一覧の描画を委ねる" },
+        { "type": "references", "target": "画像詳細表示", "note": "詳細の描画を委ねる" },
+        { "type": "references", "target": "リモートのみ画像表示", "note": "別枠の描画を委ねる" }
+      ],
+      "src": "packages/editor/js/imageLibraryView.js"
+    },
+    {
+      "name": "ハンドラー基盤",
+      "en": "HandlerFoundation",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "リクエストの解釈と成功・失敗の応答の定型を引き受け、各エンドポイントに業務処理だけを書かせる装置",
+      "relations": [
+        { "type": "references", "target": "サーバーハンドラー", "context": "server", "note": "server context の規約の上で editor のエンドポイント群が共有する定型" }
+      ],
+      "src": "packages/editor/server/handlerFoundation.js"
+    },
+    {
+      "name": "プレビュー自己完結化",
+      "en": "PreviewSelfContainment",
+      "context": "editor",
+      "domain": "solution",
+      "definition": "#プレビュー の描画結果を、スタイルの外部参照なしに単体で表示できる形へ変換する処理",
+      "relations": [
+        { "type": "references", "target": "プレビュー", "note": "変換の対象" },
+        { "type": "references", "target": "プレビュー描画器", "note": "描画結果の供給元" }
+      ],
+      "src": "packages/editor/server/preview.js"
     },
     {
       "name": "ネイティブアプリシェル",
