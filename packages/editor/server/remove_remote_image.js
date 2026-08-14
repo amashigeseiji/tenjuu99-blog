@@ -3,7 +3,7 @@ import { styleText } from 'node:util'
 import config from '@tenjuu99/blog/lib/config.js'
 import { rootDir, srcDir } from '@tenjuu99/blog/lib/dir.js'
 import { resolvePublicationMeans } from '@tenjuu99/blog/lib/publishing/publicationMeansResolver.js'
-import { parseJsonBody } from '@tenjuu99/blog/lib/server/helper/parseRequestBody.js'
+import { createJsonPostHandler } from './handlerFoundation.js'
 import { unpublish } from './changeReflector.js'
 import { removeEntry } from './imageLedger.js'
 
@@ -39,31 +39,12 @@ export async function removeRemoteImage({ imagePath }, deps, means) {
  * @param {import('http').IncomingMessage} req
  * @param {import('http').ServerResponse} res
  */
-export const post = async (req, res) => {
-  let body
-  try {
-    body = await parseJsonBody(req)
-  } catch (e) {
-    res.writeHead(400, { 'content-type': 'application/json' })
-    res.end(JSON.stringify({ success: false, error: e.message }))
-    return true
-  }
-  const { imagePath } = body
+export const post = createJsonPostHandler('remove_remote_image', async ({ imagePath }) => {
   if (!imagePath) {
-    res.writeHead(400, { 'content-type': 'application/json' })
-    res.end(JSON.stringify({ success: false, error: 'imagePathがありません' }))
-    return true
+    return { status: 400, body: { success: false, error: 'imagePathがありません' } }
   }
-  try {
-    const means = await resolvePublicationMeans({ means: config.publish?.means, cwd: rootDir })
-    const result = await removeRemoteImage({ imagePath }, { srcDir, ledgerPath: imageLedgerPath }, means)
-    console.log(styleText(result.success ? 'green' : 'red', `[remove_remote_image] ${imagePath} ${result.success ? 'ok' : result.error}`))
-    res.writeHead(result.success ? 200 : 400, { 'content-type': 'application/json' })
-    res.end(JSON.stringify(result))
-  } catch (error) {
-    console.log(styleText('red', '[remove_remote_image] エラー:'), error.message)
-    res.writeHead(500, { 'content-type': 'application/json' })
-    res.end(JSON.stringify({ success: false, error: error.message }))
-  }
-  return true
-}
+  const means = await resolvePublicationMeans({ means: config.publish?.means, cwd: rootDir })
+  const result = await removeRemoteImage({ imagePath }, { srcDir, ledgerPath: imageLedgerPath }, means)
+  console.log(styleText(result.success ? 'green' : 'red', `[remove_remote_image] ${imagePath} ${result.success ? 'ok' : result.error}`))
+  return { status: result.success ? 200 : 400, body: result }
+})

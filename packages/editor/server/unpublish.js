@@ -6,7 +6,7 @@ import { unpublish } from './changeReflector.js'
 import { getPublicationStatus } from './publicationStatus.js'
 import { syncImagePublicationState } from './imagePublicationSyncer.js'
 import { resolvePublicationMeans } from '@tenjuu99/blog/lib/publishing/publicationMeansResolver.js'
-import { parseJsonBody } from '@tenjuu99/blog/lib/server/helper/parseRequestBody.js'
+import { createJsonPostHandler } from './handlerFoundation.js'
 
 export const imageLedgerPath = nodePath.join(srcDir, 'image-library.json')
 
@@ -45,39 +45,18 @@ export async function handleUnpublish({
 
 export const path = '/unpublish'
 
-export const post = async (req, res) => {
-  let body
-  try {
-    body = await parseJsonBody(req)
-  } catch (e) {
-    res.writeHead(400, { 'content-type': 'application/json' })
-    res.end(JSON.stringify({ success: false, error: e.message }))
-    return true
+export const post = createJsonPostHandler('unpublish', async ({ filePath }) => {
+  if (!filePath) {
+    return { status: 400, body: { success: false, error: 'ファイル名がありません' } }
   }
-  try {
-    const { filePath } = body
-    if (!filePath) {
-      res.writeHead(400, { 'content-type': 'application/json' })
-      res.end(JSON.stringify({ success: false, error: 'ファイル名がありません' }))
-      return true
-    }
-    const pagesDir = nodePath.join(srcDir, 'pages')
-    const resolvedFilePath = nodePath.resolve(pagesDir, filePath)
-    if (!resolvedFilePath.startsWith(pagesDir + nodePath.sep)) {
-      res.writeHead(400, { 'content-type': 'application/json' })
-      res.end(JSON.stringify({ success: false, error: '不正なファイルパスです' }))
-      return true
-    }
-    const means = await resolvePublicationMeans({ means: config.publish?.means, cwd: rootDir })
-    const result = await handleUnpublish({ filePath, srcDir: config.src_dir, ledgerPath: imageLedgerPath }, means)
-    console.log(styleText(result.success ? 'green' : 'red', `[unpublish] ${filePath} ${result.success ? 'ok' : result.error}`))
-    const httpStatus = result.success ? 200 : result.error === NOT_YET_PUBLISHED_ERROR ? 400 : 500
-    res.writeHead(httpStatus, { 'content-type': 'application/json' })
-    res.end(JSON.stringify(result))
-  } catch (error) {
-    console.log(styleText('red', '[unpublish] エラー:'), error.message)
-    res.writeHead(500, { 'content-type': 'application/json' })
-    res.end(JSON.stringify({ success: false, error: error.message }))
+  const pagesDir = nodePath.join(srcDir, 'pages')
+  const resolvedFilePath = nodePath.resolve(pagesDir, filePath)
+  if (!resolvedFilePath.startsWith(pagesDir + nodePath.sep)) {
+    return { status: 400, body: { success: false, error: '不正なファイルパスです' } }
   }
-  return true
-}
+  const means = await resolvePublicationMeans({ means: config.publish?.means, cwd: rootDir })
+  const result = await handleUnpublish({ filePath, srcDir: config.src_dir, ledgerPath: imageLedgerPath }, means)
+  console.log(styleText(result.success ? 'green' : 'red', `[unpublish] ${filePath} ${result.success ? 'ok' : result.error}`))
+  const httpStatus = result.success ? 200 : result.error === NOT_YET_PUBLISHED_ERROR ? 400 : 500
+  return { status: httpStatus, body: result }
+})

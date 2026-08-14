@@ -27,7 +27,7 @@
         { "type": "references", "target": "表示対象解決器", "note": "URLからの判別を委ねる" },
         { "type": "references", "target": "アクティブ状態同期器", "note": "表示切り替え時の同期を委ねる" }
       ],
-      "src": null,
+      "src": "packages/editor/js/displayTargetNavigator.js",
       "wip": { "status": "new", "discovered": "tdd-run" }
     },
     {
@@ -40,7 +40,7 @@
         { "type": "references", "target": "表示対象ナビゲーター", "note": "利用元" },
         { "type": "references", "target": "フロントマターテンプレート", "note": "初期内容の源" }
       ],
-      "src": null,
+      "src": "packages/editor/js/articleLoader.js",
       "wip": { "status": "new", "discovered": "tdd-run" }
     },
     {
@@ -53,7 +53,7 @@
         { "type": "references", "target": "プレビュー", "note": "反映先" },
         { "type": "references", "target": "リアルタイムプレビュー更新", "note": "更新の実行部として使われる" }
       ],
-      "src": null,
+      "src": "packages/editor/js/previewRenderer.js",
       "wip": { "status": "new", "discovered": "tdd-run" }
     },
     {
@@ -68,7 +68,7 @@
         { "type": "references", "target": "公開ステータスラベル", "note": "表示文言の導出を委ねる" },
         { "type": "references", "target": "アクティブ状態同期器", "note": "サイドバー側の反映を委ねる" }
       ],
-      "src": null,
+      "src": "packages/editor/js/publicationStatusView.js",
       "wip": { "status": "new", "discovered": "tdd-run" }
     },
     {
@@ -84,7 +84,7 @@
         { "type": "references", "target": "削除する", "note": "利用元" },
         { "type": "references", "target": "取り込む", "note": "利用元" }
       ],
-      "src": null,
+      "src": "packages/editor/js/operationExecutor.js",
       "wip": { "status": "new", "discovered": "tdd-run" }
     },
     {
@@ -98,7 +98,7 @@
         { "type": "references", "target": "表示対象", "note": "同期の基準" },
         { "type": "references", "target": "アクティブファイル", "note": "記事側のアクティブ概念" }
       ],
-      "src": null,
+      "src": "packages/editor/js/activeStateSynchronizer.js",
       "wip": { "status": "new", "discovered": "tdd-run" }
     },
     {
@@ -113,7 +113,7 @@
         { "type": "references", "target": "画像詳細表示", "note": "詳細の描画を委ねる" },
         { "type": "references", "target": "リモートのみ画像表示", "note": "別枠の描画を委ねる" }
       ],
-      "src": null,
+      "src": "packages/editor/js/imageLibraryView.js",
       "wip": { "status": "new", "discovered": "tdd-run" }
     },
     {
@@ -125,7 +125,7 @@
       "relations": [
         { "type": "references", "target": "サーバーハンドラー", "context": "server", "note": "server context の規約の上で editor のエンドポイント群が共有する定型" }
       ],
-      "src": null,
+      "src": "packages/editor/server/handlerFoundation.js",
       "wip": { "status": "new", "discovered": "tdd-run" }
     },
     {
@@ -138,7 +138,7 @@
         { "type": "references", "target": "プレビュー", "note": "変換の対象" },
         { "type": "references", "target": "プレビュー描画器", "note": "描画結果の供給元" }
       ],
-      "src": null,
+      "src": "packages/editor/server/preview.js",
       "wip": { "status": "new", "discovered": "tdd-run" }
     },
     {

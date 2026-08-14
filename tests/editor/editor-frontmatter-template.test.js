@@ -2,6 +2,7 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert'
 import { matchTemplate, buildFrontmatterString, loadFrontmatterTemplate } from '../../packages/editor/js/frontmatter_template.js'
 import { getTemplates } from '../../packages/editor/server/get_frontmatter_templates.js'
+import { createTemplateResolver } from '../../packages/editor/js/templateResolver.js'
 
 // ルートテスト: ツリーが完成するまで green にしない
 describe('フロントマターテンプレートローダー は ディレクトリに対応するフロントマターテンプレートをエディタに挿入できる', () => {
@@ -136,6 +137,23 @@ describe('テンプレートレゾルバー は テンプレート設定をサ�
 
     it('frontmatter_templates がなければ空配列を返す', () => {
       assert.deepStrictEqual(getTemplates({}), [])
+    })
+  })
+
+  describe('取得したテンプレート設定を保持できる', () => {
+    it('取得成功後は templates で設定を参照できる', async () => {
+      const templates = [{ path_prefix: 'book/', fields: { title: '' } }]
+      const fetchFn = async () => ({ ok: true, json: async () => ({ templates }) })
+      const resolver = createTemplateResolver(fetchFn)
+      assert.deepStrictEqual(resolver.templates, [])
+      await resolver.init()
+      assert.deepStrictEqual(resolver.templates, templates)
+    })
+
+    it('取得に失敗してもテンプレートなしとして動作を続けられる', async () => {
+      const resolver = createTemplateResolver(async () => { throw new Error('network down') })
+      await resolver.init()
+      assert.deepStrictEqual(resolver.templates, [])
     })
   })
 })

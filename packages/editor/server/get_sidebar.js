@@ -4,6 +4,7 @@ import config from '@tenjuu99/blog/lib/config.js'
 import { renderSidebarTree } from '../helper/sidebarTree.js'
 import { collectStatuses } from './sidebarStatusCollector.js'
 import { resolveRemoteState } from '@tenjuu99/blog/lib/publishing/remoteStateResolver.js'
+import { createJsonGetHandler } from './handlerFoundation.js'
 
 export const path = '/get_sidebar'
 
@@ -33,8 +34,11 @@ function scanFiles(dir, prefix = '') {
 
 /**
  * @vocab サイドバー取得エンドポイント
+ * @test tests/editor/sidebarEndpoint.test.js
+ * ページディレクトリをスキャンしてサイドバーツリーの HTML を返す。応答の定型は
+ * #ハンドラー基盤 に委ねる。
  */
-export const get = async (req, res) => {
+export const collectSidebarHtml = async () => {
   const files = scanFiles(watch.pageDir)
   const remoteState = await resolveRemoteState({ means: config.publish?.means, cwd: rootDir })
   const fileMappings = files.map(f => ({
@@ -52,10 +56,9 @@ export const get = async (req, res) => {
       __is_auto_category: false,
     })
   }
-  const html = renderSidebarTree(files, statusMap)
-  return {
-    status: 200,
-    contentType: 'application/json',
-    body: JSON.stringify({ html })
-  }
+  return renderSidebarTree(files, statusMap)
 }
+
+export const get = createJsonGetHandler('get_sidebar', async () => {
+  return { body: { html: await collectSidebarHtml() } }
+})

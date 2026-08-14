@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import nodePath from 'node:path'
 import config from '@tenjuu99/blog/lib/config.js'
 import { rootDir, watch } from '@tenjuu99/blog/lib/dir.js'
-import { parseJsonBody } from '@tenjuu99/blog/lib/server/helper/parseRequestBody.js'
+import { createJsonPostHandler } from './handlerFoundation.js'
 import { collectArticleReferences } from './articleReferenceCollector.js'
 import { updateReference } from './referenceUpdater.js'
 import { renameEntry } from './imageLedger.js'
@@ -63,26 +63,13 @@ export async function moveImage({ imagePath, destPath, referenceHandling = 'keep
  * @param {import('http').IncomingMessage} req
  * @param {import('http').ServerResponse} res
  */
-export const post = async (req, res) => {
-  let body
-  try {
-    body = await parseJsonBody(req)
-  } catch (e) {
-    res.writeHead(400, { 'content-type': 'application/json' })
-    res.end(JSON.stringify({ success: false, error: e.message }))
-    return true
-  }
-  const { imagePath, destPath, referenceHandling } = body
+export const post = createJsonPostHandler('move_image', async ({ imagePath, destPath, referenceHandling }) => {
   if (!imagePath || !destPath) {
-    res.writeHead(400, { 'content-type': 'application/json' })
-    res.end(JSON.stringify({ success: false, error: 'imagePath・destPathがありません' }))
-    return true
+    return { status: 400, body: { success: false, error: 'imagePath・destPathがありません' } }
   }
   const result = await moveImage(
     { imagePath, destPath, referenceHandling },
     { srcDir, pagesDir: watch.pageDir, ledgerPath: imageLedgerPath }
   )
-  res.writeHead(result.success ? 200 : 400, { 'content-type': 'application/json' })
-  res.end(JSON.stringify(result))
-  return true
-}
+  return { status: result.success ? 200 : 400, body: result }
+})

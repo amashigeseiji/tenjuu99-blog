@@ -129,3 +129,64 @@ describe('アクティブファイル は class="active" 付きで出力でき�
     assert.match(html, /href="\/editor\?md=posts%2Fhello\.md" class="active"/)
   })
 })
+
+// ─── 展開状態・サイドバーツリー初期化（sidebar.js） ───────────────────────────
+
+import { loadDirOpenState, saveDirOpenState, initSidebarTree } from '../../packages/editor/js/sidebar.js'
+
+const makeFakeStorage = (initial = {}) => {
+  const store = new Map(Object.entries(initial))
+  return {
+    getItem: (k) => store.has(k) ? store.get(k) : null,
+    setItem: (k, v) => store.set(k, String(v)),
+  }
+}
+
+const makeFakeDetails = (dir) => ({
+  dataset: { dir },
+  open: false,
+  listeners: {},
+  addEventListener(ev, fn) { this.listeners[ev] = fn },
+})
+
+describe('展開状態 は ディレクトリの開閉状態を保持して管理できる', () => {
+  it('保存した開閉状態が読み戻せる', () => {
+    const storage = makeFakeStorage()
+    saveDirOpenState({ posts: true, drafts: false }, storage)
+    assert.deepStrictEqual(loadDirOpenState(storage), { posts: true, drafts: false })
+  })
+
+  it('保存値が壊れていても空の状態として読める', () => {
+    const storage = makeFakeStorage({ 'sidebar-dir-open': '{invalid' })
+    assert.deepStrictEqual(loadDirOpenState(storage), {})
+  })
+})
+
+describe('サイドバー は 保存済みの開閉状態を復元し、アクティブファイルの親ディレクトリを開ける', () => {
+  it('保存済みの開閉状態が <details> に反映され、アクティブファイルの親が開く', () => {
+    const storage = makeFakeStorage()
+    saveDirOpenState({ drafts: true }, storage)
+    const details = [makeFakeDetails('posts'), makeFakeDetails('posts/deep'), makeFakeDetails('drafts')]
+    const doc = { querySelectorAll: () => details }
+    const synced = []
+    initSidebarTree('posts/deep/nested.md', { doc, storage, syncActive: (t) => synced.push(t) })
+    assert.strictEqual(details[0].open, true)  // posts: アクティブファイルの親
+    assert.strictEqual(details[1].open, true)  // posts/deep: アクティブファイルの親
+    assert.strictEqual(details[2].open, true)  // drafts: 保存済みの状態
+    // アクティブ表示の付与はアクティブ状態同期器へ委ねられる
+    assert.deepStrictEqual(synced, [{ type: 'article', path: 'posts/deep/nested.md' }])
+  })
+
+  it('開閉を切り替えるたびに状態が保存される', () => {
+    const storage = makeFakeStorage()
+    const details = [makeFakeDetails('posts')]
+    const doc = { querySelectorAll: () => details }
+    initSidebarTree('', { doc, storage })
+    details[0].open = true
+    details[0].listeners.toggle()
+    assert.deepStrictEqual(loadDirOpenState(storage), { posts: true })
+    details[0].open = false
+    details[0].listeners.toggle()
+    assert.deepStrictEqual(loadDirOpenState(storage), { posts: false })
+  })
+})

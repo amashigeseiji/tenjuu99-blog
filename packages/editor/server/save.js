@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import { styleText } from 'node:util'
 import { watch, pageDir as cachePageDir } from '@tenjuu99/blog/lib/dir.js'
 import { indexing } from '@tenjuu99/blog/lib/indexer.js'
-import { parseJsonBody } from '@tenjuu99/blog/lib/server/helper/parseRequestBody.js'
+import { createJsonPostHandler } from './handlerFoundation.js'
 
 export const path = '/save'
 
@@ -57,29 +57,14 @@ export async function saveFile(filename, content, pageDir, options = {}) {
  * @param {IncomingMessage} req
  * @param {ServerResponse} res
  */
-export const post = async (req, res) => {
-  let json
-  try {
-    json = await parseJsonBody(req, { maxSize: MAX_BODY_SIZE })
-  } catch (e) {
-    const status = e.code === 'PAYLOAD_TOO_LARGE' ? 413 : 400
-    res.writeHead(status, { 'content-type': 'application/json' })
-    res.end(JSON.stringify({ error: e.message }))
-    return true
-  }
-
+export const post = createJsonPostHandler('save', async (json) => {
   if (!json.filename) {
-    res.writeHead(400, { 'content-type': 'application/json' })
-    res.end(JSON.stringify({ error: 'ファイル名がありません' }))
-    return true
+    return { status: 400, body: { error: 'ファイル名がありません' } }
   }
 
   const result = await saveFile(json.filename, json.content ?? '', watch.pageDir, { createOnly: !!json.createOnly })
   if (!result.success) {
-    const status = result.code === 'FILE_EXISTS' ? 409 : 400
-    res.writeHead(status, { 'content-type': 'application/json' })
-    res.end(JSON.stringify(result))
-    return true
+    return { status: result.code === 'FILE_EXISTS' ? 409 : 400, body: result }
   }
 
   if (json.createOnly) {
@@ -91,7 +76,5 @@ export const post = async (req, res) => {
     fs.writeFileSync(`${cacheDirPath}/${cacheBasename}`, json.content ?? '')
     await indexing()
   }
-  res.writeHead(200, { 'content-type': 'application/json' })
-  res.end(JSON.stringify({ success: true }))
-  return true
-}
+  return { body: { success: true } }
+}, { maxSize: MAX_BODY_SIZE, errorBody: (message) => ({ error: message }) })
