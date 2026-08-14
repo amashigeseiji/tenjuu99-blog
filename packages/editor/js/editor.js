@@ -276,6 +276,7 @@ const onloadFunction = async (e) => {
 
   // @vocab: 自動保存
   // @vocab: 自動保存初期化器
+  // @test: tests/editor/editor-ui-cleanup.test.js
   const autoSave = async () => {
     const filename = inputFileName.value
     if (!filename) return
@@ -301,6 +302,8 @@ const onloadFunction = async (e) => {
   initDropReceiver(textarea, () => inputFileName.value, () => submit('/preview', form), () => debouncedUpdate.cancel())
 
   // @vocab: 新規作成UI
+  // @test: tests/editor/editor-ui-cleanup.test.js
+  // @test: tests/editor/editor-image-upload.test.js
   const newFileNameInput = document.querySelector('#newFileName')
   const newFileTemplateSelect = document.querySelector('#newFileTemplate')
   const newFileImageInput = document.querySelector('#newFileImage')
@@ -684,6 +687,7 @@ const sidebarToggle = (e) => {
 }
 
 // @vocab: 画像アップローダー
+// @test: tests/editor/editor-image-upload.test.js
 // 記事に紐づかない追加（画像ライブラリからの追加）。mdFile を送らず、
 // 配置パス（image/ 相対・ディレクトリ階層可）を imageFilename として送る
 const addLibraryImage = async (file, destPath) => {
@@ -700,6 +704,7 @@ const addLibraryImage = async (file, destPath) => {
 }
 
 // @vocab: 画像アップローダー
+// @test: tests/editor/editor-image-upload.test.js
 const uploadImage = async (file, mdFile) => {
   const buffer = await file.arrayBuffer()
   const base64 = btoa(new Uint8Array(buffer).reduce((s, b) => s + String.fromCharCode(b), ''))
@@ -715,6 +720,8 @@ const uploadImage = async (file, mdFile) => {
 
 // @vocab: ドロップレシーバー
 // @vocab: ドロップレシーバー拡張
+// @test: tests/editor/editor-image-upload.test.js
+// @test: tests/editor/auto-preview.test.js
 const initDropReceiver = (textarea, getMdFile, onUpdate, cancelPendingDebounce) => {
   textarea.addEventListener('dragover', (e) => {
     e.preventDefault()

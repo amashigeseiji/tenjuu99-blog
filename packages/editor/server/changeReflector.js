@@ -5,6 +5,7 @@
 
 /**
  * @vocab: 公開する
+ * @test tests/editor/publish.test.js
  * 未公開 → 公開済み 遷移。ローカルにある公開物をリモートに反映する。
  * 更新する と現在は同じ実装だが、
  * 将来「非公開にする」「削除する」などの遷移が加わったとき実装が分岐する。
@@ -18,6 +19,7 @@ export async function publish(files, means) {
 
 /**
  * @vocab: 更新する
+ * @test tests/editor/publish.test.js
  * 更新あり → 公開済み 遷移。公開する と現在は同じ実装だが、
  * 将来「非公開にする」「削除する」などの遷移が加わったとき実装が分岐する。
  * @param {string[]} files - 反映対象ファイルパスの配列

@@ -1,6 +1,7 @@
 
 /**
  * @vocab: 画像参照
+ * @test: tests/editor/imageReference.test.js
  * @typedef {string} ImageReference 記事が参照する画像のローカルパス（本文・frontmatter いずれの経路も同じ形）
  */
 
