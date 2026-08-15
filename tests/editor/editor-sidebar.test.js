@@ -190,3 +190,122 @@ describe('サイドバー は 保存済みの開閉状態を復元し、アク�
     assert.deepStrictEqual(loadDirOpenState(storage), { posts: false })
   })
 })
+
+// ─── サイドバー内容の取得・差し替え（initSidebarContent） ───────────────────
+
+import { initSidebarContent, initSidebarToggle } from '../../packages/editor/js/sidebar.js'
+
+describe('サイドバー は サイドバー取得エンドポイントからツリーを取得して差し替えられる', () => {
+  const makeDoc = (details = []) => {
+    const files = { innerHTML: '<p>before</p>' }
+    return {
+      files,
+      querySelector: (sel) => sel === '.sidebar-files' ? files : null,
+      querySelectorAll: () => details,
+    }
+  }
+
+  it('取得したHTMLで .sidebar-files を差し替え、ツリーを初期化してアクティブ表示を同期する', async () => {
+    const doc = makeDoc([makeFakeDetails('posts')])
+    const storage = makeFakeStorage()
+    const synced = []
+    const calledUrls = []
+    const fetchFn = async (url) => {
+      calledUrls.push(url)
+      return { ok: true, json: async () => ({ html: '<ul>tree</ul>' }) }
+    }
+    await initSidebarContent('posts/a.md', { doc, storage, syncActive: (t) => synced.push(t), fetchFn })
+    assert.deepStrictEqual(calledUrls, ['/get_sidebar'])
+    assert.strictEqual(doc.files.innerHTML, '<ul>tree</ul>')
+    assert.strictEqual(doc.querySelectorAll()[0].open, true)  // アクティブファイルの親が開く
+    assert.deepStrictEqual(synced, [{ type: 'article', path: 'posts/a.md' }])
+  })
+
+  it('取得に失敗した応答では既存の内容を保つ', async () => {
+    const doc = makeDoc()
+    const fetchFn = async () => ({ ok: false, json: async () => ({}) })
+    await initSidebarContent('posts/a.md', { doc, storage: makeFakeStorage(), fetchFn })
+    assert.strictEqual(doc.files.innerHTML, '<p>before</p>')
+  })
+
+  it('取得が例外を投げても呼び出し側へは伝播しない', async () => {
+    const doc = makeDoc()
+    const fetchFn = async () => { throw new Error('network') }
+    const origLog = console.log
+    console.log = () => {}
+    try {
+      await assert.doesNotReject(() => initSidebarContent('', { doc, storage: makeFakeStorage(), fetchFn }))
+    } finally {
+      console.log = origLog
+    }
+    assert.strictEqual(doc.files.innerHTML, '<p>before</p>')
+  })
+})
+
+// ─── サイドバーの開閉トグル（initSidebarToggle） ─────────────────────────────
+
+describe('サイドバー は 開閉トグルとハンバーガーメニューで開閉し、開閉状態を保存・復元できる', () => {
+  const makeClassList = () => {
+    const set = new Set()
+    return {
+      add: (c) => set.add(c),
+      remove: (c) => set.delete(c),
+      contains: (c) => set.has(c),
+      toggle: (c) => set.has(c) ? set.delete(c) : set.add(c),
+    }
+  }
+  const makeListenable = () => ({
+    listeners: {},
+    addEventListener(ev, fn) { this.listeners[ev] = fn },
+  })
+  const makeDoc = () => {
+    const main = { classList: makeClassList() }
+    const toggle = makeListenable()
+    const hamburger = makeListenable()
+    const sidebar = { querySelector: (sel) => sel === '.sidebar-toggle' ? toggle : null }
+    const doc = {
+      main, toggle, hamburger,
+      querySelector: (sel) => ({
+        '.sidebar': sidebar,
+        'main': main,
+        '.hamburger-menu input[type="checkbox"]': hamburger,
+      })[sel] ?? null,
+    }
+    return doc
+  }
+
+  it('保存済みの開状態があれば開いた状態で復元される', () => {
+    const doc = makeDoc()
+    initSidebarToggle(doc, makeFakeStorage({ 'sidebar-is-open': 'true' }))
+    assert.strictEqual(doc.main.classList.contains('sidebar-close'), false)
+  })
+
+  it('保存済みの状態がなければ閉じた状態になる', () => {
+    const doc = makeDoc()
+    initSidebarToggle(doc, makeFakeStorage())
+    assert.strictEqual(doc.main.classList.contains('sidebar-close'), true)
+  })
+
+  it('トグルをクリックするたびに開閉が切り替わり、状態が保存される', () => {
+    const doc = makeDoc()
+    const storage = makeFakeStorage()
+    initSidebarToggle(doc, storage)
+    let prevented = false
+    doc.toggle.listeners.click({ preventDefault: () => { prevented = true } })
+    assert.strictEqual(prevented, true)
+    assert.strictEqual(doc.main.classList.contains('sidebar-close'), false)
+    assert.strictEqual(storage.getItem('sidebar-is-open'), 'true')
+    doc.toggle.listeners.click({ preventDefault: () => {} })
+    assert.strictEqual(doc.main.classList.contains('sidebar-close'), true)
+    assert.strictEqual(storage.getItem('sidebar-is-open'), 'false')
+  })
+
+  it('ハンバーガーメニューの変更でも開閉が切り替わる', () => {
+    const doc = makeDoc()
+    initSidebarToggle(doc, makeFakeStorage())
+    doc.hamburger.listeners.change()
+    assert.strictEqual(doc.main.classList.contains('sidebar-close'), false)
+    doc.hamburger.listeners.change()
+    assert.strictEqual(doc.main.classList.contains('sidebar-close'), true)
+  })
+})

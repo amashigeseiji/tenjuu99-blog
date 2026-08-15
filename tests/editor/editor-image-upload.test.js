@@ -118,7 +118,19 @@ describe('画像アップローダーは画像ファイルをサーバーに送�
     assert.strictEqual(captured.url, '/upload-image')
     assert.strictEqual(captured.body.imageFilename, 'photo.png')
     assert.strictEqual(captured.body.mdFile, 'a.md')
-    assert.ok(captured.body.imageData.length > 0)
+    assert.strictEqual(captured.body.imageData, Buffer.from([1, 2, 3]).toString('base64'))
+  })
+
+  it('チャンク境界をまたぐサイズのファイルでも base64 が正しく組み立てられる', async () => {
+    const bytes = new Uint8Array(0x8000 * 2 + 5).map((_, i) => i % 256)
+    const bigFile = { name: 'big.png', arrayBuffer: async () => bytes.buffer }
+    let captured
+    const fetchFn = async (url, opts) => {
+      captured = JSON.parse(opts.body)
+      return { ok: true, json: async () => ({ markdownUrl: '/image/a/big.png' }) }
+    }
+    await uploadImage(bigFile, 'a.md', fetchFn)
+    assert.strictEqual(captured.imageData, Buffer.from(bytes).toString('base64'))
   })
 
   it('失敗応答では null を返す', async () => {

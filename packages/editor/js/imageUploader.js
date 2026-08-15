@@ -6,10 +6,21 @@
  * 同じ送信の定型を共有する。
  */
 
-/** @param {File} file @returns {Promise<string>} */
+/** 1回の String.fromCharCode に渡すバイト数（引数上限を避けつつ呼び出し回数を抑える） */
+const BASE64_CHUNK_SIZE = 0x8000
+
+/**
+ * バイト列をチャンク単位で文字列化してから base64 化する。
+ * 1バイトごとの文字列連結を避け、大きな画像でも UI が固まりにくくする。
+ * @param {File} file @returns {Promise<string>}
+ */
 const toBase64 = async (file) => {
-  const buffer = await file.arrayBuffer()
-  return btoa(new Uint8Array(buffer).reduce((s, b) => s + String.fromCharCode(b), ''))
+  const bytes = new Uint8Array(await file.arrayBuffer())
+  let binary = ''
+  for (let i = 0; i < bytes.length; i += BASE64_CHUNK_SIZE) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + BASE64_CHUNK_SIZE))
+  }
+  return btoa(binary)
 }
 
 /**

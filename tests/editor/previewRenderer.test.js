@@ -45,11 +45,11 @@ describe('プレビュー描画器 は 編集中の内容から描画結果を�
 
   it('エラー応答ではメッセージが通知され、プレビューは変更されない', async () => {
     const previewEl = makeFakePreviewEl()
-    const fetchFn = async () => ({ ok: false, json: async () => ({ message: 'filename is requried.' }) })
+    const fetchFn = async () => ({ ok: false, json: async () => ({ message: 'filename is required.' }) })
     let notified
     const renderPreview = createPreviewRenderer(previewEl, { fetchFn, notify: (m) => { notified = m } })
     await renderPreview({})
-    assert.strictEqual(notified, 'filename is requried.')
+    assert.strictEqual(notified, 'filename is required.')
     assert.strictEqual(previewEl.iframe, null)
   })
 })

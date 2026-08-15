@@ -40,7 +40,7 @@ export function inlineStyles(html, dirs = [distDir, srcDir]) {
 export const post = createJsonPostHandler('preview', async (json) => {
   const filename = json.inputFileName ? json.inputFileName : json.selectDataFile
   if (!filename) {
-    return { status: 400, body: { message: 'filename is requried.' } }
+    return { status: 400, body: { message: 'filename is required.' } }
   }
   const pageData = makePageData(filename, json.content)
   const rendered = await render(pageData.template, pageData)
