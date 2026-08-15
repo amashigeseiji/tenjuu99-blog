@@ -4,6 +4,7 @@ import { resolveRemoteState } from '@tenjuu99/blog/lib/publishing/remoteStateRes
 import { collectArticleReferences } from './articleReferenceCollector.js'
 import { findReferencingArticles } from './referencingArticleFinder.js'
 import { getPublicationStatus } from './publicationStatus.js'
+import { createJsonGetHandler } from './handlerFoundation.js'
 
 export const path = '/get_image_references'
 
@@ -15,19 +16,14 @@ export const path = '/get_image_references'
  * @param {import('http').IncomingMessage} req
  * @param {import('http').ServerResponse} res
  */
-export const get = async (req, res) => {
-  const url = new URL(req.url, 'http://localhost')
+export const get = createJsonGetHandler('get_image_references', async (url) => {
   const imagePath = url.searchParams.get('imagePath')
   if (!imagePath) {
-    res.writeHead(400, { 'content-type': 'application/json' })
-    res.end(JSON.stringify({ error: 'imagePath パラメータが必要です' }))
-    return true
+    return { status: 400, body: { error: 'imagePath パラメータが必要です' } }
   }
   const articleReferences = collectArticleReferences(watch.pageDir)
   const remoteState = await resolveRemoteState({ means: config.publish?.means, cwd: rootDir })
   const getStatus = (articlePath) => getPublicationStatus(`${config.src_dir}/pages/${articlePath}`, remoteState)
   const articles = await findReferencingArticles(imagePath, articleReferences, getStatus)
-  res.writeHead(200, { 'content-type': 'application/json' })
-  res.end(JSON.stringify({ articles }))
-  return true
-}
+  return { body: { articles } }
+})

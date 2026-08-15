@@ -6,6 +6,7 @@ import { collectStatuses } from './sidebarStatusCollector.js'
 
 /**
  * @vocab: 画像ライブラリエントリ
+ * @test: tests/editor/image-library.test.js
  * @typedef {object} ImageLibraryEntry
  * @property {string} path - srcDir からの相対パス（例: `image/post/hello/photo.jpg`）
  * @property {string} url - 公開URL（例: `/image/post/hello/photo.jpg`）

@@ -1,7 +1,7 @@
 import nodePath from 'node:path'
 import config from '@tenjuu99/blog/lib/config.js'
 import { rootDir } from '@tenjuu99/blog/lib/dir.js'
-import { parseJsonBody } from '@tenjuu99/blog/lib/server/helper/parseRequestBody.js'
+import { createJsonPostHandler } from './handlerFoundation.js'
 import { setDeclaration } from './imageLedger.js'
 
 export const path = '/image_declaration'
@@ -39,26 +39,13 @@ function isImageLedgerKey(imagePath) {
  * @param {import('http').IncomingMessage} req
  * @param {import('http').ServerResponse} res
  */
-export const post = async (req, res) => {
-  let body
-  try {
-    body = await parseJsonBody(req)
-  } catch (e) {
-    res.writeHead(400, { 'content-type': 'application/json' })
-    res.end(JSON.stringify({ success: false, error: e.message }))
-    return true
-  }
-  const { imagePath, declared } = body
+export const post = createJsonPostHandler('image_declaration', async ({ imagePath, declared }) => {
   if (!imagePath) {
-    res.writeHead(400, { 'content-type': 'application/json' })
-    res.end(JSON.stringify({ success: false, error: 'imagePathがありません' }))
-    return true
+    return { status: 400, body: { success: false, error: 'imagePathがありません' } }
   }
   const result = await setImageDeclaration(
     { imagePath, declared: !!declared },
     { ledgerPath: imageLedgerPath }
   )
-  res.writeHead(result.success ? 200 : 400, { 'content-type': 'application/json' })
-  res.end(JSON.stringify(result))
-  return true
-}
+  return { status: result.success ? 200 : 400, body: result }
+})

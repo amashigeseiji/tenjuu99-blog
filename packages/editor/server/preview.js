@@ -1,20 +1,21 @@
-import { IncomingMessage, ServerResponse } from 'http'
-import { styleText } from 'node:util'
 import render from '@tenjuu99/blog/lib/render.js'
 import makePageData from '@tenjuu99/blog/lib/pageData.js'
 import { distDir, srcDir } from '@tenjuu99/blog/lib/dir.js'
 import fs from 'node:fs'
-import { parseJsonBody } from '@tenjuu99/blog/lib/server/helper/parseRequestBody.js'
+import { createJsonPostHandler } from './handlerFoundation.js'
 
 export const path = '/preview'
 
 /**
+ * @vocab プレビュー自己完結化
+ * @test tests/editor/previewSelfContainment.test.js
  * <link rel="stylesheet"> タグを読み込んでインライン <style> に置換する。
  * プレビューiframeがサーバー再起動中のCSSリクエスト失敗を起こさないようにするため。
  * @param {string} html
+ * @param {string[]} [dirs] スタイルシートを探すディレクトリ（既定は dist → src の順）
  * @returns {string}
  */
-function inlineStyles(html) {
+export function inlineStyles(html, dirs = [distDir, srcDir]) {
   return html.replace(
     /<link\b[^>]*\brel=["']stylesheet["'][^>]*\/?>/gi,
     (match) => {
@@ -25,7 +26,7 @@ function inlineStyles(html) {
         return match
       }
       const filePath = href.split('?')[0]
-      for (const dir of [distDir, srcDir]) {
+      for (const dir of dirs) {
         const fullPath = `${dir}${filePath}`
         if (fs.existsSync(fullPath)) {
           return `<style>${fs.readFileSync(fullPath, 'utf8')}</style>`
@@ -36,28 +37,12 @@ function inlineStyles(html) {
   )
 }
 
-/**
- * @param {IncomingMessage} req
- * @param {ServerResponse} res
- */
-export const post = async (req, res) => {
-  let json
-  try {
-    json = await parseJsonBody(req)
-  } catch (e) {
-    res.writeHead(400, { 'content-type': 'application/json' })
-    res.end(JSON.stringify({ message: e.message }))
-    return true
-  }
+export const post = createJsonPostHandler('preview', async (json) => {
   const filename = json.inputFileName ? json.inputFileName : json.selectDataFile
   if (!filename) {
-    res.writeHead(400, { 'content-type': 'application/json' })
-    res.end(JSON.stringify({ message: 'filename is requried.' }))
-    return true
+    return { status: 400, body: { message: 'filename is required.' } }
   }
   const pageData = makePageData(filename, json.content)
   const rendered = await render(pageData.template, pageData)
-  res.writeHead(200, { 'content-type': 'application/json' })
-  res.end(JSON.stringify({ 'preview': inlineStyles(rendered) }))
-  return true
-}
+  return { body: { preview: inlineStyles(rendered) } }
+}, { errorBody: (message) => ({ message }) })

@@ -1,0 +1,161 @@
+{
+  "version": "1",
+  "acts": [
+    {
+      "id": "act-0001",
+      "actor": "作成者",
+      "claim": "編集画面から画像をアップロードすると、Webに適したサイズ・フォーマットに変換されて保存される",
+      "witness": { "acceptance": ["tests/acceptance/editor-image-converter.spec.ts#US-01: アップロード時の画像変換"] },
+      "settled": { "date": "2026-06-25", "project": "editor-image-converter", "retro": true }
+    },
+    {
+      "id": "act-0002",
+      "actor": "作成者",
+      "claim": "テキスト入力の手を止めると、previewボタンなしでプレビューが自動更新され、確認しながら書ける",
+      "witness": { "acceptance": ["tests/acceptance/editor-realtime-preview.spec.ts#US-01: テキスト入力中にプレビューをボタン操作なしで確認できる", "tests/acceptance/editor-ui-cleanup.spec.ts#US-03: プレビューを確認しながら書く"] },
+      "settled": { "date": "2026-06-28", "project": "editor-ui-cleanup", "retro": true }
+    },
+    {
+      "id": "act-0003",
+      "actor": "作成者",
+      "claim": "画像をテキストエリアにドロップするとMarkdown構文が挿入され、プレビューでその場で確認できる",
+      "witness": { "acceptance": ["tests/acceptance/editor-realtime-preview.spec.ts#US-02: 画像挿入後にプレビューでその場で確認できる"] },
+      "settled": { "date": "2026-06-27", "project": "editor-realtime-preview", "retro": true }
+    },
+    {
+      "id": "act-0004",
+      "actor": "作成者",
+      "claim": "新規作成ボタンからファイル名とテンプレートを指定して、新しいファイルを未公開の状態で作れる",
+      "witness": { "acceptance": ["tests/acceptance/editor-ui-cleanup.spec.ts#US-01: 新規ファイルの作成"] },
+      "settled": { "date": "2026-06-28", "project": "editor-ui-cleanup", "retro": true }
+    },
+    {
+      "id": "act-0005",
+      "actor": "作成者",
+      "claim": "saveボタンを押さなくても、書いた内容がローカルに保存される",
+      "witness": { "acceptance": ["tests/acceptance/editor-ui-cleanup.spec.ts#US-02: 書いた内容の自動保存"] },
+      "settled": { "date": "2026-06-28", "project": "editor-ui-cleanup", "retro": true }
+    },
+    {
+      "id": "act-0006",
+      "actor": "作成者",
+      "claim": "サイドバーのファイルをクリックしてエディタで開ける",
+      "witness": { "acceptance": ["tests/acceptance/editor-ui-cleanup.spec.ts#US-04: ファイルのナビゲーション"] },
+      "settled": { "date": "2026-06-28", "project": "editor-ui-cleanup", "retro": true }
+    },
+    {
+      "id": "act-0007",
+      "actor": "作成者",
+      "claim": "サイドバーを見るだけで、各ファイルの公開ステータス（未公開・更新あり・公開済み）を開かずに識別できる",
+      "witness": { "acceptance": ["tests/acceptance/editor-sidebar-status.spec.ts#US-01: サイドバーで各ファイルの公開ステータスを識別する"] },
+      "settled": { "date": "2026-06-29", "project": "editor-sidebar-status", "retro": true }
+    },
+    {
+      "id": "act-0008",
+      "actor": "作成者",
+      "claim": "公開手段を意識せずに記事を公開でき、公開状態が参照できないときは操作できない理由が分かる",
+      "witness": { "acceptance": ["tests/acceptance/publish-abstraction.spec.ts#US-01: 手段を意識せずに記事を公開できる"] },
+      "settled": { "date": "2026-07-10", "project": "publish-abstraction", "retro": true }
+    },
+    {
+      "id": "act-0009",
+      "actor": "作成者",
+      "claim": "公開した記事を、原稿を手元に残したまま非公開に戻せる",
+      "witness": { "acceptance": ["tests/acceptance/sync-operations.spec.ts#US-01: 公開した記事を非公開に戻せる"] },
+      "settled": { "date": "2026-07-14", "project": "sync-operations", "retro": true }
+    },
+    {
+      "id": "act-0010",
+      "actor": "作成者",
+      "claim": "未公開の記事を削除できる",
+      "witness": { "acceptance": ["tests/acceptance/sync-operations.spec.ts#US-02: 記事を削除できる"] },
+      "settled": { "date": "2026-07-14", "project": "sync-operations", "retro": true }
+    },
+    {
+      "id": "act-0011",
+      "actor": "作成者",
+      "claim": "サイト全体の画像を一覧・プレビューし、ファイル名・サイズ・解像度・追加日時を確認できる",
+      "witness": { "acceptance": ["tests/acceptance/editor-image-library.spec.ts#US-01: 画像の一覧・プレビュー・メタデータ確認"] },
+      "settled": { "date": "2026-08-02", "project": "editor-image-library", "retro": true }
+    },
+    {
+      "id": "act-0012",
+      "actor": "作成者",
+      "claim": "不要な画像を削除でき、参照がある場合は参照記事の提示と選択を経て削除できる",
+      "witness": { "acceptance": ["tests/acceptance/editor-image-library.spec.ts#US-02: 画像の削除"] },
+      "settled": { "date": "2026-08-02", "project": "editor-image-library", "retro": true }
+    },
+    {
+      "id": "act-0013",
+      "actor": "作成者",
+      "claim": "画像の置き場所とファイル名を付け替えられ、参照記事の扱いを選べる",
+      "witness": { "acceptance": ["tests/acceptance/editor-image-library.spec.ts#US-03: 画像の移動（パスの付け替え）"] },
+      "settled": { "date": "2026-08-02", "project": "editor-image-library", "retro": true }
+    },
+    {
+      "id": "act-0014",
+      "actor": "作成者",
+      "claim": "記事編集を経由せず、画像ファイルと配置パスを指定してサイトに画像を追加できる",
+      "witness": { "acceptance": ["tests/acceptance/editor-image-library.spec.ts#US-04: 画像ライブラリからの画像追加", "tests/acceptance/editor-image-library-publication-state.spec.ts#US-04 シナリオ2: 追加しただけでは公開されない"] },
+      "settled": { "date": "2026-08-02", "project": "editor-image-library", "retro": true }
+    },
+    {
+      "id": "act-0015",
+      "actor": "作成者",
+      "claim": "画像の公開・非公開が、記事からの参照（本文・frontmatter）の有無に連動して決まる",
+      "witness": { "acceptance": ["tests/acceptance/editor-image-library-publication-state.spec.ts#US-05: 参照に連動した公開状態", "tests/acceptance/publish-frontmatter-image.spec.ts#US-01: frontmatter で参照した画像の公開"] },
+      "settled": { "date": "2026-08-02", "project": "editor-image-library", "retro": true }
+    },
+    {
+      "id": "act-0016",
+      "actor": "作成者",
+      "claim": "画像の選択・表示をURLで特定でき、リロード・URL直打ち・戻るで同じ表示が再現される",
+      "witness": { "acceptance": ["tests/acceptance/editor-image-library.spec.ts#US-07: 画像も記事と同じナビゲーションで扱える"] },
+      "settled": { "date": "2026-08-02", "project": "editor-image-library", "retro": true }
+    },
+    {
+      "id": "act-0017",
+      "actor": "作成者",
+      "claim": "画像の公開ステータス（未公開・更新あり・公開済み）を画面で確認でき、リモートに届いていない変更も読み取れる",
+      "witness": { "acceptance": ["tests/acceptance/editor-image-library-publication-state.spec.ts#US-08: 画像自身の公開状態の確認", "tests/acceptance/editor-image-library-publication-state.spec.ts#US-09: リモートに届いていない変更が分かる公開状態"] },
+      "settled": { "date": "2026-08-02", "project": "editor-image-library", "retro": true }
+    },
+    {
+      "id": "act-0018",
+      "actor": "作成者",
+      "claim": "リモートにのみ残っている画像を別枠で見つけ、リモートから取り除ける",
+      "witness": { "acceptance": ["tests/acceptance/editor-image-library-publication-state.spec.ts#US-10: リモートにのみ存在する画像の解消"] },
+      "settled": { "date": "2026-08-02", "project": "editor-image-library", "retro": true }
+    },
+    {
+      "id": "act-0019",
+      "actor": "アプリ利用者",
+      "claim": "コンテンツルートの実体 node_modules の有無に関わらず、追加インストールなしに同梱機能を使える",
+      "witness": { "acceptance": ["tests/acceptance/bundled-dependency-resolution.spec.ts#US-01: コンテンツルートの状態によらず同梱機能が動作する"] },
+      "settled": { "date": "2026-07-17", "project": "bundled-dependency-resolution", "retro": true }
+    },
+    {
+      "id": "act-0020",
+      "actor": "アプリ利用者",
+      "claim": "実体の node_modules を持つ開発中プロジェクトを、中身を壊されずにコンテンツルートとして使える",
+      "witness": { "acceptance": ["tests/acceptance/node-modules-destruction.spec.ts#US-01: 開発中のプロジェクトを壊されずにアプリで使う"] },
+      "settled": { "date": "2026-07-08", "project": "node-modules-destruction", "retro": true }
+    },
+    {
+      "id": "act-0021",
+      "actor": "作成者",
+      "claim": "リモートの内容を手元に取り込める",
+      "context": "editor",
+      "witness": { "acceptance": ["tests/acceptance/sync-operations.spec.ts#US-03: リモートの内容を手元に取り込める"] },
+      "settled": { "date": "2026-07-14", "project": "sync-operations", "devices": ["公開手段", "git公開手段", "版の連なり", "公開可否判定器"], "unitTests": ["tests/publishing/sync.test.js#同期はローカルとリモートの内容を、除去と取り込みを含む両向きで揃えられる > 取り込むはリモートの内容を、手元の執筆内容を失わずにローカルへ反映できる"], "retro": true }
+    },
+    {
+      "id": "act-0022",
+      "actor": "作成者",
+      "claim": "検出できない参照を宣言して自動非公開から外せる",
+      "context": "editor",
+      "witness": { "acceptance": ["tests/acceptance/editor-image-library-publication-state.spec.ts#US-06: 検出できない参照の宣言"] },
+      "settled": { "date": "2026-08-02", "project": "editor-image-library", "devices": ["画像詳細表示", "画像台帳", "検出外参照宣言エンドポイント"], "unitTests": ["tests/editor/image-library.test.js#画像台帳は画像パスごとの公開済み参照記事一覧と検出外参照宣言を保持・更新できる", "tests/editor/image-library.test.js#検出外参照宣言エンドポイントは画像への宣言の付与・解除を受け付けて画像台帳に反映できる"], "retro": true }
+    }
+  ]
+}

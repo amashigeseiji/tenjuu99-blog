@@ -8,7 +8,7 @@ import { publish, update } from './changeReflector.js'
 import { getPublicationStatus } from './publicationStatus.js'
 import { syncImagePublicationState } from './imagePublicationSyncer.js'
 import { resolvePublicationMeans } from '@tenjuu99/blog/lib/publishing/publicationMeansResolver.js'
-import { parseJsonBody } from '@tenjuu99/blog/lib/server/helper/parseRequestBody.js'
+import { createJsonPostHandler } from './handlerFoundation.js'
 
 export const imageLedgerPath = nodePath.join(srcDir, 'image-library.json')
 
@@ -49,47 +49,26 @@ export async function handlePublish({
 
 export const path = '/publish'
 
-export const post = async (req, res) => {
-  let body
-  try {
-    body = await parseJsonBody(req)
-  } catch (e) {
-    res.writeHead(400, { 'content-type': 'application/json' })
-    res.end(JSON.stringify({ success: false, error: e.message }))
-    return true
+export const post = createJsonPostHandler('publish', async ({ filePath, fileContent }) => {
+  if (!filePath) {
+    return { status: 400, body: { success: false, error: 'ファイル名がありません' } }
   }
-  try {
-    const { filePath, fileContent } = body
-    if (!filePath) {
-      res.writeHead(400, { 'content-type': 'application/json' })
-      res.end(JSON.stringify({ success: false, error: 'ファイル名がありません' }))
-      return true
-    }
-    const pagesDir = nodePath.join(srcDir, 'pages')
-    const resolvedFilePath = nodePath.resolve(pagesDir, filePath)
-    if (!resolvedFilePath.startsWith(pagesDir + nodePath.sep)) {
-      res.writeHead(400, { 'content-type': 'application/json' })
-      res.end(JSON.stringify({ success: false, error: '不正なファイルパスです' }))
-      return true
-    }
-    const content = fileContent != null ? fileContent : fs.readFileSync(`${srcDir}/pages/${filePath}`, 'utf-8')
-    if (fileContent != null) {
-      const dir = `${srcDir}/pages/${filePath}`.split('/').slice(0, -1).join('/')
-      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
-      fs.writeFileSync(`${srcDir}/pages/${filePath}`, fileContent)
-    }
-    const means = await resolvePublicationMeans({ means: config.publish?.means, cwd: rootDir })
-    const result = await handlePublish(
-      { filePath, fileContent: content, srcDir: config.src_dir, ledgerPath: imageLedgerPath },
-      means
-    )
-    console.log(styleText(result.success ? 'green' : 'red', `[publish] ${filePath} ${result.success ? 'ok' : result.error}`))
-    res.writeHead(result.success ? 200 : 500, { 'content-type': 'application/json' })
-    res.end(JSON.stringify(result))
-  } catch (error) {
-    console.log(styleText('red', '[publish] エラー:'), error.message)
-    res.writeHead(500, { 'content-type': 'application/json' })
-    res.end(JSON.stringify({ success: false, error: error.message }))
+  const pagesDir = nodePath.join(srcDir, 'pages')
+  const resolvedFilePath = nodePath.resolve(pagesDir, filePath)
+  if (!resolvedFilePath.startsWith(pagesDir + nodePath.sep)) {
+    return { status: 400, body: { success: false, error: '不正なファイルパスです' } }
   }
-  return true
-}
+  const content = fileContent != null ? fileContent : fs.readFileSync(`${srcDir}/pages/${filePath}`, 'utf-8')
+  if (fileContent != null) {
+    const dir = `${srcDir}/pages/${filePath}`.split('/').slice(0, -1).join('/')
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+    fs.writeFileSync(`${srcDir}/pages/${filePath}`, fileContent)
+  }
+  const means = await resolvePublicationMeans({ means: config.publish?.means, cwd: rootDir })
+  const result = await handlePublish(
+    { filePath, fileContent: content, srcDir: config.src_dir, ledgerPath: imageLedgerPath },
+    means
+  )
+  console.log(styleText(result.success ? 'green' : 'red', `[publish] ${filePath} ${result.success ? 'ok' : result.error}`))
+  return { status: result.success ? 200 : 500, body: result }
+})

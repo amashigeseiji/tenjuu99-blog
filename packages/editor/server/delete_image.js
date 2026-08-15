@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import nodePath from 'node:path'
 import config from '@tenjuu99/blog/lib/config.js'
 import { rootDir, watch } from '@tenjuu99/blog/lib/dir.js'
-import { parseJsonBody } from '@tenjuu99/blog/lib/server/helper/parseRequestBody.js'
+import { createJsonPostHandler } from './handlerFoundation.js'
 import { collectArticleReferences } from './articleReferenceCollector.js'
 import { updateReference } from './referenceUpdater.js'
 import { removeEntry } from './imageLedger.js'
@@ -48,26 +48,13 @@ export async function deleteImage({ imagePath, referenceHandling = 'keep' }, dep
  * @param {import('http').IncomingMessage} req
  * @param {import('http').ServerResponse} res
  */
-export const post = async (req, res) => {
-  let body
-  try {
-    body = await parseJsonBody(req)
-  } catch (e) {
-    res.writeHead(400, { 'content-type': 'application/json' })
-    res.end(JSON.stringify({ success: false, error: e.message }))
-    return true
-  }
-  const { imagePath, referenceHandling } = body
+export const post = createJsonPostHandler('delete_image', async ({ imagePath, referenceHandling }) => {
   if (!imagePath) {
-    res.writeHead(400, { 'content-type': 'application/json' })
-    res.end(JSON.stringify({ success: false, error: 'imagePathがありません' }))
-    return true
+    return { status: 400, body: { success: false, error: 'imagePathがありません' } }
   }
   const result = await deleteImage(
     { imagePath, referenceHandling },
     { srcDir, pagesDir: watch.pageDir, ledgerPath: imageLedgerPath }
   )
-  res.writeHead(result.success ? 200 : 400, { 'content-type': 'application/json' })
-  res.end(JSON.stringify(result))
-  return true
-}
+  return { status: result.success ? 200 : 400, body: result }
+})

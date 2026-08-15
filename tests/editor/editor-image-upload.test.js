@@ -2,6 +2,8 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert'
 import { resolveImagePath, resolveLibraryImagePath, createConverter, writeImageFile, handleImageUpload } from '../../packages/editor/server/image_upload.js'
 import { insertImageMarkdown } from '../../packages/editor/js/image_upload.js'
+import { uploadImage, addLibraryImage } from '../../packages/editor/js/imageUploader.js'
+import { initDropReceiver } from '../../packages/editor/js/dropReceiver.js'
 import { getAddedAt } from '../../packages/editor/server/imageLedger.js'
 import { distributeImages } from '../../lib/imageDistributor.js'
 import fs from 'node:fs'
@@ -50,19 +52,109 @@ describe('インライン画像挿入 は ドラッグ&ドロップで本文へ�
 
 // ─── ドロップレシーバー ───────────────────────────────────────────────
 
+const makeFakeTextarea = () => {
+  const listeners = {}
+  return {
+    value: '',
+    selectionStart: 0,
+    selectionEnd: 0,
+    addEventListener(ev, fn) { listeners[ev] = fn },
+    listeners,
+  }
+}
+
 describe('ドロップレシーバーはテキストエリアへの画像ドロップを受け付けできる', () => {
   describe('ドロップレシーバーはドラッグ中のデフォルト動作をキャンセルできる', () => {
-    it('TODO', () => {})
+    it('dragover でデフォルト動作がキャンセルされる', () => {
+      const textarea = makeFakeTextarea()
+      initDropReceiver(textarea, () => 'a.md', () => {}, null, async () => null)
+      let prevented = false
+      textarea.listeners.dragover({ preventDefault: () => { prevented = true } })
+      assert.strictEqual(prevented, true)
+    })
   })
   describe('ドロップレシーバーはドロップされたファイルリストから画像ファイルを取り出せる', () => {
-    it('TODO', () => {})
+    it('画像ファイルだけがアップロードされ、Markdown参照がカーソル位置に挿入される', async () => {
+      const textarea = makeFakeTextarea()
+      textarea.value = 'ここに挿入'
+      textarea.selectionStart = 3
+      const uploaded = []
+      const upload = async (file, mdFile) => {
+        uploaded.push({ name: file.name, mdFile })
+        return `/image/a/${file.name}`
+      }
+      let updated = false
+      let cancelled = false
+      initDropReceiver(textarea, () => 'a.md', () => { updated = true }, () => { cancelled = true }, upload)
+      await textarea.listeners.drop({
+        preventDefault: () => {},
+        dataTransfer: { files: [
+          { type: 'image/png', name: 'photo.png' },
+          { type: 'text/plain', name: 'memo.txt' },
+        ] },
+      })
+      assert.deepStrictEqual(uploaded, [{ name: 'photo.png', mdFile: 'a.md' }])
+      assert.strictEqual(textarea.value, 'ここに![](/image/a/photo.png)挿入')
+      assert.strictEqual(textarea.selectionStart, 3 + '![](/image/a/photo.png)'.length)
+      assert.strictEqual(updated, true)
+      assert.strictEqual(cancelled, true)
+    })
   })
 })
 
 // ─── 画像アップローダー ───────────────────────────────────────────────
 
 describe('画像アップローダーは画像ファイルをサーバーに送信してMarkdown参照URLを受け取れる', () => {
-  it('TODO', () => {})
+  const fakeFile = (name) => ({ name, arrayBuffer: async () => new Uint8Array([1, 2, 3]).buffer })
+
+  it('記事に紐づくアップロードでは mdFile を添えて送信し、Markdown参照URLを受け取る', async () => {
+    let captured
+    const fetchFn = async (url, opts) => {
+      captured = { url, body: JSON.parse(opts.body) }
+      return { ok: true, json: async () => ({ markdownUrl: '/image/a/photo.png' }) }
+    }
+    const markdownUrl = await uploadImage(fakeFile('photo.png'), 'a.md', fetchFn)
+    assert.strictEqual(markdownUrl, '/image/a/photo.png')
+    assert.strictEqual(captured.url, '/upload-image')
+    assert.strictEqual(captured.body.imageFilename, 'photo.png')
+    assert.strictEqual(captured.body.mdFile, 'a.md')
+    assert.strictEqual(captured.body.imageData, Buffer.from([1, 2, 3]).toString('base64'))
+  })
+
+  it('チャンク境界をまたぐサイズのファイルでも base64 が正しく組み立てられる', async () => {
+    const bytes = new Uint8Array(0x8000 * 2 + 5).map((_, i) => i % 256)
+    const bigFile = { name: 'big.png', arrayBuffer: async () => bytes.buffer }
+    let captured
+    const fetchFn = async (url, opts) => {
+      captured = JSON.parse(opts.body)
+      return { ok: true, json: async () => ({ markdownUrl: '/image/a/big.png' }) }
+    }
+    await uploadImage(bigFile, 'a.md', fetchFn)
+    assert.strictEqual(captured.imageData, Buffer.from(bytes).toString('base64'))
+  })
+
+  it('失敗応答では null を返す', async () => {
+    const fetchFn = async () => ({ ok: false, json: async () => ({ message: 'ng' }) })
+    assert.strictEqual(await uploadImage(fakeFile('photo.png'), 'a.md', fetchFn), null)
+  })
+
+  it('記事に紐づかない追加では配置パスを imageFilename として送り、mdFile を送らない', async () => {
+    let captured
+    const fetchFn = async (url, opts) => {
+      captured = { url, body: JSON.parse(opts.body) }
+      return { ok: true, json: async () => ({ imagePath: 'icons/photo.png' }) }
+    }
+    const result = await addLibraryImage(fakeFile('photo.png'), 'icons/photo.png', fetchFn)
+    assert.deepStrictEqual(result, { ok: true, imagePath: 'icons/photo.png' })
+    assert.strictEqual(captured.body.imageFilename, 'icons/photo.png')
+    assert.strictEqual('mdFile' in captured.body, false)
+  })
+
+  it('記事に紐づかない追加の失敗応答では、失敗の旨とメッセージを返す', async () => {
+    const fetchFn = async () => ({ ok: false, json: async () => ({ message: '既に存在します' }) })
+    const result = await addLibraryImage(fakeFile('photo.png'), 'icons/photo.png', fetchFn)
+    assert.deepStrictEqual(result, { ok: false, message: '既に存在します' })
+  })
 })
 
 // ─── アップロードエンドポイント ───────────────────────────────────────────────

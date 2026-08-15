@@ -1,5 +1,6 @@
 /**
  * @vocab 表示対象
+ * @test tests/editor/image-library.test.js
  * URLによって特定される、エディタが表示すべき資源。
  * @typedef {{ type: 'article'|'image', path: string }} DisplayTarget
  */

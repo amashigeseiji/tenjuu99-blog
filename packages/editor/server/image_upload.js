@@ -4,7 +4,7 @@ import { styleText } from 'node:util'
 import config from '@tenjuu99/blog/lib/config.js'
 import { createConverter } from './createConverter.js'
 import { recordAddition } from './imageLedger.js'
-import { parseJsonBody } from '@tenjuu99/blog/lib/server/helper/parseRequestBody.js'
+import { createJsonPostHandler } from './handlerFoundation.js'
 
 const rootDir = process.cwd()
 const srcDir = nodePath.join(rootDir, config.src_dir)
@@ -20,42 +20,29 @@ const MAX_BODY_SIZE = 10 * 1024 * 1024 // 10MB
  * @vocab: アップロードエンドポイント
  * @test: tests/editor/editor-image-upload.test.js
  */
-export const post = async (req, res) => {
-  let json
-  try {
-    json = await parseJsonBody(req, { maxSize: MAX_BODY_SIZE })
-  } catch (e) {
-    const status = e.code === 'PAYLOAD_TOO_LARGE' ? 413 : 400
-    res.writeHead(status, { 'content-type': 'application/json' })
-    res.end(JSON.stringify({ message: e.message }))
-    return true
+export const post = createJsonPostHandler('upload-image', async (json) => {
+  // mdFile は省略可: 省略時は記事に紐づかない追加（画像ライブラリからの追加）として扱う
+  const { imageData, imageFilename, mdFile } = json
+  if (!imageData || !imageFilename) {
+    return { status: 400, body: { message: '必須パラメーターが不足しています' } }
   }
-
+  const { fn, ext } = await converterPromise
   try {
-    // mdFile は省略可: 省略時は記事に紐づかない追加（画像ライブラリからの追加）として扱う
-    const { imageData, imageFilename, mdFile } = json
-    if (!imageData || !imageFilename) {
-      res.writeHead(400, { 'content-type': 'application/json' })
-      res.end(JSON.stringify({ message: '必須パラメーターが不足しています' }))
-      return true
-    }
-    const { fn, ext } = await converterPromise
     const result = await handleImageUpload({ imageData, imageFilename, mdFile }, { converterFn: fn, outputExt: ext, ledgerPath: imageLedgerPath })
     console.log(styleText('blue', '[upload-image] finished'))
-    res.writeHead(200, { 'content-type': 'application/json' })
-    res.end(JSON.stringify(result))
+    return { body: result }
   } catch (e) {
     if (e.code === 'DUPLICATE_IMAGE' || e.code === 'INVALID_IMAGE_PATH') {
-      res.writeHead(e.code === 'DUPLICATE_IMAGE' ? 409 : 400, { 'content-type': 'application/json' })
-      res.end(JSON.stringify({ message: e.message }))
-      return true
+      return { status: e.code === 'DUPLICATE_IMAGE' ? 409 : 400, body: { message: e.message } }
     }
     console.error(e)
-    res.writeHead(500, { 'content-type': 'application/json' })
-    res.end(JSON.stringify({ message: '画像のアップロードに失敗しました' }))
+    throw e
   }
-  return true
-}
+}, {
+  maxSize: MAX_BODY_SIZE,
+  errorBody: (message) => ({ message }),
+  catchBody: () => ({ message: '画像のアップロードに失敗しました' }),
+})
 
 export { createConverter }
 
