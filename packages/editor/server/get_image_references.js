@@ -22,7 +22,7 @@ export const get = createJsonGetHandler('get_image_references', async (url) => {
     return { status: 400, body: { error: 'imagePath パラメータが必要です' } }
   }
   const articleReferences = collectArticleReferences(watch.pageDir)
-  const remoteState = await resolveRemoteState({ means: config.publish?.means, cwd: rootDir })
+  const remoteState = await resolveRemoteState({ ...config.publish, cwd: rootDir })
   const getStatus = (articlePath) => getPublicationStatus(`${config.src_dir}/pages/${articlePath}`, remoteState)
   const articles = await findReferencingArticles(imagePath, articleReferences, getStatus)
   return { body: { articles } }

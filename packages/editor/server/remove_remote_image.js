@@ -43,7 +43,7 @@ export const post = createJsonPostHandler('remove_remote_image', async ({ imageP
   if (!imagePath) {
     return { status: 400, body: { success: false, error: 'imagePathがありません' } }
   }
-  const means = await resolvePublicationMeans({ means: config.publish?.means, cwd: rootDir })
+  const means = await resolvePublicationMeans({ ...config.publish, cwd: rootDir })
   const result = await removeRemoteImage({ imagePath }, { srcDir, ledgerPath: imageLedgerPath }, means)
   console.log(styleText(result.success ? 'green' : 'red', `[remove_remote_image] ${imagePath} ${result.success ? 'ok' : result.error}`))
   return { status: result.success ? 200 : 400, body: result }

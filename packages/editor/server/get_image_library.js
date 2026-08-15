@@ -17,7 +17,7 @@ export const path = '/get_image_library'
  */
 export const get = async (req, res) => {
   const srcDir = nodePath.join(rootDir, config.src_dir)
-  const remoteState = await resolveRemoteState({ means: config.publish?.means, cwd: rootDir })
+  const remoteState = await resolveRemoteState({ ...config.publish, cwd: rootDir })
   const { images, remoteOnly } = await collectImageLibrary({
     srcDir,
     remoteState,

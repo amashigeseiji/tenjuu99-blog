@@ -31,7 +31,7 @@ export async function handleUnpublish({
 }, means) {
   const target = `${srcDirParam}/pages/${filePath}`
   const status = await getPublicationStatus(target, means.remoteState)
-  if (status === 'unknown') return { success: false, error: 'リモートへの接続に失敗しました（upstream branch が未設定の可能性があります）' }
+  if (status === 'unknown') return { success: false, error: 'リモートへの接続に失敗しました（公開手段の設定・認証情報・接続を確認してください）' }
   if (status === 'new') return { success: false, error: NOT_YET_PUBLISHED_ERROR }
   const result = await unpublish([target], means)
   if (result.success) {
@@ -54,7 +54,7 @@ export const post = createJsonPostHandler('unpublish', async ({ filePath }) => {
   if (!resolvedFilePath.startsWith(pagesDir + nodePath.sep)) {
     return { status: 400, body: { success: false, error: '不正なファイルパスです' } }
   }
-  const means = await resolvePublicationMeans({ means: config.publish?.means, cwd: rootDir })
+  const means = await resolvePublicationMeans({ ...config.publish, cwd: rootDir })
   const result = await handleUnpublish({ filePath, srcDir: config.src_dir, ledgerPath: imageLedgerPath }, means)
   console.log(styleText(result.success ? 'green' : 'red', `[unpublish] ${filePath} ${result.success ? 'ok' : result.error}`))
   const httpStatus = result.success ? 200 : result.error === NOT_YET_PUBLISHED_ERROR ? 400 : 500

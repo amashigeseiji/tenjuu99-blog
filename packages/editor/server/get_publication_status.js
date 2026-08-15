@@ -17,7 +17,7 @@ export const get = createJsonGetHandler('publication-status', async (url) => {
   if (!filePath.startsWith(pagesPrefix + '/') && !filePath.startsWith(pagesPrefix + nodePath.sep)) {
     return { status: 400, body: { error: '不正なファイルパスです' } }
   }
-  const remoteState = await resolveRemoteState({ means: config.publish?.means, cwd: rootDir })
+  const remoteState = await resolveRemoteState({ ...config.publish, cwd: rootDir })
   const status = await getPublicationStatus(filePath, remoteState)
   return { body: { status } }
 })

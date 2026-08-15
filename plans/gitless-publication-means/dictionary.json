@@ -1,0 +1,150 @@
+{
+  "version": "1",
+  "contexts": [],
+  "entries": [
+    {
+      "name": "同期の基点",
+      "en": "SyncBase",
+      "context": "publishing",
+      "domain": "application",
+      "definition": "手元とリモートを最後に揃えた時点の、ファイルごとの内容の知識。#版の連なり の向き判定に要る「共通の祖先」の役割を、手段が実行環境の履歴から借りるのではなくシステム自身が保持する形。ファイル単位で持ち、そのファイルの #公開する ・#除去 が #リモート に届いたとき、および #取り込む で手元に反映されたときに進む（除去が届いたときはそのファイルの記録が消える）。この規律により、部分的な取り込みでも他のファイルの判定が壊れない。コンテンツルートごとに手元に置かれ、リモートへは送られない。",
+      "relations": [
+        { "type": "references", "target": "版の連なり", "note": "共通祖先の役割を担う" },
+        { "type": "references", "target": "取り込む", "note": "進める契機（手元に反映されたとき）" },
+        { "type": "references", "target": "公開する", "note": "進める契機（リモートに届いたとき）" },
+        { "type": "references", "target": "除去", "note": "進める契機（届いたとき記録が消える）" },
+        { "type": "references", "target": "ローカル", "note": "置き場所は手元" },
+        { "type": "references", "target": "リモート", "note": "揃えた相手。送られはしない" }
+      ],
+      "affordances": [
+        "進める",
+        "参照する"
+      ],
+      "src": "lib/publishing/syncBase.js",
+      "wip": { "status": "new", "discovered": "tdd-vocab plan" }
+    },
+    {
+      "name": "認証情報",
+      "en": "Credential",
+      "context": "publishing",
+      "domain": "application",
+      "definition": "#公開手段 が #リモート へ届くために示す本人性の証し。git 手段では実行環境（credential helper）が持っていたものを、環境に頼らない手段は自身の建て付けの中で受け取って使う。獲得のフロー（認証 UI）は範囲外で、用意されているところから始まる。コンテンツルートごと・マシンごとに手元だけに置かれ、共有される設定（blog.json）にもリモートにも含めない。",
+      "relations": [
+        { "type": "references", "target": "公開手段", "note": "届くために使う" },
+        { "type": "references", "target": "リモート", "note": "届く先" },
+        { "type": "references", "target": "ローカル", "note": "置き場所は手元だけ" }
+      ],
+      "src": "lib/publishing/credential.js",
+      "wip": { "status": "new", "discovered": "tdd-vocab plan" }
+    },
+    {
+      "name": "版の連なり",
+      "en": "VersionLineage",
+      "context": "publishing",
+      "domain": "application",
+      "definition": "版の履歴と共通の祖先の知識。これがあって初めて先行・後行・分岐という向きのある判定が言える。#取り込む の安全性と、不在の曖昧性（手元で消されたのか、他所で作られたのか）の解消の基盤。独自の装置では持たず #公開手段 への要求とする。手段は実行環境の履歴（git）で満たしても、システム自身が保持する #同期の基点 で満たしてもよい。どちらも持たない手段は #内容差分 の不一致までで正直に退化する。",
+      "relations": [
+        { "type": "references", "target": "内容差分", "note": "内容比較だけでは言えない向きを言えるようにする" },
+        { "type": "references", "target": "取り込む", "note": "安全性判定の基盤を提供する" },
+        { "type": "references", "target": "公開手段", "note": "この知識の提供を手段に要求する" },
+        { "type": "references", "target": "同期の基点", "note": "環境の履歴に代わる充足の仕方" }
+      ],
+      "src": "lib/publishing/versionLineage.js",
+      "wip": { "status": "redefine", "reason": "git 以外の手段が、環境の履歴の代わりにシステム自身が保持する同期の基点で版の連なりを満たせるようにする", "impact": "定義文の充足条件の拡張のみ。既存の git 手段・取り込みの意味は変わらない" }
+    },
+    {
+      "name": "公開手段",
+      "en": "PublicationMeans",
+      "context": "publishing",
+      "domain": "application",
+      "definition": "公開と同期の実現方法の総称（git 運用・FTP/SFTP・JS git 実装など）。#リモート の内容の参照（#リモート状態 ）、#ローカル から #リモート への反映の実行、送る #公開物 の形態に加えて、リモートからの除去の実行・取り込みの実行・#版の連なり の参照・リモートの知識の更新をどう実現するかを担う。手段が替わっても #公開する ・ #公開ステータス ・ #同期 の各操作の意味は変わらない。#リモート へ届くための #認証情報 の扱いも手段が担う（実行環境から得るか、手元だけに置かれた認証情報を受け取るかは手段による）。",
+      "relations": [
+        { "type": "references", "target": "リモート", "note": "リモートの実体を決める" },
+        { "type": "references", "target": "リモート状態", "note": "リモート内容の参照の実現を担う" },
+        { "type": "references", "target": "公開物", "note": "送るものの形態を決める" },
+        { "type": "references", "target": "公開する", "note": "その実現方法にあたる" },
+        { "type": "references", "target": "デプロイ", "note": "手段によって反映とサイト公開の関係が変わる" },
+        { "type": "references", "target": "公開ステータス", "context": "editor", "note": "手段が替わっても意味は不変" },
+        { "type": "references", "target": "除去", "note": "リモートからの除去の実行を担う" },
+        { "type": "references", "target": "取り込む", "note": "取り込みの実行を担う" },
+        { "type": "references", "target": "版の連なり", "note": "この知識の提供を要求される（満たさない手段は不一致までで退化）" },
+        { "type": "references", "target": "認証情報", "note": "リモートへ届くための扱いを担う" }
+      ],
+      "src": null,
+      "wip": { "status": "redefine", "reason": "資格情報の扱いを手段の責務として明示する（環境に頼らない手段の追加に伴う）", "impact": "定義文への責務追加のみ。既存 git 手段の挙動は変わらない" }
+    },
+    {
+      "name": "GitHub公開手段",
+      "en": "GitHubPublicationMeans",
+      "context": "publishing",
+      "domain": "solution",
+      "src": "lib/publishing/gitHubPublicationMeans.js",
+      "definition": "#公開手段 の、GitHub がホストするリモートに GitHub がネットワーク越しに提供する手段で届く実現。手元に git を要求しない。原稿と参照画像を公開物として、一度の反映でまとめてリモートへ届け（反映・除去しようとするファイルについてリモートが進んでいれば、上書き・消去せず何も書かずに拒む）、除去・取り込み・リモート状態の参照を #GitHub接続 越しに行う。git の履歴が担っていた「前回揃えた時点」の知識は #同期の基点 として自身が保持し、#フィンガープリント で手元とリモートの同異を判定する。リモートの更新は git 運用の反映と見分けがつかない形（履歴が一本、内容が同じ）で行う。",
+      "relations": [
+        { "type": "references", "target": "公開手段", "note": "その実現" },
+        { "type": "references", "target": "GitHub接続", "note": "すべての読み書きが通る口" },
+        { "type": "references", "target": "同期の基点", "note": "保持し、反映・除去・取り込みの後に進める" },
+        { "type": "references", "target": "フィンガープリント", "note": "差分判定・版の連なりの材料" },
+        { "type": "references", "target": "版の連なり", "note": "基点を用いて示す" },
+        { "type": "references", "target": "認証情報", "note": "提供者を通じて接続に渡す" }
+      ],
+      "wip": { "status": "new", "discovered": "tdd-run" }
+    },
+    {
+      "name": "GitHub接続",
+      "en": "GitHubConnection",
+      "context": "publishing",
+      "domain": "solution",
+      "src": "lib/publishing/gitHubConnection.js",
+      "definition": "#GitHub公開手段 の読み書きが通る薄い口。認証情報を添えて、リモートの現在の版とそこに含まれるファイル一覧・内容を読み、新しい版（追加・更新・削除をまとめたもの）を書き込む。届かないとき（認証情報が無い・通らない・不通）や、リモートが進んでいて書き込めないときは沈黙せず誤りを返す。通信の関数は注入可能で、手段の論理はこの口に依存せずインメモリで検証できる。",
+      "relations": [
+        { "type": "references", "target": "GitHub公開手段", "note": "これを使う" },
+        { "type": "references", "target": "認証情報提供者", "note": "いま有効な認証情報を得る" },
+        { "type": "references", "target": "リモート", "note": "その実体への口" }
+      ],
+      "wip": { "status": "new", "discovered": "tdd-run" }
+    },
+    {
+      "name": "フィンガープリント",
+      "en": "Fingerprint",
+      "context": "publishing",
+      "domain": "solution",
+      "src": "lib/publishing/fingerprint.js",
+      "definition": "ファイル内容（テキスト・バイナリ）から計算される識別子で、同じ内容なら同じ値になる。リモート側で同じ内容に与えられる識別と一致するため、内容を取り寄せずに手元とリモートの同異を判定できる。",
+      "relations": [
+        { "type": "references", "target": "GitHub公開手段", "note": "差分の有無・版の連なりの判定に使う" },
+        { "type": "references", "target": "同期の基点", "note": "揃えた時点の内容をこれで記録する" },
+        { "type": "references", "target": "内容差分", "note": "差分の有無の判定材料" }
+      ],
+      "wip": { "status": "new", "discovered": "tdd-run" }
+    },
+    {
+      "name": "認証情報提供者",
+      "en": "CredentialProvider",
+      "context": "publishing",
+      "domain": "solution",
+      "src": "lib/publishing/credential.js",
+      "definition": "いま有効な #認証情報 を返す提供者。リモートへ届く必要のある側（接続）は、認証情報の実体や置き場所・取得の仕方ではなくこの提供者に依存する。手段ごとに認証情報の形は異なる（GitHub ならトークン）が、提供者の形は手段によらず同じ。本プランでの提供者は、手元だけの置き場所から手段名で区切られた静的な値を読むだけ。",
+      "relations": [
+        { "type": "references", "target": "認証情報", "note": "提供する" },
+        { "type": "references", "target": "GitHub接続", "note": "渡し先" },
+        { "type": "references", "target": "公開手段", "note": "手段が認証情報を扱う責務の実現点" }
+      ],
+      "wip": { "status": "new", "discovered": "tdd-run" }
+    },
+    {
+      "name": "公開手段解決器",
+      "en": "PublicationMeansResolver",
+      "context": "publishing",
+      "domain": "solution",
+      "src": "lib/publishing/publicationMeansResolver.js",
+      "definition": "構成にもとづいて使う公開手段を決めて提供する。手段の差し替え点はここに一本化される。",
+      "relations": [
+        { "type": "references", "target": "公開手段", "note": "決めて提供する対象" },
+        { "type": "references", "target": "git公開手段", "note": "既定の手段" },
+        { "type": "references", "target": "GitHub公開手段", "note": "構成 publish.means が github のとき、リモートの識別と認証情報の提供者を与えて組み立てる" }
+      ],
+      "wip": { "status": "redefine", "discovered": "tdd-run" }
+    }
+  ]
+}
