@@ -35,7 +35,7 @@ export async function handlePublish({
   let result
   if (state === 'new') result = await publish(files, means)
   else if (state === 'modified') result = await update(files, means)
-  else if (state === 'unknown') return { success: false, error: 'リモートへの接続に失敗しました（upstream branch が未設定の可能性があります）' }
+  else if (state === 'unknown') return { success: false, error: 'リモートへの接続に失敗しました（公開手段の設定・認証情報・接続を確認してください）' }
   else result = { success: true } // published 状態はローカルとリモートが一致しているため操作不要
 
   if (result.success && (state === 'new' || state === 'modified')) {
@@ -64,7 +64,7 @@ export const post = createJsonPostHandler('publish', async ({ filePath, fileCont
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
     fs.writeFileSync(`${srcDir}/pages/${filePath}`, fileContent)
   }
-  const means = await resolvePublicationMeans({ means: config.publish?.means, cwd: rootDir })
+  const means = await resolvePublicationMeans({ ...config.publish, cwd: rootDir })
   const result = await handlePublish(
     { filePath, fileContent: content, srcDir: config.src_dir, ledgerPath: imageLedgerPath },
     means

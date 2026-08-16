@@ -8,6 +8,8 @@ data/index.json
 
 .env
 .cache/
+# 公開手段が手元だけに置く知識（同期の基点・認証情報）
+.blog/
 not_include/
 .claude/tdd/dependency-graph.json
 

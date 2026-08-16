@@ -14,7 +14,7 @@ export const path = '/pull'
 
 export const post = async (req, res) => {
   try {
-    const means = await resolvePublicationMeans({ means: config.publish?.means, cwd: rootDir })
+    const means = await resolvePublicationMeans({ ...config.publish, cwd: rootDir })
     const result = await pull(means, { scope: `${config.src_dir}/` })
     const summary = `applied=${result.applied.length} skipped=${result.skipped.length}`
     console.log(styleText(result.success ? 'green' : 'red', `[pull] ${result.success ? summary : result.error}`))

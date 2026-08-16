@@ -24,7 +24,7 @@ export const post = createJsonPostHandler('delete', async ({ filePath }) => {
   if (!resolvedFilePath.startsWith(pagesDir + nodePath.sep)) {
     return { status: 400, body: { success: false, error: '不正なファイルパスです' } }
   }
-  const means = await resolvePublicationMeans({ means: config.publish?.means, cwd: rootDir })
+  const means = await resolvePublicationMeans({ ...config.publish, cwd: rootDir })
   const target = `${config.src_dir}/pages/${filePath}`
   const status = await getPublicationStatus(target, means.remoteState)
   if (status === 'unknown') {

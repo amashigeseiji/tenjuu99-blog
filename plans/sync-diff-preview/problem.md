@@ -60,6 +60,7 @@
 ## 他の問題との関係
 
 - `前提とする`: plans/archives/sync-operations/problem.md — 版の連なり（diverged/deletedLocallyの判定）と取り込む・公開するの基本操作が、手段から独立に定義され実装済みであることの上に、本問題の可視化・解消が載る
+- `関連`: plans/archives/gitless-publication-means/problem.md（解決済み・アーカイブ 2026-08-16。後続は plans/publication-means-selection/problem.md）— 前提でも矛盾でもないが、一方の解き方が他方の公開手段の抽象への要求を変える。本問題が先に解かれれば、内容変化の提示や「リモートが進んでいるか」の事前判定が手段への要求として増え、あちらの新手段もそれを満たす必要がある。あちらが先に解かれれば、システム自身が持つ「同期の基点」の知識が本問題の差分可視化・分岐検出の実現材料になる（gitless-publication-means v2 で宣言、2026-08-15）
 
 ## 技術的背景（調査結果）
 
@@ -86,4 +87,4 @@
 - `lib/publishing/gitPublicationMeans.js` — 公開する・取り込むの git による実現、版の連なりの判定
 - `lib/publishing/versionLineage.js` — diverged などの分類ロジック
 - `plans/archives/sync-operations/problem.md` — 前提とする問題。取り込む・非公開にする・削除するの意味の定義
-- `plans/gitless-publication-means/problem.md` — 版の連なりの知識をどう持つかという関連する開いた設計論点
+- `plans/archives/gitless-publication-means/problem.md` — 版の連なりの知識をどう持つかという関連する開いた設計論点

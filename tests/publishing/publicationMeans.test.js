@@ -62,6 +62,7 @@ describe('公開手段は公開済みの参照と公開物の反映を担い、�
       const remoteState = await resolveRemoteState({ means: 'ftp', cwd: process.cwd() })
       await assert.rejects(() => remoteState.existsInRemote('src/pages/post/hello.md'))
       await assert.rejects(() => remoteState.diffFromRemote('src/pages/post/hello.md'))
+      await assert.rejects(() => remoteState.listRemoteFiles())
     })
     it('差し替えた参照不能な状態は、公開ステータス判定器を通すと unknown になる', async () => {
       const { resolveRemoteState } = await import('../../lib/publishing/remoteStateResolver.js')

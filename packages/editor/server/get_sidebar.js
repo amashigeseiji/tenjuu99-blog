@@ -40,7 +40,7 @@ function scanFiles(dir, prefix = '') {
  */
 export const collectSidebarHtml = async () => {
   const files = scanFiles(watch.pageDir)
-  const remoteState = await resolveRemoteState({ means: config.publish?.means, cwd: rootDir })
+  const remoteState = await resolveRemoteState({ ...config.publish, cwd: rootDir })
   const fileMappings = files.map(f => ({
     treePath: `${f.name}.${f.__filetype}`,
     localPath: `${config.src_dir}/pages/${f.name}.${f.__filetype}`,
