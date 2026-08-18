@@ -41,7 +41,7 @@ npm test           # テスト実行（tests/*.test.js）
 
 詳細は [docs/develop.md#主要モジュールの開発ガイド](docs/develop.md#主要モジュールの開発ガイド) 参照。
 
-**Hook機構**: `afterIndexing` フックでビルドプロセスに介入可能（カテゴリー自動生成など）。詳細は [docs/spec/ssg-core.md#Hook機構](docs/spec/ssg-core.md#Hook機構) 参照。
+**Hook機構**: `afterIndexing` フックでビルドプロセスに介入可能（カテゴリー自動生成など）。詳細は [docs/spec/ssg-core.md#hook機構](docs/spec/ssg-core.md#hook機構) 参照。
 
 **カテゴリーパッケージ**: `packages/category` は階層型カテゴリーの自動生成機能を提供。`categories` 配列で複数の独立したカテゴリーシステムを定義可能（`path_filter` でページを絞り込み）。詳細は [docs/spec/category.md](docs/spec/category.md) 参照。
 

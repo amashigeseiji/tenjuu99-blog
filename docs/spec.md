@@ -4,7 +4,7 @@
 
 ## コンテキスト別の仕様
 
-機能領域（コンテキスト）ごとの仕様は `docs/spec/` に分かれている。名前と関係は `docs/dictionary.json`、行為の証拠は `docs/acts.json`、実装の所在は `docs/map.json` が持ち、spec はその説明にあたる。
+機能領域（コンテキスト）ごとの仕様は `docs/spec/` に分かれている。名前と関係は `docs/dictionary.json`、行為の証拠は `docs/acts.json`、実装の所在は `docs/map.json`（`@vocab` 注釈から生成される接続マップ。コミットされないので手元で生成する）が持ち、spec はその説明にあたる。
 
 | コンテキスト | ファイル |
 |---|---|
