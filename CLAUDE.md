@@ -4,7 +4,7 @@
 
 ## ドキュメント参照優先順位
 
-1. **[docs/spec.md](docs/spec.md)** - 完全な技術仕様（必ず最初に確認）
+1. **[docs/spec.md](docs/spec.md)** - 技術仕様の基本事項とインデックス（コンテキスト別の詳細は `docs/spec/<context>.md`。必ず最初に確認）
 2. **[docs/develop.md](docs/develop.md)** - 開発ガイド（ライブラリ開発時）
 3. **[README.md](README.md)** - ユーザー向けガイド
 
@@ -41,9 +41,9 @@ npm test           # テスト実行（tests/*.test.js）
 
 詳細は [docs/develop.md#主要モジュールの開発ガイド](docs/develop.md#主要モジュールの開発ガイド) 参照。
 
-**Hook機構**: `afterIndexing` フックでビルドプロセスに介入可能（カテゴリー自動生成など）。詳細は [docs/spec.md#Hook機構](docs/spec.md#Hook機構) 参照。
+**Hook機構**: `afterIndexing` フックでビルドプロセスに介入可能（カテゴリー自動生成など）。詳細は [docs/spec/ssg-core.md#hook機構](docs/spec/ssg-core.md#hook機構) 参照。
 
-**カテゴリーパッケージ**: `packages/category` は階層型カテゴリーの自動生成機能を提供。`categories` 配列で複数の独立したカテゴリーシステムを定義可能（`path_filter` でページを絞り込み）。詳細は [docs/spec.md#category-パッケージ詳細](docs/spec.md#category-パッケージ詳細) 参照。
+**カテゴリーパッケージ**: `packages/category` は階層型カテゴリーの自動生成機能を提供。`categories` 配列で複数の独立したカテゴリーシステムを定義可能（`path_filter` でページを絞り込み）。詳細は [docs/spec/category.md](docs/spec/category.md) 参照。
 
 ### 2. 制約事項（重要）
 - フロントマターはYAML完全互換でない（独自パーサー）
